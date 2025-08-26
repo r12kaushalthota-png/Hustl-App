@@ -6,6 +6,9 @@ import { Search, Bell } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/features/notifications/useNotifications';
+import NotificationBell from './NotificationBell';
+import NotificationCenterModal from './NotificationCenterModal';
 import ProfileSidebar from './ProfileSidebar';
 
 interface GlobalHeaderProps {
@@ -22,8 +25,10 @@ export default function GlobalHeader({
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, isGuest } = useAuth();
+  const { unreadCount } = useNotifications();
 
   const [showProfileSidebar, setShowProfileSidebar] = React.useState(false);
+  const [showNotificationCenter, setShowNotificationCenter] = React.useState(false);
 
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
@@ -58,7 +63,8 @@ export default function GlobalHeader({
   };
 
   const handleNotificationsPress = () => {
-    console.log('Notifications pressed');
+    triggerHaptics();
+    setShowNotificationCenter(true);
   };
 
   const getInitials = (name: string): string => {
@@ -149,9 +155,10 @@ export default function GlobalHeader({
             )}
             
             {showNotifications && (
-              <TouchableOpacity style={styles.iconButton} onPress={handleNotificationsPress}>
-                <Bell size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-              </TouchableOpacity>
+              <NotificationBell
+                unreadCount={unreadCount}
+                onPress={handleNotificationsPress}
+              />
             )}
           </View>
         </View>
@@ -161,6 +168,12 @@ export default function GlobalHeader({
       <ProfileSidebar
         visible={showProfileSidebar}
         onClose={() => setShowProfileSidebar(false)}
+      />
+
+      {/* Notification Center Modal */}
+      <NotificationCenterModal
+        visible={showNotificationCenter}
+        onClose={() => setShowNotificationCenter(false)}
       />
     </>
   );
