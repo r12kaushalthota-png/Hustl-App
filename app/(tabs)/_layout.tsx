@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Chrome as Home, List, MessageCircle, Gift, Zap, Star } from 'lucide-react-native';
+import { Home as HomeIcon, Grid3X3, MessageCircle, Gift, Zap } from 'lucide-react-native';
 import { TouchableOpacity, View, StyleSheet, Platform, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -253,7 +253,7 @@ export default function TabLayout() {
             title: 'Home',
             tabBarIcon: ({ size, color, focused }) => (
               <TabIcon 
-                IconComponent={Home} 
+                IconComponent={HomeIcon} 
                 size={size} 
                 color={color} 
                 focused={focused}
@@ -267,7 +267,7 @@ export default function TabLayout() {
             title: 'Tasks',
             tabBarIcon: ({ size, color, focused }) => (
               <TabIcon 
-                IconComponent={List} 
+                IconComponent={Grid3X3} 
                 size={size} 
                 color={color} 
                 focused={focused}
