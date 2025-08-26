@@ -14,15 +14,25 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.hustl.app",
+    config: {
+      usesNonExemptEncryption: false
+    },
     infoPlist: {
       NSLocationWhenInUseUsageDescription:
         "We use your location to show nearby tasks on the map.",
-      LSApplicationQueriesSchemes: ["comgooglemaps"]
+      LSApplicationQueriesSchemes: ["comgooglemaps"],
+      NSUserNotificationsUsageDescription:
+        "We send you notifications about task updates and new opportunities."
     }
   },
 
   android: {
-    package: "com.hustl.app"
+    package: "com.hustl.app",
+    permissions: [
+      "android.permission.RECEIVE_BOOT_COMPLETED",
+      "android.permission.VIBRATE",
+      "android.permission.WAKE_LOCK"
+    ]
   },
 
   web: {

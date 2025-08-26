@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Session, User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { ProfileRepo } from '@/lib/profileRepo';
+import { NotificationService } from '@/services/notifications';
 import type { UserProfile } from '@/types/database';
 
 interface AuthUser {
@@ -67,6 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadUserWithProfile = async (supabaseUser: User) => {
     const authUser = mapSupabaseUser(supabaseUser);
     setUser(authUser);
+
+    // Initialize push notifications for authenticated user
+    try {
+      await NotificationService.initializePushNotifications(supabaseUser.id);
+    } catch (error) {
+      console.warn('Failed to initialize push notifications:', error);
+    }
 
     // Load profile data
     try {
@@ -166,6 +174,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async (): Promise<void> => {
     try {
       setIsLoading(true);
+      
+      // Clean up notification listeners
+      NotificationService.removeNotificationListeners();
+      
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);

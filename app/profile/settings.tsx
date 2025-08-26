@@ -4,17 +4,104 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Bell, Shield, Eye, Moon, Smartphone, ChevronRight } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
+import { NotificationService } from '@/services/notifications';
+import { useAuth } from '@/contexts/AuthContext';
+import type { NotificationPreferences } from '@/services/notifications';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   
   // Settings state
   const [pushNotifications, setPushNotifications] = useState(true);
+  const [newTasks, setNewTasks] = useState(true);
+  const [taskAccepted, setTaskAccepted] = useState(true);
   const [taskUpdates, setTaskUpdates] = useState(true);
-  const [messageNotifications, setMessageNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [profileVisibility, setProfileVisibility] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  useEffect(() => {
+    loadNotificationSettings();
+  }, []);
+
+  const loadNotificationSettings = async () => {
+    if (!user) return;
+
+    try {
+      // Check if notifications are enabled at device level
+      const enabled = await NotificationService.areNotificationsEnabled();
+      setNotificationsEnabled(enabled);
+
+      // Load user preferences
+      const { data: preferences } = await NotificationService.getNotificationPreferences(user.id);
+      
+      if (preferences) {
+        setNewTasks(preferences.new_tasks);
+        setTaskAccepted(preferences.task_accepted);
+        setTaskUpdates(preferences.task_updates);
+      }
+    } catch (error) {
+      console.error('Failed to load notification settings:', error);
+    }
+  };
+
+  const updateNotificationPreference = async (
+    key: keyof Omit<NotificationPreferences, 'user_id'>,
+    value: boolean
+  ) => {
+    if (!user || isLoading) return;
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await NotificationService.updateNotificationPreferences(user.id, {
+        [key]: value
+      });
+
+      if (error) {
+        console.error('Failed to update notification preferences:', error);
+        // Revert the change
+        switch (key) {
+          case 'new_tasks':
+            setNewTasks(!value);
+            break;
+          case 'task_accepted':
+            setTaskAccepted(!value);
+            break;
+          case 'task_updates':
+            setTaskUpdates(!value);
+            break;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to update notification preferences:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOpenNotificationSettings = async () => {
+    await NotificationService.openNotificationSettings();
+  };
+
+  const handleSendTestNotification = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await NotificationService.sendTestNotification();
+      
+      if (error) {
+        Alert.alert('Error', 'Failed to send test notification: ' + error);
+      } else {
+        Alert.alert('Success', 'Test notification sent! Check your device.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to send test notification');
+    }
+  };
 
   const handleBack = () => {
     router.back();
@@ -87,6 +174,20 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notifications</Text>
           
+          {!notificationsEnabled && (
+            <View style={styles.notificationWarning}>
+              <Text style={styles.warningText}>
+                Notifications are disabled in device settings
+              </Text>
+              <TouchableOpacity 
+                style={styles.warningButton}
+                onPress={handleOpenNotificationSettings}
+              >
+                <Text style={styles.warningButtonText}>Open Settings</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          
           <SettingItem
             icon={<Bell size={20} color={Colors.primary} strokeWidth={2} />}
             title="Push Notifications"
@@ -96,20 +197,47 @@ export default function SettingsScreen() {
           />
           
           <SettingItem
+            icon={<Bell size={20} color={Colors.primary} strokeWidth={2} />}
+            title="New Tasks"
+            subtitle="Get notified about new tasks near you"
+            value={newTasks}
+            onValueChange={(value) => {
+              setNewTasks(value);
+              updateNotificationPreference('new_tasks', value);
+            }}
+          />
+          
+          <SettingItem
+            icon={<Smartphone size={20} color={Colors.primary} strokeWidth={2} />}
+            title="Task Accepted"
+            subtitle="Get notified when someone accepts your task"
+            value={taskAccepted}
+            onValueChange={(value) => {
+              setTaskAccepted(value);
+              updateNotificationPreference('task_accepted', value);
+            }}
+          />
+          
+          <SettingItem
             icon={<Smartphone size={20} color={Colors.primary} strokeWidth={2} />}
             title="Task Updates"
             subtitle="Get notified about task status changes"
             value={taskUpdates}
-            onValueChange={setTaskUpdates}
+            onValueChange={(value) => {
+              setTaskUpdates(value);
+              updateNotificationPreference('task_updates', value);
+            }}
           />
-          
-          <SettingItem
-            icon={<Bell size={20} color={Colors.primary} strokeWidth={2} />}
-            title="Message Notifications"
-            subtitle="Get notified about new messages"
-            value={messageNotifications}
-            onValueChange={setMessageNotifications}
-          />
+
+          {__DEV__ && (
+            <SettingItem
+              icon={<Bell size={20} color={Colors.secondary} strokeWidth={2} />}
+              title="Send Test Notification"
+              subtitle="Test push notifications (dev only)"
+              showChevron
+              onPress={handleSendTestNotification}
+            />
+          )}
         </View>
 
         {/* Privacy Section */}
@@ -242,5 +370,34 @@ const styles = StyleSheet.create({
   },
   settingRight: {
     marginLeft: 16,
+  },
+  notificationWarning: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 24,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  warningText: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.semantic.errorAlert,
+    marginRight: 12,
+  },
+  warningButton: {
+    backgroundColor: Colors.semantic.errorAlert,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  warningButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.white,
   },
 });

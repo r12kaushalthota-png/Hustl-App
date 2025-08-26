@@ -78,3 +78,53 @@ For full native functionality including interactive maps:
 - Restart Metro bundler: `npx expo start --clear`
 
 ## Features
+
+## Push Notifications
+
+The app includes a comprehensive push notification system that alerts users about:
+- New tasks posted near them
+- When their tasks are accepted
+- Task status updates (picked up, delivered, completed)
+
+### Setup for Development
+
+1. **Expo Push Notifications**:
+   - Uses Expo's push notification service
+   - Requires physical device for testing (simulator won't receive push notifications)
+   - Automatically registers for notifications on login
+
+2. **Edge Functions**:
+   - `sendPush` - Handles all notification logic and delivery
+   - `broadcastTest` - Sends test notifications (dev only)
+   - Automatically deployed to Supabase
+
+3. **Database Tables**:
+   - `push_subscriptions` - Stores device tokens
+   - `notification_preferences` - User notification settings
+   - Automatically created via migrations
+
+### Testing Push Notifications
+
+1. **Enable notifications**:
+   - Sign in to the app (not guest mode)
+   - Allow notification permissions when prompted
+   - Check Profile → Settings → Notifications to verify setup
+
+2. **Test notifications**:
+   - In dev mode, go to Profile → Settings
+   - Tap "Send Test Notification" to verify delivery
+   - Create/accept/update tasks to test real notifications
+
+3. **Troubleshooting**:
+   - Ensure you're on a physical device (not simulator)
+   - Check notification permissions in device settings
+   - Verify Supabase Edge Functions are deployed
+   - Check console logs for token registration errors
+
+### Notification Types
+
+- **TASK_POSTED**: "New task near you: Coffee run • Starbucks"
+- **TASK_ACCEPTED**: "Your task was accepted: Coffee run"
+- **TASK_UPDATED**: "Task update: Coffee run • Picked up"
+
+Users can customize which notifications they receive in Profile → Settings → Notifications.
