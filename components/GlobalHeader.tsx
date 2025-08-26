@@ -269,12 +269,6 @@ export default function GlobalHeader({
             </View>
           </View>
         </View>
-        
-        {/* Profile Sidebar */}
-        <ProfileSidebar
-          visible={showProfileSidebar}
-          onClose={() => setShowProfileSidebar(false)}
-        />
       </>
     );
   }

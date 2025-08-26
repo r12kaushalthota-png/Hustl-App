@@ -164,9 +164,7 @@ const PulsingButton = ({ children, onPress, style }: {
   return (
     <Animated.View style={[animatedGlowStyle, style]}>
       <Animated.View style={animatedStyle}>
-        <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
-          {children}
-        </TouchableOpacity>
+        <View style={styles.placeholder} />
       </Animated.View>
     </Animated.View>
   );
