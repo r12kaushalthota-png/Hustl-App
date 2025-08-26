@@ -22,7 +22,7 @@ type ViewMode = 'map' | 'list';
 export default function TasksScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, isGuest } = useAuth();
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>('map');
   const [activeTab, setActiveTab] = useState<TabType>('available');
   
@@ -88,7 +88,7 @@ export default function TasksScreen() {
 
   // Load tasks based on active tab
   const loadTasks = useCallback(async (showRefreshIndicator = false) => {
-    if (isGuest || !user) return;
+    if (!user) return;
 
     if (showRefreshIndicator) {
       setIsRefreshing(true);
@@ -171,7 +171,7 @@ export default function TasksScreen() {
 
   // Handle task acceptance
   const handleAcceptTask = async (task: Task) => {
-    if (isGuest || !user) return;
+    if (!user) return;
     if (acceptingTaskId) return;
 
     if (Platform.OS !== 'web') {
@@ -298,7 +298,7 @@ export default function TasksScreen() {
   const renderTaskCard = (task: Task) => {
     const isOwnTask = user && task.created_by === user.id;
     const isAccepting = acceptingTaskId === task.id;
-    const canAccept = activeTab === 'available' && !isOwnTask && !isGuest && user;
+    const canAccept = activeTab === 'available' && !isOwnTask && user;
     const canChat = task.status === 'accepted' && user && 
       (task.created_by === user.id || task.accepted_by === user.id);
     const canUpdateStatus = activeTab === 'doing' && user && task.accepted_by === user.id && task.status === 'accepted';

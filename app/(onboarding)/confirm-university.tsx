@@ -17,11 +17,6 @@ export default function ConfirmUniversity() {
     router.back();
   };
 
-  const handleSkip = () => {
-    // Allow users to skip and browse as guest
-    router.replace('/(tabs)/home');
-  };
-
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
@@ -34,9 +29,7 @@ export default function ConfirmUniversity() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <TouchableOpacity onPress={handleSkip}>
-            <Text style={styles.skipText}>Skip</Text>
-          </TouchableOpacity>
+          <View style={styles.placeholder} />
         </View>
       </View>
 

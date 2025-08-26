@@ -11,7 +11,7 @@ import { Task } from '@/types/database';
 export default function TaskHistoryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user, isGuest } = useAuth();
+  const { user } = useAuth();
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -20,7 +20,7 @@ export default function TaskHistoryScreen() {
   }, []);
 
   const loadTaskHistory = async () => {
-    if (isGuest || !user) {
+    if (!user) {
       setIsLoading(false);
       return;
     }
