@@ -189,8 +189,8 @@ const AnimatedBackground = () => {
   React.useEffect(() => {
     floatingAnimation1.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 4000 }),
-        withTiming(0, { duration: 4000 })
+        withTiming(1, { duration: 8000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 8000, easing: Easing.inOut(Easing.sin) })
       ),
       -1,
       true
@@ -198,8 +198,8 @@ const AnimatedBackground = () => {
 
     floatingAnimation2.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 5000 }),
-        withTiming(0, { duration: 5000 })
+        withTiming(1, { duration: 12000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 12000, easing: Easing.inOut(Easing.sin) })
       ),
       -1,
       true
@@ -207,28 +207,40 @@ const AnimatedBackground = () => {
 
     floatingAnimation3.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 6000 }),
-        withTiming(0, { duration: 6000 })
+        withTiming(1, { duration: 15000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 15000, easing: Easing.inOut(Easing.sin) })
       ),
       -1,
       true
     );
   }, []);
 
-  const animatedStyle1 = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(floatingAnimation1.value, [0, 1], [0, -20]) }],
-    opacity: interpolate(floatingAnimation1.value, [0, 0.5, 1], [0.3, 0.6, 0.3]),
-  }));
+  const animatedStyle1 = useAnimatedStyle(() => {
+    const translateY = interpolate(floatingAnimation1.value, [0, 1], [0, -30]);
+    const opacity = interpolate(floatingAnimation1.value, [0, 0.5, 1], [0.3, 0.6, 0.3]);
+    return {
+      transform: [{ translateY }],
+      opacity,
+    };
+  });
 
-  const animatedStyle2 = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(floatingAnimation2.value, [0, 1], [0, 15]) }],
-    opacity: interpolate(floatingAnimation2.value, [0, 0.5, 1], [0.2, 0.5, 0.2]),
-  }));
+  const animatedStyle2 = useAnimatedStyle(() => {
+    const translateY = interpolate(floatingAnimation2.value, [0, 1], [0, 40]);
+    const opacity = interpolate(floatingAnimation2.value, [0, 0.5, 1], [0.2, 0.5, 0.2]);
+    return {
+      transform: [{ translateY }],
+      opacity,
+    };
+  });
 
-  const animatedStyle3 = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(floatingAnimation3.value, [0, 1], [0, -10]) }],
-    opacity: interpolate(floatingAnimation3.value, [0, 0.5, 1], [0.25, 0.55, 0.25]),
-  }));
+  const animatedStyle3 = useAnimatedStyle(() => {
+    const translateY = interpolate(floatingAnimation3.value, [0, 1], [0, -20]);
+    const opacity = interpolate(floatingAnimation3.value, [0, 0.5, 1], [0.4, 0.7, 0.4]);
+    return {
+      transform: [{ translateY }],
+      opacity,
+    };
+  });
 
   return (
     <View style={styles.backgroundContainer}>
