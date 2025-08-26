@@ -256,6 +256,7 @@ const CategoryCard = ({
   const opacityAnimation = useSharedValue(0);
   const translateY = useSharedValue(30);
   const shadowAnimation = useSharedValue(0);
+  const glowAnimation = useSharedValue(0);
 
   // Staggered entrance animation
   React.useEffect(() => {
@@ -265,6 +266,19 @@ const CategoryCard = ({
     scaleAnimation.value = withDelay(delay, withSpring(1, { damping: 15, stiffness: 300 }));
     translateY.value = withDelay(delay, withSpring(0, { damping: 15, stiffness: 300 }));
     shadowAnimation.value = withDelay(delay, withTiming(1, { duration: 600 }));
+    
+    // Subtle glow animation
+    glowAnimation.value = withDelay(
+      delay + 800,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 2000 }),
+          withTiming(0.3, { duration: 2000 })
+        ),
+        -1,
+        true
+      )
+    );
   }, [index]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -276,64 +290,113 @@ const CategoryCard = ({
   }));
 
   const animatedShadowStyle = useAnimatedStyle(() => {
-    const shadowOpacity = interpolate(shadowAnimation.value, [0, 1], [0, 0.15]);
+    const shadowOpacity = interpolate(
+      shadowAnimation.value * glowAnimation.value, 
+      [0, 1], 
+      [0.08, 0.25]
+    );
     return {
       shadowOpacity,
     };
   });
 
+  const handlePress = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch (error) {
+        // Haptics not available, continue silently
+      }
+    }
+    onSelectTask();
+  };
+
   return (
-    <Animated.View style={[styles.categoryCard, animatedStyle, animatedShadowStyle]}>
-      {/* Image Section */}
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: category.image }}
-          style={styles.categoryImage}
-          resizeMode="cover"
-        />
-        <LinearGradient
-          colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.7)']}
-          style={styles.categoryOverlay}
-        />
-        <View style={styles.categoryContent}>
-          <Text style={styles.categoryTitle} numberOfLines={2}>
-            {category.title}
-          </Text>
-        </View>
-      </View>
-      
-      {/* Footer with Select Task Button */}
-      <View style={styles.categoryFooter}>
-        <TouchableOpacity
-          style={[
-            styles.selectTaskButton,
-            isSelecting && styles.selectTaskButtonDisabled
-          ]}
-          onPress={onSelectTask}
-          disabled={isSelecting}
-          activeOpacity={0.8}
-          accessibilityLabel={`Select ${category.title} task`}
-          accessibilityRole="button"
-        >
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.95}>
+      <Animated.View style={[styles.categoryCard, animatedStyle, animatedShadowStyle]}>
+        {/* Image Section */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: category.image }}
+            style={styles.categoryImage}
+            resizeMode="cover"
+          />
           <LinearGradient
-            colors={['#0047FF', '#0021A5']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={styles.selectTaskGradient}
+            colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.8)']}
+            style={styles.categoryOverlay}
+          />
+          <View style={styles.categoryContent}>
+            <Text style={styles.categoryTitle} numberOfLines={2}>
+              {category.title}
+            </Text>
+          </View>
+          
+          {/* Floating Icon */}
+          <View style={styles.categoryIcon}>
+            <LinearGradient
+              colors={['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)']}
+              style={styles.categoryIconGradient}
+            >
+              {getCategoryIcon(category.id)}
+            </LinearGradient>
+          </View>
+        </View>
+        
+        {/* Footer with Select Task Button */}
+        <View style={styles.categoryFooter}>
+          <TouchableOpacity
+            style={[
+              styles.selectTaskButton,
+              isSelecting && styles.selectTaskButtonDisabled
+            ]}
+            onPress={onSelectTask}
+            disabled={isSelecting}
+            activeOpacity={0.8}
+            accessibilityLabel={`Select ${category.title} task`}
+            accessibilityRole="button"
           >
-            {isSelecting ? (
-              <ActivityIndicator size="small" color={Colors.white} />
-            ) : (
-              <>
-                <Text style={styles.selectTaskText}>Select Task</Text>
-                <ChevronRight size={16} color={Colors.white} strokeWidth={2.5} />
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    </Animated.View>
+            <LinearGradient
+              colors={isSelecting ? ['#9CA3AF', '#6B7280'] : ['#0047FF', '#0021A5']}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={styles.selectTaskGradient}
+            >
+              {isSelecting ? (
+                <ActivityIndicator size="small" color={Colors.white} />
+              ) : (
+                <>
+                  <Text style={styles.selectTaskText}>Select Task</Text>
+                  <ChevronRight size={16} color={Colors.white} strokeWidth={2.5} />
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    </TouchableOpacity>
   );
+};
+
+// Get category-specific icons
+const getCategoryIcon = (categoryId: string) => {
+  const iconProps = { size: 20, color: Colors.primary, strokeWidth: 2.5 };
+  
+  switch (categoryId) {
+    case 'car':
+      return <Car {...iconProps} />;
+    case 'food':
+      return <Pizza {...iconProps} />;
+    case 'workout':
+      return <Dumbbell {...iconProps} />;
+    case 'coffee':
+      return <Coffee {...iconProps} />;
+    case 'study':
+      return <BookOpen {...iconProps} />;
+    case 'custom':
+      return <Plus {...iconProps} />;
+    default:
+      return <Plus {...iconProps} />;
+  }
 };
 
 export default function HomeScreen() {
@@ -573,19 +636,20 @@ const styles = StyleSheet.create({
   // Enhanced Category Cards
   categoryCard: {
     width: '47%',
-    height: 240, // Increased height for button
+    height: 260,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-    borderRadius: 16,
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 24,
+    elevation: 12,
+    borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   imageContainer: {
-    height: 160, // Fixed height for image section
+    height: 180,
     position: 'relative',
   },
   categoryImage: {
@@ -599,37 +663,58 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
+  categoryIcon: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  categoryIconGradient: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   categoryContent: {
     position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
   categoryTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
-    lineHeight: 22,
+    lineHeight: 24,
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
+    letterSpacing: 0.3,
   },
   categoryFooter: {
-    height: 60, // Fixed height for footer
+    height: 80,
     backgroundColor: Colors.white,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     justifyContent: 'center',
   },
   selectTaskButton: {
-    height: 36,
-    borderRadius: 10,
+    height: 48,
+    borderRadius: 14,
     overflow: 'hidden',
     shadowColor: '#0047FF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
   },
   selectTaskButtonDisabled: {
     shadowOpacity: 0,
@@ -639,15 +724,17 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    gap: 8,
   },
   selectTaskText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: Colors.white,
-    letterSpacing: 0.2,
-    flex: 1,
-    textAlign: 'center',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });

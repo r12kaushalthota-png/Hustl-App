@@ -473,6 +473,7 @@ export default function PostScreen() {
             {/* Submit Error */}
             {submitError ? (
               <View style={styles.submitErrorContainer}>
+                <AlertCircle size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
                 <Text style={styles.submitErrorText}>{submitError}</Text>
               </View>
             ) : null}
@@ -829,16 +830,25 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   submitErrorContainer: {
-    backgroundColor: '#FEF2F2',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: 12,
-    padding: 16,
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderRadius: 16,
+    padding: 18,
+    gap: 12,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   submitErrorText: {
-    fontSize: 14,
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
     color: Colors.semantic.errorAlert,
-    textAlign: 'center',
     lineHeight: 20,
   },
   prefilledChip: {
