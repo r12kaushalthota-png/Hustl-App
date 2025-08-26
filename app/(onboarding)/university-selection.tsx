@@ -353,4 +353,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.primary,
   },
+  placeholder: {
+    width: 40,
+  },
 });

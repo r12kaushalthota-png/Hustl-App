@@ -169,4 +169,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.semantic.bodyText,
   },
+  placeholder: {
+    width: 40,
+  },
 });

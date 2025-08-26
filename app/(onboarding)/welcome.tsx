@@ -274,9 +274,10 @@ export default function WelcomeScreen() {
 
       {/* Bottom Action Section */}
       <Animated.View style={[styles.bottomSection, animatedContentStyle, { paddingBottom: insets.bottom + 20 }]}>
-        <PulsingButton 
-          onPress={handleChooseCampus}
+        <TouchableOpacity 
           style={styles.primaryButtonContainer}
+          onPress={handleChooseCampus}
+          activeOpacity={0.9}
         >
           <LinearGradient
             colors={['#FA4616', '#0021A5']}
@@ -288,7 +289,7 @@ export default function WelcomeScreen() {
             <Text style={styles.primaryButtonText}>Choose Your Campus</Text>
             <ChevronRight size={20} color={Colors.white} strokeWidth={2.5} />
           </LinearGradient>
-        </PulsingButton>
+        </TouchableOpacity>
 
         <View style={styles.legalLinks}>
           <TouchableOpacity onPress={handleTerms}>
@@ -511,9 +512,6 @@ const styles = StyleSheet.create({
     color: Colors.white,
     letterSpacing: 0.5,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
   legalLinks: {
     flexDirection: 'row',
     justifyContent: 'center',
