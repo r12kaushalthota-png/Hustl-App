@@ -375,20 +375,43 @@ const HeroSection = () => {
             </LinearGradient>
           </TouchableOpacity>
           
-          {/* Choose Task Button */}
+          {/* Pick Task Button */}
           <TouchableOpacity 
-            style={styles.chooseTaskButton}
+            style={styles.pickTaskButton}
             onPress={() => router.push('/(tabs)/tasks')}
             activeOpacity={0.9}
           >
             <LinearGradient
               colors={['#FA4616', '#FF6B35']}
-              style={styles.chooseTaskGradient}
+              style={styles.pickTaskGradient}
             >
-              <Text style={styles.chooseTaskText}>Choose a Task</Text>
+              <Text style={styles.pickTaskText}>Pick a Task</Text>
               <ChevronRight size={18} color={Colors.white} strokeWidth={2.5} />
             </LinearGradient>
           </TouchableOpacity>
+          
+          {/* Gamification Elements */}
+          <View style={styles.gamificationRow}>
+            <View style={styles.streakCard}>
+              <View style={styles.streakIcon}>
+                <Text style={styles.streakEmoji}>🔥</Text>
+              </View>
+              <View style={styles.streakInfo}>
+                <Text style={styles.streakNumber}>3</Text>
+                <Text style={styles.streakLabel}>Day Streak</Text>
+              </View>
+            </View>
+            
+            <View style={styles.achievementCard}>
+              <View style={styles.achievementIcon}>
+                <Text style={styles.achievementEmoji}>⚡</Text>
+              </View>
+              <View style={styles.achievementInfo}>
+                <Text style={styles.achievementNumber}>12</Text>
+                <Text style={styles.achievementLabel}>Tasks Done</Text>
+              </View>
+            </View>
+          </View>
         </View>
       </LinearGradient>
     </Animated.View>
@@ -989,12 +1012,12 @@ const styles = StyleSheet.create({
   },
   haloBackground: {
     position: 'absolute',
-    top: '20%',
-    left: '10%',
-    right: '10%',
-    bottom: '30%',
-    borderRadius: 200,
-    background: 'conic-gradient(from 0deg, #8B5CF6, #FA4616, #FF6B35, #8B5CF6)',
+    top: '15%',
+    left: '5%',
+    right: '5%',
+    bottom: '25%',
+    borderRadius: 300,
+    backgroundColor: '#8B5CF6',
     zIndex: -1,
   },
   content: {
@@ -1024,7 +1047,7 @@ const styles = StyleSheet.create({
   },
   heroContent: {
     padding: 32,
-    gap: 20,
+    gap: 16,
   },
   heroText: {
     gap: 12,
@@ -1057,11 +1080,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 12,
-    alignSelf: 'flex-start',
+    flex: 1,
+    marginRight: 8,
   },
   ctaGradient: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 16,
     gap: 8,
@@ -1075,7 +1100,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
-  chooseTaskButton: {
+  pickTaskButton: {
     borderRadius: 16,
     overflow: 'hidden',
     shadowColor: '#FA4616',
@@ -1083,16 +1108,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 12,
-    alignSelf: 'flex-start',
+    flex: 1,
+    marginLeft: 8,
   },
-  chooseTaskGradient: {
+  pickTaskGradient: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 16,
     gap: 8,
   },
-  chooseTaskText: {
+  pickTaskText: {
     fontSize: 16,
     fontWeight: '700',
     color: Colors.white,
@@ -1100,6 +1127,91 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+  },
+  gamificationRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  streakCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 12,
+    gap: 10,
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+  },
+  streakIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FF6B35',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  streakEmoji: {
+    fontSize: 16,
+  },
+  streakInfo: {
+    flex: 1,
+  },
+  streakNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  streakLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  achievementCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 12,
+    gap: 10,
+    shadowColor: '#0021A5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+  },
+  achievementIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#0021A5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  achievementEmoji: {
+    fontSize: 16,
+  },
+  achievementInfo: {
+    flex: 1,
+  },
+  achievementNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  achievementLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
   },
 
   // XP Section
