@@ -191,6 +191,13 @@ const AnimatedReferralsBanner = () => {
     }
     router.push('/(tabs)/referrals');
   };
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch (error) {
+        // Haptics not available, continue silently
+      }
+    }
+    router.push('/(tabs)/referrals');
+  };
 
   const handleBannerPress = () => {
     if (Platform.OS !== 'web') {
