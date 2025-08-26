@@ -275,7 +275,14 @@ const AnimatedBackground = () => {
   return (
     <View style={styles.backgroundContainer}>
       {/* Purple-Orange Halo */}
-      <Animated.View style={[styles.haloBackground, animatedHaloStyle]} />
+      <Animated.View style={[styles.haloBackground, animatedHaloStyle]}>
+        <LinearGradient
+          colors={['#8B5CF6', '#FA4616', '#FF6B35', '#8B5CF6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.haloGradient}
+        />
+      </Animated.View>
       
       <Animated.View style={[styles.floatingElement1, animatedStyle1]} />
       <Animated.View style={[styles.floatingElement2, animatedStyle2]} />
@@ -994,8 +1001,12 @@ const styles = StyleSheet.create({
     right: '10%',
     bottom: '30%',
     borderRadius: 200,
-    background: 'conic-gradient(from 0deg, #8B5CF6, #FA4616, #FF6B35, #8B5CF6)',
+    overflow: 'hidden',
     zIndex: -1,
+  },
+  haloGradient: {
+    width: '100%',
+    height: '100%',
   },
   content: {
     flex: 1,
