@@ -2,7 +2,27 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Car, Coffee, Dumbbell, BookOpen, Pizza, Plus, TrendingUp, Users, Clock, Star } from 'lucide-react-native';
+import { 
+  Car, 
+  Coffee, 
+  Dumbbell, 
+  BookOpen, 
+  Pizza, 
+  Plus, 
+  TrendingUp, 
+  Users, 
+  Clock, 
+  Star,
+  ChevronRight,
+  ShoppingCart,
+  Gamepad2,
+  Briefcase,
+  Heart,
+  Camera,
+  Wrench,
+  Shirt,
+  Package
+} from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
 import Animated, { 
@@ -17,7 +37,6 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { ActivityIndicator } from 'react-native';
-import { ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import GlobalHeader from '@components/GlobalHeader';
@@ -30,6 +49,7 @@ const { width, height } = Dimensions.get('window');
 const isTablet = width >= 768;
 const isLargeScreen = width >= 1024;
 
+// Enhanced categories with more options
 const categories = [
   {
     id: 'food',
@@ -39,6 +59,7 @@ const categories = [
     color: '#FF6B35',
     image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: true,
+    trending: false,
   },
   {
     id: 'coffee',
@@ -48,15 +69,17 @@ const categories = [
     color: '#8B4513',
     image: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: true,
+    trending: false,
   },
   {
     id: 'grocery',
     title: 'Grocery Shopping',
     subtitle: 'Essential items pickup',
-    icon: Plus,
+    icon: ShoppingCart,
     color: '#22C55E',
     image: 'https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
+    trending: true,
   },
   {
     id: 'study',
@@ -66,6 +89,7 @@ const categories = [
     color: '#3B82F6',
     image: 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
+    trending: false,
   },
   {
     id: 'workout',
@@ -75,6 +99,7 @@ const categories = [
     color: '#EF4444',
     image: 'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
+    trending: false,
   },
   {
     id: 'transport',
@@ -84,6 +109,67 @@ const categories = [
     color: '#8B5CF6',
     image: 'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
+    trending: false,
+  },
+  {
+    id: 'gaming',
+    title: 'Gaming Partner',
+    subtitle: 'Find gaming buddies',
+    icon: Gamepad2,
+    color: '#F59E0B',
+    image: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=800',
+    popular: false,
+    trending: false,
+  },
+  {
+    id: 'tutoring',
+    title: 'Tutoring',
+    subtitle: 'Academic assistance',
+    icon: Briefcase,
+    color: '#06B6D4',
+    image: 'https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=800',
+    popular: false,
+    trending: false,
+  },
+  {
+    id: 'events',
+    title: 'Event Buddy',
+    subtitle: 'Social activities',
+    icon: Heart,
+    color: '#EC4899',
+    image: 'https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800',
+    popular: false,
+    trending: false,
+  },
+  {
+    id: 'photography',
+    title: 'Photography',
+    subtitle: 'Photo services',
+    icon: Camera,
+    color: '#7C3AED',
+    image: 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=800',
+    popular: false,
+    trending: false,
+  },
+  {
+    id: 'repair',
+    title: 'Tech Repair',
+    subtitle: 'Device assistance',
+    icon: Wrench,
+    color: '#059669',
+    image: 'https://images.pexels.com/photos/298863/pexels-photo-298863.jpeg?auto=compress&cs=tinysrgb&w=800',
+    popular: false,
+    trending: false,
+  },
+  {
+    id: 'laundry',
+    title: 'Laundry Help',
+    subtitle: 'Washing & folding',
+    icon: Shirt,
+    color: '#0891B2',
+    image: 'https://images.pexels.com/photos/963278/pexels-photo-963278.jpeg?auto=compress&cs=tinysrgb&w=800',
+    popular: false,
+    trending: false,
   },
 ];
 
@@ -94,6 +180,77 @@ const stats = [
   { label: 'Rating', value: '4.8', icon: Star, color: '#FFD700' },
 ];
 
+// Animated Background Component
+const AnimatedBackground = () => {
+  const floatingAnimation1 = useSharedValue(0);
+  const floatingAnimation2 = useSharedValue(0);
+  const floatingAnimation3 = useSharedValue(0);
+
+  React.useEffect(() => {
+    floatingAnimation1.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 8000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 8000, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      true
+    );
+
+    floatingAnimation2.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 12000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 12000, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      true
+    );
+
+    floatingAnimation3.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 15000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 15000, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle1 = useAnimatedStyle(() => {
+    const translateY = interpolate(floatingAnimation1.value, [0, 1], [0, -30]);
+    const opacity = interpolate(floatingAnimation1.value, [0, 0.5, 1], [0.3, 0.6, 0.3]);
+    return {
+      transform: [{ translateY }],
+      opacity,
+    };
+  });
+
+  const animatedStyle2 = useAnimatedStyle(() => {
+    const translateY = interpolate(floatingAnimation2.value, [0, 1], [0, 40]);
+    const opacity = interpolate(floatingAnimation2.value, [0, 0.5, 1], [0.2, 0.5, 0.2]);
+    return {
+      transform: [{ translateY }],
+      opacity,
+    };
+  });
+
+  const animatedStyle3 = useAnimatedStyle(() => {
+    const translateY = interpolate(floatingAnimation3.value, [0, 1], [0, -20]);
+    const opacity = interpolate(floatingAnimation3.value, [0, 0.5, 1], [0.4, 0.7, 0.4]);
+    return {
+      transform: [{ translateY }],
+      opacity,
+    };
+  });
+
+  return (
+    <View style={styles.backgroundContainer}>
+      <Animated.View style={[styles.floatingElement1, animatedStyle1]} />
+      <Animated.View style={[styles.floatingElement2, animatedStyle2]} />
+      <Animated.View style={[styles.floatingElement3, animatedStyle3]} />
+    </View>
+  );
+};
+
 // Professional Hero Section
 const HeroSection = () => {
   const { user, isGuest } = useAuth();
@@ -101,16 +258,31 @@ const HeroSection = () => {
   
   const fadeIn = useSharedValue(0);
   const slideUp = useSharedValue(30);
+  const glowAnimation = useSharedValue(0);
 
   React.useEffect(() => {
     fadeIn.value = withTiming(1, { duration: 800 });
     slideUp.value = withSpring(0, { damping: 15, stiffness: 300 });
+    
+    glowAnimation.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 3000 }),
+        withTiming(0, { duration: 3000 })
+      ),
+      -1,
+      true
+    );
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: fadeIn.value,
     transform: [{ translateY: slideUp.value }],
   }));
+
+  const animatedGlowStyle = useAnimatedStyle(() => {
+    const shadowOpacity = interpolate(glowAnimation.value, [0, 1], [0.1, 0.25]);
+    return { shadowOpacity };
+  });
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -120,6 +292,14 @@ const HeroSection = () => {
   };
 
   const handleGetStarted = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch (error) {
+        // Haptics not available, continue silently
+      }
+    }
+    
     if (isGuest) {
       router.push('/(onboarding)/auth');
     } else {
@@ -128,9 +308,9 @@ const HeroSection = () => {
   };
 
   return (
-    <Animated.View style={[styles.heroSection, animatedStyle]}>
+    <Animated.View style={[styles.heroSection, animatedStyle, animatedGlowStyle]}>
       <LinearGradient
-        colors={['rgba(0, 33, 165, 0.05)', 'rgba(250, 70, 22, 0.02)']}
+        colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
         style={styles.heroGradient}
       >
         <View style={styles.heroContent}>
@@ -185,11 +365,24 @@ const LiveStatsSection = () => {
       <View style={styles.statsGrid}>
         {stats.map((stat, index) => {
           const scale = useSharedValue(0.9);
+          const glowOpacity = useSharedValue(0);
           
           React.useEffect(() => {
             scale.value = withDelay(
               600 + index * 100,
               withSpring(1, { damping: 15, stiffness: 300 })
+            );
+            
+            glowOpacity.value = withDelay(
+              1000 + index * 200,
+              withRepeat(
+                withSequence(
+                  withTiming(0.15, { duration: 2000 }),
+                  withTiming(0.05, { duration: 2000 })
+                ),
+                -1,
+                true
+              )
             );
           }, []);
 
@@ -197,8 +390,12 @@ const LiveStatsSection = () => {
             transform: [{ scale: scale.value }],
           }));
 
+          const animatedGlowStyle = useAnimatedStyle(() => ({
+            shadowOpacity: glowOpacity.value,
+          }));
+
           return (
-            <Animated.View key={stat.label} style={[styles.statCard, animatedStatStyle]}>
+            <Animated.View key={stat.label} style={[styles.statCard, animatedStatStyle, animatedGlowStyle, { shadowColor: stat.color }]}>
               <View style={[styles.statIcon, { backgroundColor: stat.color + '15' }]}>
                 <stat.icon size={20} color={stat.color} strokeWidth={2} />
               </View>
@@ -212,7 +409,7 @@ const LiveStatsSection = () => {
   );
 };
 
-// Enhanced Category Card
+// Enhanced Category Card with Professional Design
 const CategoryCard = ({ 
   category, 
   index, 
@@ -228,9 +425,11 @@ const CategoryCard = ({
   const opacityAnimation = useSharedValue(0);
   const translateY = useSharedValue(20);
   const glowOpacity = useSharedValue(0);
+  const haloOpacity = useSharedValue(0);
+  const borderAnimation = useSharedValue(0);
 
   React.useEffect(() => {
-    const delay = 800 + index * 150;
+    const delay = 800 + index * 100;
     
     opacityAnimation.value = withDelay(delay, withTiming(1, { duration: 500 }));
     scaleAnimation.value = withDelay(delay, withSpring(1, { damping: 15, stiffness: 300 }));
@@ -241,14 +440,39 @@ const CategoryCard = ({
       delay + 600,
       withRepeat(
         withSequence(
-          withTiming(0.15, { duration: 2000 }),
-          withTiming(0.05, { duration: 2000 })
+          withTiming(0.15, { duration: 3000 }),
+          withTiming(0.05, { duration: 3000 })
         ),
         -1,
         true
       )
     );
-  }, [index]);
+
+    // Halo effect for popular/trending items
+    if (category.popular || category.trending) {
+      haloOpacity.value = withDelay(
+        delay + 800,
+        withRepeat(
+          withSequence(
+            withTiming(0.3, { duration: 2000 }),
+            withTiming(0.1, { duration: 2000 })
+          ),
+          -1,
+          true
+        )
+      );
+    }
+
+    // Animated border for interactive feedback
+    borderAnimation.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 4000 }),
+        withTiming(0, { duration: 4000 })
+      ),
+      -1,
+      true
+    );
+  }, [index, category.popular, category.trending]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -261,6 +485,17 @@ const CategoryCard = ({
   const animatedGlowStyle = useAnimatedStyle(() => ({
     shadowOpacity: glowOpacity.value,
   }));
+
+  const animatedHaloStyle = useAnimatedStyle(() => ({
+    shadowOpacity: haloOpacity.value,
+  }));
+
+  const animatedBorderStyle = useAnimatedStyle(() => {
+    const borderOpacity = interpolate(borderAnimation.value, [0, 1], [0.1, 0.3]);
+    return {
+      borderColor: `${category.color}${Math.floor(borderOpacity * 255).toString(16).padStart(2, '0')}`,
+    };
+  });
 
   const handlePress = () => {
     if (Platform.OS !== 'web') {
@@ -284,20 +519,44 @@ const CategoryCard = ({
         { shadowColor: category.color },
         animatedGlowStyle
       ]}>
-        {/* Popular Badge */}
+        {/* Halo Effect for Special Items */}
+        {(category.popular || category.trending) && (
+          <Animated.View style={[
+            styles.haloEffect,
+            { backgroundColor: category.color },
+            animatedHaloStyle
+          ]} />
+        )}
+
+        {/* Animated Border */}
+        <Animated.View style={[styles.animatedBorder, animatedBorderStyle]} />
+
+        {/* Popular/Trending Badge */}
         {category.popular && (
           <View style={styles.popularBadge}>
             <LinearGradient
               colors={['#FFD700', '#FFA500']}
-              style={styles.popularGradient}
+              style={styles.badgeGradient}
             >
               <Star size={12} color={Colors.white} strokeWidth={2} fill={Colors.white} />
-              <Text style={styles.popularText}>Popular</Text>
+              <Text style={styles.badgeText}>Popular</Text>
             </LinearGradient>
           </View>
         )}
 
-        {/* Image with Overlay */}
+        {category.trending && (
+          <View style={styles.trendingBadge}>
+            <LinearGradient
+              colors={['#FF6B35', '#FF4500']}
+              style={styles.badgeGradient}
+            >
+              <TrendingUp size={12} color={Colors.white} strokeWidth={2} />
+              <Text style={styles.badgeText}>Trending</Text>
+            </LinearGradient>
+          </View>
+        )}
+
+        {/* Image with Enhanced Overlay */}
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: category.image }}
@@ -305,17 +564,23 @@ const CategoryCard = ({
             resizeMode="cover"
           />
           <LinearGradient
-            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.7)']}
+            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.7)']}
+            locations={[0, 0.6, 1]}
             style={styles.imageOverlay}
           />
           
-          {/* Floating Brand Icon */}
-          <View style={[styles.floatingIcon, { backgroundColor: category.color }]}>
-            <category.icon size={24} color={Colors.white} strokeWidth={2.5} />
+          {/* Enhanced Floating Brand Icon */}
+          <View style={[styles.floatingIconContainer, { shadowColor: category.color }]}>
+            <LinearGradient
+              colors={[category.color, category.color + 'CC']}
+              style={styles.floatingIconGradient}
+            >
+              <category.icon size={24} color={Colors.white} strokeWidth={2.5} />
+            </LinearGradient>
           </View>
         </View>
 
-        {/* Content */}
+        {/* Enhanced Content */}
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
             <Text style={styles.categoryTitle} numberOfLines={1}>
@@ -326,7 +591,7 @@ const CategoryCard = ({
             </Text>
           </View>
           
-          {/* Action Button */}
+          {/* Enhanced Action Button */}
           <TouchableOpacity
             style={[
               styles.selectButton,
@@ -337,7 +602,9 @@ const CategoryCard = ({
             activeOpacity={0.8}
           >
             {isSelecting ? (
-              <ActivityIndicator size="small" color={Colors.white} />
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={Colors.white} />
+              </View>
             ) : (
               <LinearGradient
                 colors={['#0047FF', '#0021A5']}
@@ -443,7 +710,7 @@ const QuickActionsSection = () => {
     {
       title: 'Browse Tasks',
       subtitle: 'Find available tasks',
-      icon: Plus,
+      icon: Package,
       color: '#3B82F6',
       route: '/(tabs)/tasks',
     },
@@ -471,20 +738,56 @@ const QuickActionsSection = () => {
     <View style={styles.quickActionsSection}>
       <Text style={styles.sectionTitle}>Quick Actions</Text>
       <View style={styles.quickActionsGrid}>
-        {quickActions.map((action, index) => (
-          <TouchableOpacity
-            key={action.title}
-            style={styles.quickActionCard}
-            onPress={() => handleActionPress(action.route)}
-            activeOpacity={0.9}
-          >
-            <View style={[styles.quickActionIcon, { backgroundColor: action.color + '15' }]}>
-              <action.icon size={24} color={action.color} strokeWidth={2} />
-            </View>
-            <Text style={styles.quickActionTitle}>{action.title}</Text>
-            <Text style={styles.quickActionSubtitle}>{action.subtitle}</Text>
-          </TouchableOpacity>
-        ))}
+        {quickActions.map((action, index) => {
+          const scale = useSharedValue(0.9);
+          const glowOpacity = useSharedValue(0);
+
+          React.useEffect(() => {
+            scale.value = withDelay(
+              1200 + index * 150,
+              withSpring(1, { damping: 15, stiffness: 300 })
+            );
+            
+            glowOpacity.value = withDelay(
+              1400 + index * 150,
+              withRepeat(
+                withSequence(
+                  withTiming(0.1, { duration: 2500 }),
+                  withTiming(0.05, { duration: 2500 })
+                ),
+                -1,
+                true
+              )
+            );
+          }, []);
+
+          const animatedStyle = useAnimatedStyle(() => ({
+            transform: [{ scale: scale.value }],
+          }));
+
+          const animatedGlowStyle = useAnimatedStyle(() => ({
+            shadowOpacity: glowOpacity.value,
+          }));
+
+          return (
+            <TouchableOpacity
+              key={action.title}
+              style={styles.quickActionCard}
+              onPress={() => handleActionPress(action.route)}
+              activeOpacity={0.9}
+            >
+              <Animated.View style={[animatedStyle, animatedGlowStyle, { shadowColor: action.color }]}>
+                <View style={styles.quickActionContent}>
+                  <View style={[styles.quickActionIcon, { backgroundColor: action.color + '15' }]}>
+                    <action.icon size={24} color={action.color} strokeWidth={2} />
+                  </View>
+                  <Text style={styles.quickActionTitle}>{action.title}</Text>
+                  <Text style={styles.quickActionSubtitle}>{action.subtitle}</Text>
+                </View>
+              </Animated.View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
@@ -520,12 +823,20 @@ export default function HomeScreen() {
 
   const getGridColumns = () => {
     if (isLargeScreen) return 3;
-    if (isTablet) return 2;
+    if (isTablet) return 3;
     return 2;
+  };
+
+  const getCardWidth = () => {
+    const columns = getGridColumns();
+    const padding = 40; // Total horizontal padding
+    const gaps = (columns - 1) * 16; // Gaps between cards
+    return (width - padding - gaps) / columns;
   };
 
   return (
     <View style={styles.container}>
+      <AnimatedBackground />
       <GlobalHeader />
 
       <ScrollView 
@@ -561,7 +872,7 @@ export default function HomeScreen() {
         {/* Quick Actions */}
         <QuickActionsSection />
 
-        {/* Task Categories */}
+        {/* Task Categories Grid */}
         <View style={styles.categoriesSection}>
           <View style={styles.categoriesHeader}>
             <Text style={styles.categoriesTitle}>Task Categories</Text>
@@ -570,13 +881,7 @@ export default function HomeScreen() {
             </Text>
           </View>
           
-          <View style={[
-            styles.categoriesGrid,
-            { 
-              flexDirection: isTablet ? 'row' : 'column',
-              flexWrap: isTablet ? 'wrap' : 'nowrap',
-            }
-          ]}>
+          <View style={styles.categoriesGrid}>
             {categories.map((category, index) => (
               <CategoryCard
                 key={category.id}
@@ -596,10 +901,47 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFBFC',
+    backgroundColor: '#F8FAFC',
+    position: 'relative',
+  },
+  backgroundContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+  },
+  floatingElement1: {
+    position: 'absolute',
+    top: '10%',
+    right: '15%',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(0, 33, 165, 0.08)',
+  },
+  floatingElement2: {
+    position: 'absolute',
+    top: '60%',
+    left: '10%',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(250, 70, 22, 0.06)',
+  },
+  floatingElement3: {
+    position: 'absolute',
+    top: '30%',
+    left: '70%',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(59, 130, 246, 0.05)',
   },
   content: {
     flex: 1,
+    zIndex: 1,
   },
   scrollContent: {
     paddingBottom: 120,
@@ -612,11 +954,12 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowColor: '#0021A5',
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 24,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   heroGradient: {
     borderRadius: 24,
@@ -633,6 +976,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#0021A5',
     opacity: 0.8,
+    letterSpacing: 0.3,
   },
   heroTitle: {
     fontSize: isTablet ? 32 : 28,
@@ -651,10 +995,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     shadowColor: '#0021A5',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
     alignSelf: 'flex-start',
   },
   ctaGradient: {
@@ -669,22 +1013,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.white,
     letterSpacing: 0.3,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 
   // XP Section
   xpSection: {
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     marginHorizontal: 20,
     marginBottom: 24,
     borderRadius: 20,
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowColor: '#0021A5',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 6,
     borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+    backdropFilter: 'blur(20px)',
   },
   xpHeader: {
     flexDirection: 'row',
@@ -696,6 +1044,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#111827',
+    letterSpacing: -0.3,
   },
   xpSubtitle: {
     fontSize: 14,
@@ -714,6 +1063,7 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 16,
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -721,18 +1071,17 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
     gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 16,
+    elevation: 6,
     borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    backdropFilter: 'blur(20px)',
   },
   statIcon: {
     width: 40,
@@ -745,6 +1094,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#111827',
+    letterSpacing: -0.5,
   },
   statLabel: {
     fontSize: 12,
@@ -760,10 +1110,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     shadowColor: '#0047FF',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.3,
-    shadowRadius: 24,
-    elevation: 15,
+    shadowOffset: { width: 0, height: 16 },
+    shadowRadius: 32,
+    elevation: 20,
   },
   referralGradient: {
     position: 'relative',
@@ -834,18 +1183,19 @@ const styles = StyleSheet.create({
   },
   quickActionCard: {
     flex: 1,
-    backgroundColor: Colors.white,
+  },
+  quickActionContent: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 16,
+    elevation: 6,
     borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    backdropFilter: 'blur(20px)',
   },
   quickActionIcon: {
     width: 48,
@@ -859,6 +1209,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#111827',
     textAlign: 'center',
+    letterSpacing: -0.2,
   },
   quickActionSubtitle: {
     fontSize: 13,
@@ -887,23 +1238,43 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   categoriesGrid: {
-    gap: 16,
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 16,
     justifyContent: 'space-between',
   },
 
   // Enhanced Category Cards
   categoryCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
     overflow: 'hidden',
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 20,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 24,
+    elevation: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: 'rgba(255, 255, 255, 0.6)',
     position: 'relative',
+    backdropFilter: 'blur(20px)',
+  },
+  haloEffect: {
+    position: 'absolute',
+    top: -10,
+    left: -10,
+    right: -10,
+    bottom: -10,
+    borderRadius: 30,
+    zIndex: -1,
+  },
+  animatedBorder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 20,
+    borderWidth: 2,
+    zIndex: 1,
   },
   popularBadge: {
     position: 'absolute',
@@ -912,21 +1283,42 @@ const styles = StyleSheet.create({
     zIndex: 10,
     borderRadius: 12,
     overflow: 'hidden',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  popularGradient: {
+  trendingBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  badgeGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 4,
     gap: 4,
   },
-  popularText: {
+  badgeText: {
     fontSize: 10,
     fontWeight: '700',
     color: Colors.white,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   imageContainer: {
-    height: 140,
+    height: 120,
     position: 'relative',
   },
   categoryImage: {
@@ -940,24 +1332,29 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
-  floatingIcon: {
+  floatingIconContainer: {
     position: 'absolute',
     top: 12,
     right: 12,
     width: 40,
     height: 40,
     borderRadius: 20,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  floatingIconGradient: {
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
   },
   cardContent: {
     padding: 16,
     gap: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
   cardHeader: {
     gap: 4,
@@ -986,6 +1383,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
+  loadingContainer: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#9CA3AF',
+  },
   selectGradient: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -998,5 +1401,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.white,
     letterSpacing: 0.3,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });
