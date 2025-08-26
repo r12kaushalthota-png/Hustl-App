@@ -216,27 +216,18 @@ const AnimatedBackground = () => {
   }, []);
 
   const animatedStyle1 = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: interpolate(floatingAnimation1.value, [0, 1], [0, -20]) },
-      { scale: interpolate(floatingAnimation1.value, [0, 1], [1, 1.1]) },
-    ],
-    opacity: interpolate(floatingAnimation1.value, [0, 1], [0.3, 0.6]),
+    transform: [{ translateY: interpolate(floatingAnimation1.value, [0, 1], [0, -20]) }],
+    opacity: interpolate(floatingAnimation1.value, [0, 0.5, 1], [0.3, 0.6, 0.3]),
   }));
 
   const animatedStyle2 = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: interpolate(floatingAnimation2.value, [0, 1], [0, 15]) },
-      { scale: interpolate(floatingAnimation2.value, [0, 1], [1, 0.9]) },
-    ],
-    opacity: interpolate(floatingAnimation2.value, [0, 1], [0.2, 0.5]),
+    transform: [{ translateY: interpolate(floatingAnimation2.value, [0, 1], [0, 15]) }],
+    opacity: interpolate(floatingAnimation2.value, [0, 0.5, 1], [0.2, 0.5, 0.2]),
   }));
 
   const animatedStyle3 = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: interpolate(floatingAnimation3.value, [0, 1], [0, -10]) },
-      { scale: interpolate(floatingAnimation3.value, [0, 1], [1, 1.2]) },
-    ],
-    opacity: interpolate(floatingAnimation3.value, [0, 1], [0.1, 0.4]),
+    transform: [{ translateY: interpolate(floatingAnimation3.value, [0, 1], [0, -10]) }],
+    opacity: interpolate(floatingAnimation3.value, [0, 0.5, 1], [0.25, 0.55, 0.25]),
   }));
 
   return (
@@ -1012,55 +1003,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
 
-  // Stats Section
-  statsSection: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  statsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
-    letterSpacing: -0.3,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    gap: 8,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 16,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    backdropFilter: 'blur(20px)',
-  },
-  statIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    letterSpacing: -0.3,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-
   // XP Section
   xpSection: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -1093,6 +1035,57 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#0021A5',
+  },
+
+  // Stats Section
+  statsSection: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+  },
+  statsTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+    textAlign: 'center',
+    letterSpacing: -0.3,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    gap: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 16,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    backdropFilter: 'blur(20px)',
+  },
+  statIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    letterSpacing: -0.5,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+    fontWeight: '500',
   },
 
   // Referral Banner
