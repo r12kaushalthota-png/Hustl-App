@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform, Linking } from 'react-native';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
-import { MapPin, Navigation, Smartphone } from 'lucide-react-native';
+import { MapPin, Navigation, Smartphone, ExternalLink, Wifi, WifiOff } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
 
 // Conditional import for expo-maps (only when not in Expo Go)
@@ -49,16 +49,16 @@ const UF_CAMPUS = {
 };
 
 // Expo Go Fallback Component
-const ExpoGoFallback = ({ pins = [] }: { pins: TaskPin[] }) => (
+const ExpoGoFallback = ({ pins = [], onRequestDevClient }: { pins: TaskPin[]; onRequestDevClient?: () => void }) => (
   <View style={styles.fallbackContainer}>
     <View style={styles.fallbackContent}>
       <View style={styles.fallbackIconContainer}>
         <Smartphone size={48} color={Colors.semantic.tabInactive} strokeWidth={1.5} />
       </View>
       
-      <Text style={styles.fallbackTitle}>Map Preview Unavailable</Text>
+      <Text style={styles.fallbackTitle}>Interactive Map Unavailable</Text>
       <Text style={styles.fallbackSubtitle}>
-        Maps are not supported in Expo Go. Please build and run with a Dev Client to see the interactive map.
+        Interactive maps require a Dev Client build. Switch to List view to browse tasks, or build with Dev Client for full map functionality.
       </Text>
       
       {pins.length > 0 && (
@@ -70,14 +70,41 @@ const ExpoGoFallback = ({ pins = [] }: { pins: TaskPin[] }) => (
         </View>
       )}
       
-      <View style={styles.fallbackInstructions}>
-        <Text style={styles.fallbackInstructionsTitle}>To enable maps:</Text>
-        <Text style={styles.fallbackInstructionsText}>
-          1. Run: npx expo prebuild --clean{'\n'}
-          2. Run: npx expo run:ios (or run:android){'\n'}
-          3. Install the dev client on your device
-        </Text>
+      {onRequestDevClient && (
+        <TouchableOpacity style={styles.devClientButton} onPress={onRequestDevClient}>
+          <ExternalLink size={16} color={Colors.white} strokeWidth={2} />
+          <Text style={styles.devClientButtonText}>Learn about Dev Client</Text>
+        </TouchableOpacity>
+      )}
+      
+      <Text style={styles.fallbackNote}>
+        💡 Use List view above to browse all available tasks
+      </Text>
+    </View>
+  </View>
+);
+
+// Network Error Fallback
+const NetworkErrorFallback = ({ onRetry }: { onRetry: () => void }) => (
+  <View style={styles.fallbackContainer}>
+    <View style={styles.fallbackContent}>
+      <View style={styles.fallbackIconContainer}>
+        <WifiOff size={48} color={Colors.semantic.errorAlert} strokeWidth={1.5} />
       </View>
+      
+      <Text style={styles.fallbackTitle}>Connection Issue</Text>
+      <Text style={styles.fallbackSubtitle}>
+        Unable to connect to development server. Check your network connection or switch to LAN mode.
+      </Text>
+      
+      <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+        <Wifi size={16} color={Colors.white} strokeWidth={2} />
+        <Text style={styles.retryButtonText}>Retry Connection</Text>
+      </TouchableOpacity>
+      
+      <Text style={styles.fallbackNote}>
+        💡 Try switching to LAN mode in Expo CLI if tunnel mode fails
+      </Text>
     </View>
   </View>
 );
@@ -92,6 +119,7 @@ export default function TasksMap({
   const [isMapReady, setIsMapReady] = useState(false);
   const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [networkError, setNetworkError] = useState(false);
 
   useEffect(() => {
     initializeLocation();
@@ -99,6 +127,7 @@ export default function TasksMap({
 
   const initializeLocation = async () => {
     setIsLoadingLocation(true);
+    setNetworkError(false);
     
     try {
       if (locationPermission === 'granted') {
@@ -109,6 +138,10 @@ export default function TasksMap({
       }
     } catch (error) {
       console.warn('Failed to get current location:', error);
+      // Check if it's a network-related error
+      if (error instanceof Error && error.message.includes('network')) {
+        setNetworkError(true);
+      }
     } finally {
       setIsLoadingLocation(false);
       setIsMapReady(true);
@@ -143,6 +176,16 @@ export default function TasksMap({
     }
   };
 
+  const handleDevClientInfo = () => {
+    // Open documentation about Dev Client
+    Linking.openURL('https://docs.expo.dev/clients/introduction/');
+  };
+
+  const handleRetryConnection = () => {
+    setNetworkError(false);
+    initializeLocation();
+  };
+
   // Show loading state until ready
   if (!isMapReady || isLoadingLocation) {
     return (
@@ -155,9 +198,14 @@ export default function TasksMap({
     );
   }
 
+  // Show network error fallback
+  if (networkError) {
+    return <NetworkErrorFallback onRetry={handleRetryConnection} />;
+  }
+
   // Show Expo Go fallback if running in Expo Go
   if (isExpoGo || !MapView) {
-    return <ExpoGoFallback pins={pins} />;
+    return <ExpoGoFallback pins={pins} onRequestDevClient={handleDevClientInfo} />;
   }
 
   return (
@@ -167,7 +215,7 @@ export default function TasksMap({
         provider="google"
         initialCameraPosition={{
           center: UF_CAMPUS,
-          zoom: 14
+          zoom: 14,
         }}
         showsUserLocation={showsUserLocation && locationPermission === 'granted'}
         showsMyLocationButton={false}
@@ -286,7 +334,7 @@ const styles = StyleSheet.create({
     color: Colors.semantic.tabInactive,
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   fallbackStats: {
     flexDirection: 'row',
@@ -308,30 +356,54 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.primary,
   },
-  fallbackInstructions: {
+  devClientButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    gap: 8,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
-    alignSelf: 'stretch',
+    borderWidth: 1,
+    borderColor: Colors.primary,
   },
-  fallbackInstructionsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.semantic.bodyText,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  fallbackInstructionsText: {
+  devClientButtonText: {
     fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    gap: 8,
+    marginBottom: 16,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.white,
+  },
+  fallbackNote: {
+    fontSize: 12,
     color: Colors.semantic.tabInactive,
-    lineHeight: 20,
-    textAlign: 'left',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    opacity: 0.8,
   },
   customMarker: {
     width: 32,

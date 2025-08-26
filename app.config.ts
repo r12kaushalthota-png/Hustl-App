@@ -2,12 +2,12 @@ import { ConfigContext, ExpoConfig } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "bolt-expo-nativewind",
-  slug: "bolt-expo-nativewind",
+  name: "Hustl",
+  slug: "hustl-app",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./src/assets/images/icon.png",
-  scheme: "myapp",
+  scheme: "hustl",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
 
@@ -33,8 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 
   plugins: [
     "expo-router",
-    // Put your key in an env var in real projects
-    ["expo-maps", { googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "YOUR_MAPS_KEY" }],
+    ["expo-maps", { googleMapsApiKey: "AIzaSyCrVIRCIog1gFNc_KFF669XaaebfdxUgn8" }],
     ["expo-location", {
       locationAlwaysAndWhenInUseUsageDescription:
         "We use your location to show nearby tasks on the map."
@@ -47,6 +46,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
 
   extra: {
-    EXPO_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+    EXPO_PUBLIC_GOOGLE_MAPS_API_KEY: "AIzaSyCrVIRCIog1gFNc_KFF669XaaebfdxUgn8"
   }
 });
