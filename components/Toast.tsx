@@ -37,8 +37,6 @@ export default function Toast({
   const opacity = useSharedValue(0);
   const iconScale = useSharedValue(0);
   const glowOpacity = useSharedValue(0);
-  const haloRotation = useSharedValue(0);
-  const haloOpacity = useSharedValue(0);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -52,11 +50,6 @@ export default function Toast({
 
   const animatedGlowStyle = useAnimatedStyle(() => ({
     shadowOpacity: glowOpacity.value,
-  }));
-
-  const animatedHaloStyle = useAnimatedStyle(() => ({
-    opacity: haloOpacity.value,
-    transform: [{ rotate: `${haloRotation.value}deg` }],
   }));
 
   useEffect(() => {
@@ -90,14 +83,6 @@ export default function Toast({
           withSpring(1, { damping: 15 })
         );
         glowOpacity.value = withTiming(0.3, { duration: 300 });
-        
-        // Halo animation
-        haloOpacity.value = withTiming(0.6, { duration: 300 });
-        haloRotation.value = withRepeat(
-          withTiming(360, { duration: 8000, easing: Easing.linear }),
-          -1,
-          false
-        );
       }, 200);
 
       // Auto-hide after duration
@@ -122,7 +107,6 @@ export default function Toast({
     });
     iconScale.value = 0;
     glowOpacity.value = 0;
-    haloOpacity.value = 0;
   };
 
   if (!visible) return null;
@@ -164,9 +148,6 @@ export default function Toast({
         animatedGlowStyle
       ]}
     >
-      {/* Animated Halo */}
-      <Animated.View style={[styles.halo, animatedHaloStyle]} />
-      
       <LinearGradient
         colors={config.colors}
         start={{ x: 0, y: 0.5 }}
@@ -197,21 +178,6 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 12,
     overflow: 'hidden',
-  },
-  halo: {
-    position: 'absolute',
-    top: -3,
-    left: -3,
-    right: -3,
-    bottom: -3,
-    borderRadius: 19,
-    borderWidth: 3,
-    borderColor: 'transparent',
-    borderTopColor: '#8B5CF6',
-    borderRightColor: '#FA4616',
-    borderBottomColor: '#FF6B35',
-    borderLeftColor: '#8B5CF6',
-    zIndex: -1,
   },
   gradient: {
     borderRadius: 16,
