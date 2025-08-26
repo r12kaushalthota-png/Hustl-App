@@ -69,8 +69,31 @@ export interface UserProfile {
   avatar_url: string | null;
   major: string | null;
   university: string | null;
+  xp: number;
+  level: number;
+  credits: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface XPTransaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  reason: string;
+  task_id: string | null;
+  review_id: string | null;
+  created_at: string;
+}
+
+export interface CreditTransaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  transaction_type: 'earned' | 'spent' | 'purchased';
+  reason: string;
+  task_id: string | null;
+  created_at: string;
 }
 
 export interface TaskReview {

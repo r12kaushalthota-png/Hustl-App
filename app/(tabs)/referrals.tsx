@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { GamificationRepo } from '@/lib/gamificationRepo';
 import GlobalHeader from '@/components/GlobalHeader';
 import Toast from '@components/Toast';
 
@@ -41,7 +42,7 @@ export default function ReferralsScreen() {
     balance: 0,
     referred: 0,
     discounts: 0,
-    credits: 0,
+    credits: user?.profile?.credits || 0,
   };
 
   const referralLink = user ? `https://hustl.app/ref/${user.id}` : 'https://hustl.app/ref/demo';
@@ -141,7 +142,9 @@ export default function ReferralsScreen() {
             
             <View style={styles.statCard}>
               <DollarSign size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-              <Text style={styles.statValue}>{formatCurrency(referralStats.credits * 100)}</Text>
+              <Text style={styles.statValue}>
+                {user?.profile ? GamificationRepo.formatCredits(user.profile.credits) : '0 credits'}
+              </Text>
               <Text style={styles.statLabel}>Credits</Text>
             </View>
           </View>

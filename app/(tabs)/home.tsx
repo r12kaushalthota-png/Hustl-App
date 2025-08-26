@@ -21,6 +21,8 @@ import { ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import GlobalHeader from '@components/GlobalHeader';
+import { useAuth } from '@/contexts/AuthContext';
+import XPProgressBar from '@/components/XPProgressBar';
 
 const { width, height } = Dimensions.get('window');
 
@@ -336,6 +338,7 @@ const CategoryCard = ({
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [selectingTaskId, setSelectingTaskId] = useState<string | null>(null);
 
   const handleSelectTask = async (categoryId: string) => {
@@ -382,6 +385,18 @@ export default function HomeScreen() {
       >
         {/* Enhanced Referral Banner */}
         <AnimatedReferralsBanner />
+
+        {/* XP Progress Section */}
+        {user?.profile && (
+          <View style={styles.xpSection}>
+            <Text style={styles.xpSectionTitle}>Your Progress</Text>
+            <XPProgressBar
+              currentXP={user.profile.xp}
+              currentLevel={user.profile.level}
+              size="medium"
+            />
+          </View>
+        )}
 
         {/* Task Categories Section */}
         <View style={styles.categoriesSection}>
@@ -432,6 +447,28 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 120, // Extra space for tab bar
+  },
+  
+  // XP Section
+  xpSection: {
+    marginHorizontal: 20,
+    marginBottom: 32,
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 231, 235, 0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  xpSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.semantic.headingText,
+    marginBottom: 16,
   },
   
   // Enhanced Referral Card

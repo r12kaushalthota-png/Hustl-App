@@ -24,6 +24,8 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { GamificationRepo } from '@/lib/gamificationRepo';
+import XPProgressBar from '@/components/XPProgressBar';
 
 const { width } = Dimensions.get('window');
 
@@ -228,6 +230,14 @@ export default function ProfileSidebar({ visible, onClose }: ProfileSidebarProps
                         {user ? getInitials(user.displayName) : (isGuest ? '?' : 'U')}
                       </Text>
                     </View>
+                    {user?.profile?.level && user.profile.level > 1 && (
+                      <View style={[
+                        styles.levelBadge,
+                        { backgroundColor: GamificationRepo.getLevelBadgeColor(user.profile.level) }
+                      ]}>
+                        <Text style={styles.levelBadgeText}>{user.profile.level}</Text>
+                      </View>
+                    )}
                   </View>
                   
                   <Text style={styles.displayName}>
@@ -237,9 +247,26 @@ export default function ProfileSidebar({ visible, onClose }: ProfileSidebarProps
                   <Text style={styles.userInfo}>
                     {user ? `${user.university || 'University of Florida'} • Student` : 'Browse as Guest'}
                   </Text>
+                  
+                  {user?.profile && (
+                    <Text style={styles.levelTitle}>
+                      {GamificationRepo.getLevelTitle(user.profile.level)}
+                    </Text>
+                  )}
                 </View>
               </LinearGradient>
             </View>
+
+            {/* XP Progress */}
+            {user?.profile && (
+              <View style={styles.xpCard}>
+                <XPProgressBar
+                  currentXP={user.profile.xp}
+                  currentLevel={user.profile.level}
+                  size="small"
+                />
+              </View>
+            )}
 
             {/* Account Status Card */}
             <View style={styles.statusCard}>
@@ -264,7 +291,9 @@ export default function ProfileSidebar({ visible, onClose }: ProfileSidebarProps
               {!isGuest && (
                 <View style={styles.creditsContainer}>
                   <CreditCard size={16} color={Colors.primary} strokeWidth={2} />
-                  <Text style={styles.creditsText}>$0.00 Credits</Text>
+                  <Text style={styles.creditsText}>
+                    {user?.profile ? GamificationRepo.formatCredits(user.profile.credits) : '0 credits'}
+                  </Text>
                 </View>
               )}
             </View>
@@ -415,6 +444,50 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+  },
+  levelBadge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  levelBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.white,
+  },
+  levelTitle: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  xpCard: {
+    backgroundColor: Colors.semantic.card,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 231, 235, 0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   statusCard: {
     backgroundColor: Colors.semantic.card,

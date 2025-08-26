@@ -12,8 +12,10 @@ import StarRating from '@/components/StarRating';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
+import { GamificationRepo } from '@/lib/gamificationRepo';
 import { Task, TaskCurrentStatus, TaskStatusHistory } from '@/types/database';
 import Toast from '@/components/Toast';
+import LevelUpModal from '@/components/LevelUpModal';
 
 const STATUS_FLOW: { value: TaskCurrentStatus; label: string; description: string }[] = [
   { value: 'accepted', label: 'Accepted', description: 'Task has been accepted' },
@@ -50,6 +52,10 @@ export default function TaskDetailScreen() {
     message: '',
     type: 'success'
   });
+
+  // Level up state
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  const [levelUpData, setLevelUpData] = useState<{ oldLevel: number; newLevel: number; creditsAwarded: number } | null>(null);
 
   useEffect(() => {
     loadTaskDetails();
@@ -199,6 +205,11 @@ export default function TaskDetailScreen() {
       setTimeout(() => {
         loadTaskDetails();
         checkReviewEligibility();
+        
+        // Check for level up and reload user profile
+        if (user && (newStatus === 'completed' || task.current_status === 'delivered')) {
+          checkForLevelUp();
+        }
       }, 1000);
       
     } catch (error) {
@@ -209,6 +220,31 @@ export default function TaskDetailScreen() {
       });
     } finally {
       setIsUpdatingStatus(false);
+    }
+  };
+
+  const checkForLevelUp = async () => {
+    if (!user) return;
+    
+    try {
+      // Reload user profile to get updated XP and level
+      const { data: updatedProfile } = await ProfileRepo.getProfile(user.id);
+      
+      if (updatedProfile && user.profile) {
+        const oldLevel = user.profile.level;
+        const newLevel = updatedProfile.level;
+        
+        if (newLevel > oldLevel) {
+          const creditsAwarded = (newLevel - oldLevel) * 500;
+          setLevelUpData({ oldLevel, newLevel, creditsAwarded });
+          setShowLevelUpModal(true);
+          
+          // Update auth context with new profile data
+          // This would need to be implemented in AuthContext
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to check for level up:', error);
     }
   };
 
@@ -615,6 +651,20 @@ export default function TaskDetailScreen() {
         type={toast.type}
         onHide={hideToast}
       />
+
+      {/* Level Up Modal */}
+      {levelUpData && (
+        <LevelUpModal
+          visible={showLevelUpModal}
+          onClose={() => {
+            setShowLevelUpModal(false);
+            setLevelUpData(null);
+          }}
+          oldLevel={levelUpData.oldLevel}
+          newLevel={levelUpData.newLevel}
+          creditsAwarded={levelUpData.creditsAwarded}
+        />
+      )}
     </>
   );
 }
