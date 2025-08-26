@@ -1,73 +1,69 @@
+// app.config.ts
 import { ConfigContext, ExpoConfig } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "Hustl",
-  slug: "hustl-app",
+  slug: "hustl",
+  scheme: "hustl",
+
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./src/assets/images/icon.png",
-  scheme: "hustl",
   userInterfaceStyle: "automatic",
-  newArchEnabled: true,
+  icon: "./src/assets/images/icon.png",
 
   ios: {
-    supportsTablet: true,
     bundleIdentifier: "com.hustl.app",
-    config: {
-      usesNonExemptEncryption: false
-    },
+    supportsTablet: true,
     infoPlist: {
       NSLocationWhenInUseUsageDescription:
         "We use your location to show nearby tasks on the map.",
       LSApplicationQueriesSchemes: ["comgooglemaps"],
-      NSUserNotificationsUsageDescription:
-        "We send you notifications about task updates and new opportunities."
-    }
+    },
   },
 
   android: {
     package: "com.hustl.app",
-    permissions: [
-      "android.permission.RECEIVE_BOOT_COMPLETED",
-      "android.permission.VIBRATE",
-      "android.permission.WAKE_LOCK"
-    ]
+    adaptiveIcon: {
+      foregroundImage: "./src/assets/images/adaptive-icon.png",
+      backgroundColor: "#FFFFFF",
+    },
   },
 
   web: {
     bundler: "metro",
     output: "single",
-    favicon: "./src/assets/images/favicon.png"
+    favicon: "./src/assets/images/favicon.png",
   },
 
   plugins: [
     "expo-router",
-    "expo-dev-client",
+    "expo-dev-client", // required for Bolt device preview
     [
-      "expo-maps", 
-      { 
-        googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyCrVIRCIog1gFNc_KFF669XaaebfdxUgn8" 
-      }
+      "expo-location",
+      {
+        locationAlwaysAndWhenInUseUsageDescription:
+          "We use your location to show nearby tasks on the map.",
+      },
     ],
-    ["expo-location", {
-      locationAlwaysAndWhenInUseUsageDescription:
-        "We use your location to show nearby tasks on the map."
-    }],
-    ["expo-notifications", {
-      icon: "./src/assets/images/icon.png",
-      color: "#0021A5",
-      sounds: ["./src/assets/sounds/notification.wav"]
-    }]
+    [
+      "expo-maps",
+      {
+        googleMapsApiKey:
+          process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "YOUR_GOOGLE_MAPS_KEY",
+      },
+    ],
   ],
 
   experiments: {
-    typedRoutes: true
+    typedRoutes: true,
   },
 
   extra: {
+    EXPO_PUBLIC_GOOGLE_MAPS_API_KEY:
+      process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
     eas: {
-      projectId: "your-project-id-here"
-    }
-  }
+      projectId: "YOUR_EAS_PROJECT_ID", // set after linking with Expo
+    },
+  },
 });
