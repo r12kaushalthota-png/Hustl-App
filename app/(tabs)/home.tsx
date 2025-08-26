@@ -851,6 +851,9 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* Live Stats */}
+        <LiveStatsSection />
+
         {/* Referral Banner */}
         <ReferralBanner />
 
