@@ -130,48 +130,6 @@ const BrandLogo = () => {
   );
 };
 
-// Premium Feature Highlights
-const FeatureHighlights = () => {
-  const features = [
-    { icon: Zap, text: 'Instant Task Matching', color: '#0021A5' },
-    { icon: Shield, text: 'Verified Students Only', color: '#FA4616' },
-    { icon: Star, text: 'Premium Experience', color: '#FFD700' },
-  ];
-
-  return (
-    <View style={styles.featuresContainer}>
-      {features.map((feature, index) => {
-        const fadeIn = useSharedValue(0);
-        const slideUp = useSharedValue(20);
-
-        React.useEffect(() => {
-          fadeIn.value = withDelay(
-            1000 + index * 200,
-            withTiming(1, { duration: 600 })
-          );
-          slideUp.value = withDelay(
-            1000 + index * 200,
-            withSpring(0, { damping: 15 })
-          );
-        }, []);
-
-        const animatedStyle = useAnimatedStyle(() => ({
-          opacity: fadeIn.value,
-          transform: [{ translateY: slideUp.value }],
-        }));
-
-        return (
-          <Animated.View key={index} style={[styles.featureItem, animatedStyle]}>
-            <View style={[styles.featureIcon, { backgroundColor: feature.color + '20' }]}>
-              <feature.icon size={16} color={feature.color} strokeWidth={2} />
-            </View>
-            <Text style={styles.featureText}>{feature.text}</Text>
-          </Animated.View>
-        );
-      })}
-    </View>
-  );
-};
 
 export default function AuthScreen() {
   const router = useRouter();
@@ -291,7 +249,7 @@ export default function AuthScreen() {
             </Text>
           </View>
           
-          <FeatureHighlights />
+          <LiveStatsSection />
         </Animated.View>
 
         {/* Error Message */}
@@ -552,37 +510,58 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 20,
   },
-  featuresContainer: {
+  // Live Stats Section
+  statsSection: {
+    alignItems: 'center',
     gap: 16,
-    alignItems: 'center',
   },
-  featureItem: {
+  statsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.white,
+    textAlign: 'center',
+    letterSpacing: -0.3,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  statsGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
+    paddingHorizontal: 20,
   },
-  featureIcon: {
-    width: 32,
-    height: 32,
+  statCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    gap: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 16,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    backdropFilter: 'blur(20px)',
+  },
+  statIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  featureText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
+  statValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    letterSpacing: -0.5,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+    fontWeight: '500',
   },
   errorContainer: {
     backgroundColor: 'rgba(254, 242, 242, 0.95)',

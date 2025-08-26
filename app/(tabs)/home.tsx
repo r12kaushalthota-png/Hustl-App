@@ -189,68 +189,6 @@ const AnimatedBackground = () => {
   React.useEffect(() => {
     floatingAnimation1.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 8000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0, { duration: 8000, easing: Easing.inOut(Easing.sin) })
-      ),
-      -1,
-      true
-    );
-
-    floatingAnimation2.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 12000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0, { duration: 12000, easing: Easing.inOut(Easing.sin) })
-      ),
-      -1,
-      true
-    );
-
-    floatingAnimation3.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 15000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0, { duration: 15000, easing: Easing.inOut(Easing.sin) })
-      ),
-      -1,
-      true
-    );
-  }, []);
-
-  const animatedStyle1 = useAnimatedStyle(() => {
-    const translateY = interpolate(floatingAnimation1.value, [0, 1], [0, -30]);
-    const opacity = interpolate(floatingAnimation1.value, [0, 0.5, 1], [0.3, 0.6, 0.3]);
-    return {
-      transform: [{ translateY }],
-      opacity,
-    };
-  });
-
-  const animatedStyle2 = useAnimatedStyle(() => {
-    const translateY = interpolate(floatingAnimation2.value, [0, 1], [0, 40]);
-    const opacity = interpolate(floatingAnimation2.value, [0, 0.5, 1], [0.2, 0.5, 0.2]);
-    return {
-      transform: [{ translateY }],
-      opacity,
-    };
-  });
-
-  const animatedStyle3 = useAnimatedStyle(() => {
-    const translateY = interpolate(floatingAnimation3.value, [0, 1], [0, -20]);
-    const opacity = interpolate(floatingAnimation3.value, [0, 0.5, 1], [0.4, 0.7, 0.4]);
-    return {
-      transform: [{ translateY }],
-      opacity,
-    };
-  });
-
-  return (
-    <View style={styles.backgroundContainer}>
-      <Animated.View style={[styles.floatingElement1, animatedStyle1]} />
-      <Animated.View style={[styles.floatingElement2, animatedStyle2]} />
-      <Animated.View style={[styles.floatingElement3, animatedStyle3]} />
-    </View>
-  );
-};
-
 // Professional Hero Section
 const HeroSection = () => {
   const { user, isGuest } = useAuth();
@@ -863,9 +801,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Live Stats */}
-        <LiveStatsSection />
-
         {/* Referral Banner */}
         <ReferralBanner />
 
@@ -1050,57 +985,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#0021A5',
-  },
-
-  // Stats Section
-  statsSection: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  statsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
-    textAlign: 'center',
-    letterSpacing: -0.3,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    gap: 8,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 16,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    backdropFilter: 'blur(20px)',
-  },
-  statIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    letterSpacing: -0.5,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    textAlign: 'center',
-    fontWeight: '500',
   },
 
   // Referral Banner
