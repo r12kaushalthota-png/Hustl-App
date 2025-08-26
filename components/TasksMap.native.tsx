@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import MapView, { Marker, Circle, PROVIDER_GOOGLE, Region } from 'expo-maps';
+import { MapView, Marker, Circle } from 'expo-maps';
 import * as Location from 'expo-location';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Colors } from '@/theme/colors';
@@ -22,11 +22,9 @@ interface TasksMapProps {
   onRequestLocation?: () => void;
 }
 
-const UF_CAMPUS: Region = { 
+const UF_CAMPUS = { 
   latitude: 29.6436, 
-  longitude: -82.3549, 
-  latitudeDelta: 0.035, 
-  longitudeDelta: 0.035 
+  longitude: -82.3549
 };
 
 export default function TasksMap({
@@ -37,12 +35,20 @@ export default function TasksMap({
   onRequestLocation,
 }: TasksMapProps) {
   const [isReady, setIsReady] = useState(false);
+  const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
 
   useEffect(() => {
     const initializeMap = async () => {
       try {
         if (locationPermission !== 'granted') {
-          await Location.requestForegroundPermissionsAsync();
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status === 'granted') {
+            const location = await Location.getCurrentPositionAsync({});
+            setUserLocation(location);
+          }
+        } else {
+          const location = await Location.getCurrentPositionAsync({});
+          setUserLocation(location);
         }
       } catch (error) {
         console.warn('Location permission error:', error);
@@ -79,12 +85,14 @@ export default function TasksMap({
     <View style={styles.container}>
       <MapView
         style={styles.map}
-        provider={PROVIDER_GOOGLE}
-        initialRegion={UF_CAMPUS}
+        provider="google"
+        initialCameraPosition={{
+          center: UF_CAMPUS,
+          zoom: 14
+        }}
         showsUserLocation={showsUserLocation && locationPermission === 'granted'}
         showsMyLocationButton={false}
         showsCompass={false}
-        toolbarEnabled={false}
       >
         {pins.map((pin) => (
           <Marker
@@ -92,10 +100,23 @@ export default function TasksMap({
             coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
             title={pin.title}
             description={`${pin.reward} • ${pin.store}`}
-            pinColor={getUrgencyColor(pin.urgency)}
+            color={getUrgencyColor(pin.urgency)}
             onPress={() => onPressPin?.(pin.id)}
           />
         ))}
+        
+        {userLocation && showsUserLocation && locationPermission === 'granted' && (
+          <Circle
+            center={{
+              latitude: userLocation.coords.latitude,
+              longitude: userLocation.coords.longitude
+            }}
+            radius={100}
+            fillColor="rgba(59, 130, 246, 0.2)"
+            strokeColor="rgba(59, 130, 246, 0.8)"
+            strokeWidth={2}
+          />
+        )}
       </MapView>
     </View>
   );
