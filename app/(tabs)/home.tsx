@@ -189,6 +189,65 @@ const AnimatedBackground = () => {
   React.useEffect(() => {
     floatingAnimation1.value = withRepeat(
       withSequence(
+        withTiming(1, { duration: 4000 }),
+        withTiming(0, { duration: 4000 })
+      ),
+      -1,
+      true
+    );
+
+    floatingAnimation2.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 5000 }),
+        withTiming(0, { duration: 5000 })
+      ),
+      -1,
+      true
+    );
+
+    floatingAnimation3.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 6000 }),
+        withTiming(0, { duration: 6000 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle1 = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: interpolate(floatingAnimation1.value, [0, 1], [0, -20]) },
+      { scale: interpolate(floatingAnimation1.value, [0, 1], [1, 1.1]) },
+    ],
+    opacity: interpolate(floatingAnimation1.value, [0, 1], [0.3, 0.6]),
+  }));
+
+  const animatedStyle2 = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: interpolate(floatingAnimation2.value, [0, 1], [0, 15]) },
+      { scale: interpolate(floatingAnimation2.value, [0, 1], [1, 0.9]) },
+    ],
+    opacity: interpolate(floatingAnimation2.value, [0, 1], [0.2, 0.5]),
+  }));
+
+  const animatedStyle3 = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: interpolate(floatingAnimation3.value, [0, 1], [0, -10]) },
+      { scale: interpolate(floatingAnimation3.value, [0, 1], [1, 1.2]) },
+    ],
+    opacity: interpolate(floatingAnimation3.value, [0, 1], [0.1, 0.4]),
+  }));
+
+  return (
+    <View style={styles.backgroundContainer}>
+      <Animated.View style={[styles.floatingElement1, animatedStyle1]} />
+      <Animated.View style={[styles.floatingElement2, animatedStyle2]} />
+      <Animated.View style={[styles.floatingElement3, animatedStyle3]} />
+    </View>
+  );
+};
+
 // Professional Hero Section
 const HeroSection = () => {
   const { user, isGuest } = useAuth();
@@ -951,6 +1010,55 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+  },
+
+  // Stats Section
+  statsSection: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+  },
+  statsTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+    letterSpacing: -0.3,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    gap: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 16,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    backdropFilter: 'blur(20px)',
+  },
+  statIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    letterSpacing: -0.3,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
   },
 
   // XP Section
