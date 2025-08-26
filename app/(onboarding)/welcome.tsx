@@ -512,6 +512,9 @@ const styles = StyleSheet.create({
     color: Colors.white,
     letterSpacing: 0.5,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
   legalLinks: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -531,5 +534,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.white,
     opacity: 0.6,
+  },
+  placeholder: {
+    width: 1,
+    height: 1,
   },
 });
