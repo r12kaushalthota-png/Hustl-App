@@ -292,7 +292,7 @@ export default function AuthScreen() {
           </View>
           
           <FeatureHighlights />
-        </Animated.View>
+        </View>
 
         {/* Error Message */}
         {error ? (
