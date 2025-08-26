@@ -25,13 +25,14 @@ const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpaci
 // Enhanced Profile Avatar with Level Badge
 const ProfileAvatar = ({ user, isGuest, onPress }: { 
   user: any; 
+  isGuest: boolean; 
   onPress: () => void;
 }) => {
   const scale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.2);
 
   React.useEffect(() => {
-    if (user?.profile?.level > 1) {
+    if (!isGuest && user?.profile?.level > 1) {
       // Subtle glow animation for leveled users
       glowOpacity.value = withRepeat(
         withSequence(
@@ -42,7 +43,7 @@ const ProfileAvatar = ({ user, isGuest, onPress }: {
         true
       );
     }
-  }, [user?.profile?.level]);
+  }, [isGuest, user?.profile?.level]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -88,18 +89,18 @@ const ProfileAvatar = ({ user, isGuest, onPress }: {
     >
       <Animated.View style={[
         styles.profileChip,
-        styles.userProfileChip,
-        { shadowColor: '#0021A5' },
+        isGuest ? styles.guestProfileChip : styles.userProfileChip,
+        !isGuest && { shadowColor: '#0021A5' },
         animatedGlowStyle
       ]}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {user ? getInitials(user.displayName) : 'U'}
+        <View style={isGuest ? styles.guestAvatar : styles.avatar}>
+          <Text style={isGuest ? styles.guestAvatarText : styles.avatarText}>
+            {user ? getInitials(user.displayName) : (isGuest ? '?' : 'U')}
           </Text>
         </View>
         
         {/* Level Badge */}
-        {user?.profile?.level && user.profile.level > 1 && (
+        {!isGuest && user?.profile?.level && user.profile.level > 1 && (
           <View style={[
             styles.levelBadge,
             { backgroundColor: getLevelColor(user.profile.level) }
@@ -198,11 +199,18 @@ export default function GlobalHeader({
   const handleProfilePress = () => {
     triggerHaptics();
     
+    if (isGuest) {
+      router.push('/(onboarding)/auth');
+      return;
+    }
+    
     // Open sidebar for authenticated users
     setShowProfileSidebar(true);
   };
 
   const handleProfileLongPress = () => {
+    if (isGuest) return;
+    
     if (Platform.OS !== 'web') {
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
@@ -224,6 +232,53 @@ export default function GlobalHeader({
     setShowNotificationCenter(true);
   };
 
+  if (isGuest) {
+    return (
+      <>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
+          <View style={styles.content}>
+            <View style={styles.leftSection}>
+              <ProfileAvatar 
+                user={user} 
+                isGuest={isGuest} 
+                onPress={handleProfilePress}
+              />
+              
+              <View style={styles.logoContainer}>
+                <Image
+                  source={require('../src/assets/images/image.png')}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+                <View style={styles.logoGlow} />
+              </View>
+            </View>
+            
+            {title && (
+              <Text style={styles.title}>{title}</Text>
+            )}
+            
+            <View style={styles.rightSection}>
+              {showSearch && (
+                <IconButton
+                  icon={<Search size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />}
+                  onPress={handleSearchPress}
+                  accessibilityLabel="Search"
+                />
+              )}
+            </View>
+          </View>
+        </View>
+        
+        {/* Profile Sidebar */}
+        <ProfileSidebar
+          visible={showProfileSidebar}
+          onClose={() => setShowProfileSidebar(false)}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -231,6 +286,7 @@ export default function GlobalHeader({
           <View style={styles.leftSection}>
             <ProfileAvatar 
               user={user} 
+              isGuest={isGuest} 
               onPress={handleProfilePress}
             />
             

@@ -11,7 +11,7 @@ import { Task } from '@/types/database';
 export default function MyTasksScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -20,7 +20,7 @@ export default function MyTasksScreen() {
   }, []);
 
   const loadMyTasks = async () => {
-    if (!user) {
+    if (isGuest || !user) {
       setIsLoading(false);
       return;
     }

@@ -59,7 +59,7 @@ export default function UniversitySelection() {
       setSelectedId(university.id);
       // Delay navigation to show animation
       setTimeout(() => {
-        router.push('/(onboarding)/auth');
+        router.push('/(onboarding)/confirm-university');
       }, 300);
     }
   };

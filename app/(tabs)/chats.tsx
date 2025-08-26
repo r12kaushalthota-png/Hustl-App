@@ -12,7 +12,7 @@ import GlobalHeader from '@/components/GlobalHeader';
 
 export default function ChatsScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const [inbox, setInbox] = React.useState<InboxItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -22,7 +22,7 @@ export default function ChatsScreen() {
   }, []);
 
   const loadChatInbox = async () => {
-    if (!user) {
+    if (isGuest || !user) {
       setIsLoading(false);
       return;
     }

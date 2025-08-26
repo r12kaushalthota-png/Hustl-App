@@ -17,9 +17,11 @@ interface AuthContextType {
   user: AuthUser | null;
   session: Session | null;
   isLoading: boolean;
+  isGuest: boolean;
   login: (email: string, password: string) => Promise<{ error?: string }>;
   signup: (email: string, password: string, displayName: string) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
+  setGuestMode: (isGuest: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   // Initialize auth state and listen for changes
@@ -132,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: formatAuthError(error) };
       }
 
+      setIsGuest(false);
       return {};
     } catch (error) {
       return { error: 'Network error. Please check your connection and try again.' };
@@ -158,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: formatAuthError(error) };
       }
 
+      setIsGuest(false);
       return {};
     } catch (error) {
       return { error: 'Network error. Please check your connection and try again.' };
@@ -176,10 +181,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
+      setIsGuest(false);
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const setGuestMode = (guest: boolean) => {
+    setIsGuest(guest);
+    if (guest) {
+      setUser(null);
+      setSession(null);
     }
   };
 
@@ -188,9 +202,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       session,
       isLoading,
+      isGuest,
       login,
       signup,
       logout,
+      setGuestMode,
     }}>
       {children}
     </AuthContext.Provider>

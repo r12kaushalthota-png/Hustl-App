@@ -46,7 +46,7 @@ const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpaci
 export default function ProfileSidebar({ visible, onClose }: ProfileSidebarProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user, logout } = useAuth();
+  const { user, logout, isGuest } = useAuth();
   
   // Animation values
   const overlayOpacity = useSharedValue(0);
@@ -227,7 +227,7 @@ export default function ProfileSidebar({ visible, onClose }: ProfileSidebarProps
                   <View style={styles.avatarContainer}>
                     <View style={styles.avatar}>
                       <Text style={styles.avatarText}>
-                        {user ? getInitials(user.displayName) : 'U'}
+                        {user ? getInitials(user.displayName) : (isGuest ? '?' : 'U')}
                       </Text>
                     </View>
                     {user?.profile?.level && user.profile.level > 1 && (
@@ -241,11 +241,11 @@ export default function ProfileSidebar({ visible, onClose }: ProfileSidebarProps
                   </View>
                   
                   <Text style={styles.displayName}>
-                    {user ? user.displayName : 'User'}
+                    {user ? user.displayName : (isGuest ? 'Guest User' : 'User')}
                   </Text>
                   
                   <Text style={styles.userInfo}>
-                    {user ? `${user.university || 'University of Florida'} • Student` : 'Student'}
+                    {user ? `${user.university || 'University of Florida'} • Student` : 'Browse as Guest'}
                   </Text>
                   
                   {user?.profile && (
@@ -272,24 +272,30 @@ export default function ProfileSidebar({ visible, onClose }: ProfileSidebarProps
             <View style={styles.statusCard}>
               <View style={styles.statusHeader}>
                 <View style={styles.statusIcon}>
-                  <Shield size={20} color={Colors.semantic.successAlert} strokeWidth={2} />
+                  {isGuest ? (
+                    <User size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                  ) : (
+                    <Shield size={20} color={Colors.semantic.successAlert} strokeWidth={2} />
+                  )}
                 </View>
                 <View style={styles.statusInfo}>
                   <Text style={styles.statusTitle}>
-                    Verified Student
+                    {isGuest ? 'Guest Mode' : 'Verified Student'}
                   </Text>
                   <Text style={styles.statusSubtitle}>
-                    Full access to all features
+                    {isGuest ? 'Limited access to features' : 'Full access to all features'}
                   </Text>
                 </View>
               </View>
               
-              <View style={styles.creditsContainer}>
-                <CreditCard size={16} color={Colors.primary} strokeWidth={2} />
-                <Text style={styles.creditsText}>
-                  {user?.profile ? GamificationRepo.formatCredits(user.profile.credits) : '0 credits'}
-                </Text>
-              </View>
+              {!isGuest && (
+                <View style={styles.creditsContainer}>
+                  <CreditCard size={16} color={Colors.primary} strokeWidth={2} />
+                  <Text style={styles.creditsText}>
+                    {user?.profile ? GamificationRepo.formatCredits(user.profile.credits) : '0 credits'}
+                  </Text>
+                </View>
+              )}
             </View>
 
             {/* Menu Items */}
@@ -298,25 +304,27 @@ export default function ProfileSidebar({ visible, onClose }: ProfileSidebarProps
             </View>
 
             {/* Logout */}
-            <View style={styles.logoutSection}>
-              <TouchableOpacity
-                style={styles.logoutItem}
-                onPress={handleLogout}
-                activeOpacity={0.7}
-                accessibilityLabel="Log out"
-                accessibilityRole="button"
-              >
-                <View style={styles.menuItemLeft}>
-                  <View style={styles.menuItemIcon}>
-                    <LogOut size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
+            {!isGuest && (
+              <View style={styles.logoutSection}>
+                <TouchableOpacity
+                  style={styles.logoutItem}
+                  onPress={handleLogout}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Log out"
+                  accessibilityRole="button"
+                >
+                  <View style={styles.menuItemLeft}>
+                    <View style={styles.menuItemIcon}>
+                      <LogOut size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
+                    </View>
+                    <Text style={[styles.menuItemText, { color: Colors.semantic.errorAlert }]}>
+                      Log Out
+                    </Text>
                   </View>
-                  <Text style={[styles.menuItemText, { color: Colors.semantic.errorAlert }]}>
-                    Log Out
-                  </Text>
-                </View>
-                <ChevronRight size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
-              </TouchableOpacity>
-            </View>
+                  <ChevronRight size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* Footer */}
             <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>

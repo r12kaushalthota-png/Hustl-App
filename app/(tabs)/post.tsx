@@ -90,7 +90,7 @@ export default function PostScreen() {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   
   // Form state
   const [title, setTitle] = useState('');
@@ -237,7 +237,7 @@ export default function PostScreen() {
     triggerHaptics();
 
     // Check authentication
-    if (!user) {
+    if (isGuest || !user) {
       setShowAuthPrompt(true);
       return;
     }

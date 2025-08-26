@@ -212,7 +212,7 @@ export default function WelcomeScreen() {
   }));
 
   const handleChooseCampus = () => {
-    router.push('/(onboarding)/auth');
+    router.push('/(onboarding)/university-selection');
   };
 
   const handleTerms = () => {
