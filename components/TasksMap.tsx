@@ -4,10 +4,26 @@ import Constants from 'expo-constants';
 import { MapPin, Navigation, Smartphone, ExternalLink, Wifi, WifiOff } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
 
-// TODO: Re-enable expo-maps imports when ready for Dev Client
-// import * as Location from 'expo-location';
-// const expoMaps = require('expo-maps');
-// const { MapView, Marker, Circle } = expoMaps;
+// Conditional imports to prevent crashes in Expo Go
+let Location: any = null;
+let MapView: any = null;
+let Marker: any = null;
+let Circle: any = null;
+
+// Only import expo modules when not in Expo Go
+const isExpoGo = Constants.appOwnership === 'expo';
+
+if (!isExpoGo) {
+  try {
+    Location = require('expo-location');
+    const expoMaps = require('expo-maps');
+    MapView = expoMaps.MapView;
+    Marker = expoMaps.Marker;
+    Circle = expoMaps.Circle;
+  } catch (error) {
+    console.warn('Native modules not available:', error);
+  }
+}
 
 export interface TaskPin {
   id: string;
@@ -27,23 +43,22 @@ interface TasksMapProps {
   onRequestLocation?: () => void;
 }
 
-// TODO: Re-enable when maps are restored
-// const UF_CAMPUS = {
-//   latitude: 29.6436,
-//   longitude: -82.3549
-// };
+const UF_CAMPUS = {
+  latitude: 29.6436,
+  longitude: -82.3549
+};
 
-// Temporary placeholder component
-const MapPlaceholder = ({ pins = [], onRequestDevClient }: { pins: TaskPin[]; onRequestDevClient?: () => void }) => (
+// Expo Go fallback component
+const ExpoGoFallback = ({ pins = [] }: { pins: TaskPin[] }) => (
   <View style={styles.fallbackContainer}>
     <View style={styles.fallbackContent}>
       <View style={styles.fallbackIconContainer}>
         <Smartphone size={48} color={Colors.semantic.tabInactive} strokeWidth={1.5} />
       </View>
       
-      <Text style={styles.fallbackTitle}>Interactive Map Unavailable</Text>
+      <Text style={styles.fallbackTitle}>Map Preview Unavailable in Expo Go</Text>
       <Text style={styles.fallbackSubtitle}>
-        Maps are temporarily disabled for Expo Go compatibility. Switch to List view to browse tasks.
+        Please build and run with a Dev Client to see interactive maps.
       </Text>
       
       {pins.length > 0 && (
@@ -53,13 +68,6 @@ const MapPlaceholder = ({ pins = [], onRequestDevClient }: { pins: TaskPin[]; on
             {pins.length} task{pins.length !== 1 ? 's' : ''} available on map
           </Text>
         </View>
-      )}
-      
-      {onRequestDevClient && (
-        <TouchableOpacity style={styles.devClientButton} onPress={onRequestDevClient}>
-          <ExternalLink size={16} color={Colors.white} strokeWidth={2} />
-          <Text style={styles.devClientButtonText}>TODO: Enable Maps</Text>
-        </TouchableOpacity>
       )}
       
       <Text style={styles.fallbackNote}>
@@ -76,25 +84,135 @@ export default function TasksMap({
   locationPermission,
   onRequestLocation,
 }: TasksMapProps) {
-  // TODO: Re-enable location and map functionality
-  // const [isMapReady, setIsMapReady] = useState(false);
-  // const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
-  // const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [userLocation, setUserLocation] = useState<any>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
 
-  const handleDevClientInfo = () => {
-    console.log('TODO: Enable maps with Dev Client');
+  // Load user location when component mounts (only in Dev Client)
+  useEffect(() => {
+    if (isExpoGo || !Location) {
+      setIsLoadingLocation(false);
+      return;
+    }
+
+    loadUserLocation();
+  }, []);
+
+  const loadUserLocation = async () => {
+    if (!Location) return;
+
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        const location = await Location.getCurrentPositionAsync({});
+        setUserLocation(location);
+      }
+    } catch (error) {
+      console.warn('Location error:', error);
+    } finally {
+      setIsLoadingLocation(false);
+    }
   };
 
-  // TODO: Re-enable map rendering when expo-maps is restored
+  const handlePinPress = (pin: TaskPin) => {
+    onPressPin?.(pin.id);
+  };
+
+  const getUrgencyColor = (urgency: string): string => {
+    switch (urgency) {
+      case 'high':
+        return '#EF4444';
+      case 'medium':
+        return '#F59E0B';
+      case 'low':
+        return '#10B981';
+      default:
+        return Colors.primary;
+    }
+  };
+
+  // Show Expo Go fallback if running in Expo Go
+  if (isExpoGo || !MapView) {
+    return <ExpoGoFallback pins={pins} />;
+  }
+
+  // Render full map in Dev Client
   return (
-    <MapPlaceholder pins={pins} onRequestDevClient={handleDevClientInfo} />
+    <View style={styles.container}>
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          ...UF_CAMPUS,
+          latitudeDelta: 0.02,
+          longitudeDelta: 0.02,
+        }}
+        showsUserLocation={showsUserLocation && !!userLocation}
+        showsMyLocationButton={false}
+        onMapReady={() => setIsMapReady(true)}
+      >
+        {/* User location circle */}
+        {showsUserLocation && userLocation && (
+          <Circle
+            center={{
+              latitude: userLocation.coords.latitude,
+              longitude: userLocation.coords.longitude,
+            }}
+            radius={100}
+            fillColor="rgba(0, 33, 165, 0.2)"
+            strokeColor={Colors.primary}
+            strokeWidth={2}
+          />
+        )}
+
+        {/* Task pins */}
+        {pins.map((pin) => (
+          <Marker
+            key={pin.id}
+            coordinate={{
+              latitude: pin.latitude,
+              longitude: pin.longitude,
+            }}
+            onPress={() => handlePinPress(pin)}
+          >
+            <View style={[
+              styles.customMarker,
+              { borderColor: getUrgencyColor(pin.urgency) }
+            ]}>
+              <Text style={styles.markerText}>{pin.reward}</Text>
+            </View>
+          </Marker>
+        ))}
+      </MapView>
+
+      {/* Location permission prompt */}
+      {!showsUserLocation && locationPermission !== 'granted' && (
+        <View style={styles.locationPrompt}>
+          <TouchableOpacity style={styles.locationButton} onPress={onRequestLocation}>
+            <MapPin size={16} color={Colors.white} strokeWidth={2} />
+            <Text style={styles.locationButtonText}>Enable Location</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Task count badge */}
+      {pins.length > 0 && (
+        <View style={styles.taskCountBadge}>
+          <Text style={styles.taskCountText}>
+            {pins.length} task{pins.length !== 1 ? 's' : ''}
+          </Text>
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors?.semantic?.screen ?? '#FFFFFF',
+    backgroundColor: Colors.semantic.screen,
+  },
+  map: {
+    flex: 1,
   },
   fallbackContainer: {
     flex: 1,
@@ -155,48 +273,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.primary,
   },
-  devClientButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    gap: 8,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  devClientButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  retryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    gap: 8,
-    marginBottom: 16,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  retryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.white,
-  },
   fallbackNote: {
     fontSize: 12,
     color: Colors.semantic.tabInactive,
@@ -204,9 +280,69 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     opacity: 0.8,
   },
-  // TODO: Re-enable map-specific styles when expo-maps is restored
-  // customMarker: { ... },
-  // locationPrompt: { ... },
-  // locationButton: { ... },
-  // taskCountBadge: { ... },
+  customMarker: {
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    borderWidth: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  markerText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.semantic.bodyText,
+  },
+  locationPrompt: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    right: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  locationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 8,
+    justifyContent: 'center',
+  },
+  locationButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.white,
+  },
+  taskCountBadge: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    backgroundColor: Colors.primary,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  taskCountText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.white,
+  },
 });

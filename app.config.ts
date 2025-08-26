@@ -43,12 +43,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 
   plugins: [
     "expo-router",
+    "expo-dev-client",
     ["expo-maps", { googleMapsApiKey: "AIzaSyCrVIRCIog1gFNc_KFF669XaaebfdxUgn8" }],
     ["expo-location", {
       locationAlwaysAndWhenInUseUsageDescription:
         "We use your location to show nearby tasks on the map."
     }],
-    "expo-dev-client"
   ],
 
   experiments: {

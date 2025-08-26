@@ -31,9 +31,8 @@ export default function TasksScreen() {
   const [doingTasks, setDoingTasks] = useState<Task[]>([]);
   const [postedTasks, setPostedTasks] = useState<Task[]>([]);
   
-  // TODO: Re-enable location state when maps are restored
-  // const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
-  // const [locationPermission, setLocationPermission] = useState<Location.PermissionStatus | null>(null);
+  const [userLocation, setUserLocation] = useState<any>(null);
+  const [locationPermission, setLocationPermission] = useState<string | null>(null);
   
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
@@ -54,26 +53,35 @@ export default function TasksScreen() {
   const [showReviewSheet, setShowReviewSheet] = useState(false);
   const [taskToReview, setTaskToReview] = useState<Task | null>(null);
 
-  // Request location permission on mount
-  // TODO: Re-enable location permission request when maps are restored
-  // useEffect(() => {
-  //   requestLocationPermission();
-  // }, []);
-  //
-  // const requestLocationPermission = async () => {
-  //   try {
-  //     const { status } = await Location.requestForegroundPermissionsAsync();
-  //     setLocationPermission(status);
-  //     
-  //     if (status === 'granted') {
-  //       const location = await Location.getCurrentPositionAsync({});
-  //       setUserLocation(location);
-  //     }
-  //   } catch (error) {
-  //     console.warn('Location permission error:', error);
-  //     setLocationPermission('denied');
-  //   }
-  // };
+  // Request location permission on mount (only in Dev Client)
+  useEffect(() => {
+    requestLocationPermission();
+  }, []);
+
+  const requestLocationPermission = async () => {
+    // Skip location in Expo Go to prevent crashes
+    const Constants = require('expo-constants');
+    const isExpoGo = Constants.default.appOwnership === 'expo';
+    
+    if (isExpoGo) {
+      setLocationPermission('unavailable');
+      return;
+    }
+
+    try {
+      const Location = require('expo-location');
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      setLocationPermission(status);
+      
+      if (status === 'granted') {
+        const location = await Location.getCurrentPositionAsync({});
+        setUserLocation(location);
+      }
+    } catch (error) {
+      console.warn('Location permission error:', error);
+      setLocationPermission('denied');
+    }
+  };
 
   // Load tasks based on active tab
   const loadTasks = useCallback(async (showRefreshIndicator = false) => {
@@ -197,21 +205,20 @@ export default function TasksScreen() {
         });
 
         // Open Google Maps navigation if location is available
-        // TODO: Re-enable navigation when location is restored
-        // if (userLocation && task.dropoff_address) {
-        //   try {
-        //     const storeLocation = { lat: 29.6436, lng: -82.3549 };
-        //     const dropoffLocation = { lat: 29.6436 + (Math.random() - 0.5) * 0.02, lng: -82.3549 + (Math.random() - 0.5) * 0.02 };
-        //     
-        //     await openGoogleMapsNavigation({
-        //       start: { lat: userLocation.coords.latitude, lng: userLocation.coords.longitude },
-        //       dest: dropoffLocation,
-        //       waypoint: storeLocation,
-        //     });
-        //   } catch (error) {
-        //     console.warn('Failed to open navigation:', error);
-        //   }
-        // }
+        if (userLocation && task.dropoff_address) {
+          try {
+            const storeLocation = { lat: 29.6436, lng: -82.3549 };
+            const dropoffLocation = { lat: 29.6436 + (Math.random() - 0.5) * 0.02, lng: -82.3549 + (Math.random() - 0.5) * 0.02 };
+            
+            await openGoogleMapsNavigation({
+              start: { lat: userLocation.coords.latitude, lng: userLocation.coords.longitude },
+              dest: dropoffLocation,
+              waypoint: storeLocation,
+            });
+          } catch (error) {
+            console.warn('Failed to open navigation:', error);
+          }
+        }
       }
     } catch (error) {
       setToast({
@@ -463,9 +470,9 @@ export default function TasksScreen() {
       <TasksMap
         pins={pins}
         onPressPin={(taskId) => console.log('Task details:', taskId)}
-        showsUserLocation={false}
-        locationPermission={null}
-        onRequestLocation={() => console.log('TODO: Enable location')}
+       showsUserLocation={locationPermission === 'granted'}
+       locationPermission={locationPermission}
+       onRequestLocation={requestLocationPermission}
       />
     );
   };

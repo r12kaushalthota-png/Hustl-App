@@ -2,6 +2,26 @@ Hustl-App
 
 ## Device Preview Setup
 
+### Using Bolt's Device Preview (Recommended)
+
+The easiest way to preview the app on your device:
+
+1. **In Bolt**:
+   - Go to **Integrations → Expo** and sign in with your Expo account
+   - Click **Preview → Start** to boot Metro bundler and enable tunnel mode
+   - The **Device Preview** button should now be enabled
+
+2. **On your mobile device**:
+   - Tap **Device Preview** in Bolt and choose your preferred method:
+     - **Expo Go**: Quick preview for basic functionality
+     - **Dev Client**: Full native functionality (requires building first)
+   - Scan the QR code or enter the URL
+
+3. **If Device Preview is disabled**:
+   - Make sure you're signed into Expo in Bolt's Integrations
+   - Ensure Metro bundler is running (Preview → Start)
+   - Try refreshing the page and starting Preview again
+
 ### Quick Preview (Expo Go)
 
 For basic app preview without native features:
@@ -76,6 +96,12 @@ For full native functionality including interactive maps:
 - If websockets fail, the app will show connection instructions
 - Try switching between tunnel and LAN modes
 - Restart Metro bundler: `npx expo start --clear`
+
+**If you see "Network request failed" or tunnel issues:**
+- Switch to LAN mode: In Bolt, stop Preview and restart with LAN mode
+- Check firewall settings on your computer
+- Ensure your phone and computer are on the same WiFi network
+- Try restarting Metro: `npx expo start --clear`
 
 ## Features
 
