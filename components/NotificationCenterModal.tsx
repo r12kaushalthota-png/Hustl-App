@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { X, Check, CheckCheck, Clock, Package, User } from 'lucide-react-native';
+import { X, Check, CheckCheck, Clock, Package, User, Bell } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/theme/colors';
 import { useNotifications } from '@/features/notifications/useNotifications';
