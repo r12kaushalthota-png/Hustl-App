@@ -1,9 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
-import { MapView, Marker, Circle } from 'expo-maps';
+import Constants from 'expo-constants';
 import * as Location from 'expo-location';
-import { MapPin, Navigation } from 'lucide-react-native';
+import { MapPin, Navigation, Smartphone } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
+
+// Conditional import for expo-maps (only when not in Expo Go)
+let MapView: any = null;
+let Marker: any = null;
+let Circle: any = null;
+
+// Detect if running in Expo Go
+const isExpoGo = Constants.appOwnership === 'expo';
+
+// Only import expo-maps if not in Expo Go
+if (!isExpoGo) {
+  try {
+    const expoMaps = require('expo-maps');
+    MapView = expoMaps.MapView;
+    Marker = expoMaps.Marker;
+    Circle = expoMaps.Circle;
+  } catch (error) {
+    console.warn('expo-maps not available:', error);
+  }
+}
 
 export interface TaskPin {
   id: string;
@@ -27,6 +47,40 @@ const UF_CAMPUS = {
   latitude: 29.6436,
   longitude: -82.3549
 };
+
+// Expo Go Fallback Component
+const ExpoGoFallback = ({ pins = [] }: { pins: TaskPin[] }) => (
+  <View style={styles.fallbackContainer}>
+    <View style={styles.fallbackContent}>
+      <View style={styles.fallbackIconContainer}>
+        <Smartphone size={48} color={Colors.semantic.tabInactive} strokeWidth={1.5} />
+      </View>
+      
+      <Text style={styles.fallbackTitle}>Map Preview Unavailable</Text>
+      <Text style={styles.fallbackSubtitle}>
+        Maps are not supported in Expo Go. Please build and run with a Dev Client to see the interactive map.
+      </Text>
+      
+      {pins.length > 0 && (
+        <View style={styles.fallbackStats}>
+          <MapPin size={16} color={Colors.primary} strokeWidth={2} />
+          <Text style={styles.fallbackStatsText}>
+            {pins.length} task{pins.length !== 1 ? 's' : ''} available on map
+          </Text>
+        </View>
+      )}
+      
+      <View style={styles.fallbackInstructions}>
+        <Text style={styles.fallbackInstructionsTitle}>To enable maps:</Text>
+        <Text style={styles.fallbackInstructionsText}>
+          1. Run: npx expo prebuild --clean{'\n'}
+          2. Run: npx expo run:ios (or run:android){'\n'}
+          3. Install the dev client on your device
+        </Text>
+      </View>
+    </View>
+  </View>
+);
 
 export default function TasksMap({
   pins = [],
@@ -89,6 +143,7 @@ export default function TasksMap({
     }
   };
 
+  // Show loading state until ready
   if (!isMapReady || isLoadingLocation) {
     return (
       <View style={styles.loadingContainer}>
@@ -98,6 +153,11 @@ export default function TasksMap({
         </Text>
       </View>
     );
+  }
+
+  // Show Expo Go fallback if running in Expo Go
+  if (isExpoGo || !MapView) {
+    return <ExpoGoFallback pins={pins} />;
   }
 
   return (
@@ -188,6 +248,90 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.semantic.tabInactive,
     fontWeight: '500',
+  },
+  fallbackContainer: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fallbackContent: {
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    gap: 20,
+  },
+  fallbackIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    marginBottom: 8,
+  },
+  fallbackTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.semantic.headingText,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  fallbackSubtitle: {
+    fontSize: 16,
+    color: Colors.semantic.tabInactive,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 16,
+  },
+  fallbackStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 16,
+  },
+  fallbackStatsText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  fallbackInstructions: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    alignSelf: 'stretch',
+  },
+  fallbackInstructionsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.semantic.bodyText,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  fallbackInstructionsText: {
+    fontSize: 14,
+    color: Colors.semantic.tabInactive,
+    lineHeight: 20,
+    textAlign: 'left',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   customMarker: {
     width: 32,
