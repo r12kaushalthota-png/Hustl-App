@@ -185,6 +185,8 @@ const AnimatedBackground = () => {
   const floatingAnimation1 = useSharedValue(0);
   const floatingAnimation2 = useSharedValue(0);
   const floatingAnimation3 = useSharedValue(0);
+  const haloAnimation = useSharedValue(0);
+  const haloRotation = useSharedValue(0);
 
   React.useEffect(() => {
     floatingAnimation1.value = withRepeat(
@@ -212,6 +214,22 @@ const AnimatedBackground = () => {
       ),
       -1,
       true
+    );
+
+    // Purple-orange halo animation
+    haloAnimation.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 4000, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      true
+    );
+
+    haloRotation.value = withRepeat(
+      withTiming(360, { duration: 20000, easing: Easing.linear }),
+      -1,
+      false
     );
   }, []);
 
@@ -242,8 +260,23 @@ const AnimatedBackground = () => {
     };
   });
 
+  const animatedHaloStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(haloAnimation.value, [0, 0.5, 1], [0.1, 0.3, 0.1]);
+    const scale = interpolate(haloAnimation.value, [0, 1], [0.8, 1.2]);
+    return {
+      opacity,
+      transform: [
+        { scale },
+        { rotate: `${haloRotation.value}deg` }
+      ],
+    };
+  });
+
   return (
     <View style={styles.backgroundContainer}>
+      {/* Purple-Orange Halo */}
+      <Animated.View style={[styles.haloBackground, animatedHaloStyle]} />
+      
       <Animated.View style={[styles.floatingElement1, animatedStyle1]} />
       <Animated.View style={[styles.floatingElement2, animatedStyle2]} />
       <Animated.View style={[styles.floatingElement3, animatedStyle3]} />
@@ -338,6 +371,21 @@ const HeroSection = () => {
               <Text style={styles.ctaText}>
                 {isGuest ? 'Get Started' : 'Post a Task'}
               </Text>
+              <ChevronRight size={18} color={Colors.white} strokeWidth={2.5} />
+            </LinearGradient>
+          </TouchableOpacity>
+          
+          {/* Choose Task Button */}
+          <TouchableOpacity 
+            style={styles.chooseTaskButton}
+            onPress={() => router.push('/(tabs)/tasks')}
+            activeOpacity={0.9}
+          >
+            <LinearGradient
+              colors={['#FA4616', '#FF6B35']}
+              style={styles.chooseTaskGradient}
+            >
+              <Text style={styles.chooseTaskText}>Choose a Task</Text>
               <ChevronRight size={18} color={Colors.white} strokeWidth={2.5} />
             </LinearGradient>
           </TouchableOpacity>
@@ -939,6 +987,16 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: 'rgba(59, 130, 246, 0.05)',
   },
+  haloBackground: {
+    position: 'absolute',
+    top: '20%',
+    left: '10%',
+    right: '10%',
+    bottom: '30%',
+    borderRadius: 200,
+    background: 'conic-gradient(from 0deg, #8B5CF6, #FA4616, #FF6B35, #8B5CF6)',
+    zIndex: -1,
+  },
   content: {
     flex: 1,
     zIndex: 1,
@@ -966,7 +1024,7 @@ const styles = StyleSheet.create({
   },
   heroContent: {
     padding: 32,
-    gap: 24,
+    gap: 20,
   },
   heroText: {
     gap: 12,
@@ -1009,6 +1067,32 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   ctaText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.white,
+    letterSpacing: 0.3,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  chooseTaskButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#FA4616',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+    alignSelf: 'flex-start',
+  },
+  chooseTaskGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    gap: 8,
+  },
+  chooseTaskText: {
     fontSize: 16,
     fontWeight: '700',
     color: Colors.white,
