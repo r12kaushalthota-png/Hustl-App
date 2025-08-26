@@ -44,11 +44,21 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     "expo-router",
     "expo-dev-client",
-    ["expo-maps", { googleMapsApiKey: "AIzaSyCrVIRCIog1gFNc_KFF669XaaebfdxUgn8" }],
+    [
+      "expo-maps", 
+      { 
+        googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyCrVIRCIog1gFNc_KFF669XaaebfdxUgn8" 
+      }
+    ],
     ["expo-location", {
       locationAlwaysAndWhenInUseUsageDescription:
         "We use your location to show nearby tasks on the map."
     }],
+    ["expo-notifications", {
+      icon: "./src/assets/images/icon.png",
+      color: "#0021A5",
+      sounds: ["./src/assets/sounds/notification.wav"]
+    }]
   ],
 
   experiments: {
@@ -56,6 +66,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
 
   extra: {
-    EXPO_PUBLIC_GOOGLE_MAPS_API_KEY: "AIzaSyCrVIRCIog1gFNc_KFF669XaaebfdxUgn8"
+    eas: {
+      projectId: "your-project-id-here"
+    }
   }
 });

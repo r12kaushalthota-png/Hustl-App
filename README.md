@@ -1,5 +1,82 @@
 Hustl-App
 
+## Expo Integration & Device Preview Setup
+
+### Prerequisites
+
+1. **Expo Account**: Create a free account at [expo.dev](https://expo.dev) if you don't have one
+2. **Bolt Integration**: Connect your Expo account in Bolt's Integrations panel
+
+### Setting Up Device Preview in Bolt
+
+1. **Connect Expo Integration**:
+   - In Bolt, go to **Integrations → Expo**
+   - Sign in with your Expo account credentials
+   - Verify the integration shows as "Connected"
+
+2. **Start Metro Bundler**:
+   - Click **Preview → Start** in Bolt
+   - Wait for Metro bundler to initialize (you'll see "Metro waiting on...")
+   - Tunnel mode will be enabled automatically for device access
+
+3. **Enable Device Preview**:
+   - The **Device Preview** button should now be enabled (no longer greyed out)
+   - If still disabled, try refreshing Bolt and repeating steps 1-2
+
+4. **Preview on Device**:
+   - Click **Device Preview** in Bolt
+   - Choose your preview method:
+     - **Expo Go**: Quick preview for managed features
+     - **Dev Client**: Full native functionality (requires building)
+   - Scan the QR code with your device
+
+### Preview Methods
+
+#### Expo Go (Quick Preview)
+- **Best for**: Testing core app flows, UI, basic functionality
+- **Limitations**: Maps show placeholder, some native features disabled
+- **Setup**: Install Expo Go app, scan QR code from Bolt
+- **No build required**: Instant preview
+
+#### Dev Client (Full Features)
+- **Best for**: Complete app testing with all native modules
+- **Features**: Interactive maps, full location services, push notifications
+- **Setup**: Requires building development client first
+- **Build time**: ~5-15 minutes depending on platform
+
+### Troubleshooting Device Preview
+
+**If Device Preview button is greyed out:**
+
+1. **Check Expo Integration**:
+   - Verify you're signed into Expo in Bolt's Integrations
+   - Try signing out and back in if connection seems stale
+
+2. **Restart Metro**:
+   - Click **Preview → Stop** then **Preview → Start**
+   - Wait for "Metro waiting on..." message
+   - Refresh Bolt page if needed
+
+3. **Network Issues**:
+   - Ensure your computer and phone are on the same WiFi network
+   - Try switching from tunnel to LAN mode: `npx expo start --lan`
+   - Check firewall settings (allow port 8081)
+
+4. **Clear Cache**:
+   ```bash
+   npx expo start --clear
+   ```
+
+**If app crashes in Expo Go:**
+- This is expected for native modules (maps, location)
+- Use Dev Client for full functionality
+- Core features (auth, tasks, notifications) work in Expo Go
+
+**Connection troubleshooting:**
+- If websockets fail, try restarting Metro bundler
+- Switch between tunnel and LAN modes if one doesn't work
+- Ensure no VPN is interfering with local network access
+
 ## Device Preview Setup
 
 ### Using Bolt's Device Preview (Recommended)

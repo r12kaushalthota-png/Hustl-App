@@ -55,32 +55,35 @@ export default function TasksScreen() {
 
   // Request location permission on mount (only in Dev Client)
   useEffect(() => {
-    requestLocationPermission();
+    // TODO: Re-enable location for Dev Client builds
+    // requestLocationPermission();
   }, []);
 
   const requestLocationPermission = async () => {
+    // TODO: Re-enable location permission for Dev Client
     // Skip location in Expo Go to prevent crashes
-    const Constants = require('expo-constants');
-    const isExpoGo = Constants.default.appOwnership === 'expo';
+    const isExpoGo = Constants.appOwnership === 'expo';
     
     if (isExpoGo) {
       setLocationPermission('unavailable');
       return;
     }
 
-    try {
-      const Location = require('expo-location');
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      setLocationPermission(status);
-      
-      if (status === 'granted') {
-        const location = await Location.getCurrentPositionAsync({});
-        setUserLocation(location);
-      }
-    } catch (error) {
-      console.warn('Location permission error:', error);
-      setLocationPermission('denied');
-    }
+    // TODO: Uncomment for Dev Client builds
+    // try {
+    //   const Location = require('expo-location');
+    //   const { status } = await Location.requestForegroundPermissionsAsync();
+    //   setLocationPermission(status);
+    //   
+    //   if (status === 'granted') {
+    //     const location = await Location.getCurrentPositionAsync({});
+    //     setUserLocation(location);
+    //   }
+    // } catch (error) {
+    //   console.warn('Location permission error:', error);
+    //   setLocationPermission('denied');
+    // }
+    setLocationPermission('unavailable');
   };
 
   // Load tasks based on active tab

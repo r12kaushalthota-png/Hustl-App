@@ -11,7 +11,7 @@ export default function IndexScreen() {
   useEffect(() => {
     // Navigate to onboarding after a brief moment
     const timer = setTimeout(() => {
-     router.replace('/(onboarding)/welcome');
+      router.replace('/(onboarding)/welcome');
     }, 100);
 
     return () => clearTimeout(timer);

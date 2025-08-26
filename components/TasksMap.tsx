@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import { MapPin, Navigation, Smartphone, ExternalLink, Wifi, WifiOff } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
 
+// TODO: Re-enable expo-maps imports when running in Dev Client
 // Conditional imports to prevent crashes in Expo Go
 let Location: any = null;
 let MapView: any = null;
@@ -15,11 +16,12 @@ const isExpoGo = Constants.appOwnership === 'expo';
 
 if (!isExpoGo) {
   try {
-    Location = require('expo-location');
-    const expoMaps = require('expo-maps');
-    MapView = expoMaps.MapView;
-    Marker = expoMaps.Marker;
-    Circle = expoMaps.Circle;
+    // TODO: Uncomment these imports for Dev Client builds
+    // Location = require('expo-location');
+    // const expoMaps = require('expo-maps');
+    // MapView = expoMaps.MapView;
+    // Marker = expoMaps.Marker;
+    // Circle = expoMaps.Circle;
   } catch (error) {
     console.warn('Native modules not available:', error);
   }
@@ -88,6 +90,7 @@ export default function TasksMap({
   const [userLocation, setUserLocation] = useState<any>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
 
+  // TODO: Re-enable location loading for Dev Client
   // Load user location when component mounts (only in Dev Client)
   useEffect(() => {
     if (isExpoGo || !Location) {
@@ -95,23 +98,27 @@ export default function TasksMap({
       return;
     }
 
-    loadUserLocation();
+    // TODO: Uncomment for Dev Client builds
+    // loadUserLocation();
+    setIsLoadingLocation(false);
   }, []);
 
+  // TODO: Re-enable location loading function
   const loadUserLocation = async () => {
-    if (!Location) return;
+    // TODO: Uncomment for Dev Client builds
+    // if (!Location) return;
 
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const location = await Location.getCurrentPositionAsync({});
-        setUserLocation(location);
-      }
-    } catch (error) {
-      console.warn('Location error:', error);
-    } finally {
-      setIsLoadingLocation(false);
-    }
+    // try {
+    //   const { status } = await Location.requestForegroundPermissionsAsync();
+    //   if (status === 'granted') {
+    //     const location = await Location.getCurrentPositionAsync({});
+    //     setUserLocation(location);
+    //   }
+    // } catch (error) {
+    //   console.warn('Location error:', error);
+    // } finally {
+    //   setIsLoadingLocation(false);
+    // }
   };
 
   const handlePinPress = (pin: TaskPin) => {
@@ -131,11 +138,17 @@ export default function TasksMap({
     }
   };
 
-  // Show Expo Go fallback if running in Expo Go
+  // Show Expo Go fallback if running in Expo Go or maps not available
   if (isExpoGo || !MapView) {
     return <ExpoGoFallback pins={pins} />;
   }
 
+  // TODO: Re-enable full map rendering for Dev Client
+  // For now, show fallback even in Dev Client until maps are re-enabled
+  return <ExpoGoFallback pins={pins} />;
+
+  // TODO: Uncomment this section for Dev Client builds with maps
+  /*
   // Render full map in Dev Client
   return (
     <View style={styles.container}>
@@ -150,7 +163,6 @@ export default function TasksMap({
         showsMyLocationButton={false}
         onMapReady={() => setIsMapReady(true)}
       >
-        {/* User location circle */}
         {showsUserLocation && userLocation && (
           <Circle
             center={{
@@ -164,7 +176,6 @@ export default function TasksMap({
           />
         )}
 
-        {/* Task pins */}
         {pins.map((pin) => (
           <Marker
             key={pin.id}
@@ -184,7 +195,6 @@ export default function TasksMap({
         ))}
       </MapView>
 
-      {/* Location permission prompt */}
       {!showsUserLocation && locationPermission !== 'granted' && (
         <View style={styles.locationPrompt}>
           <TouchableOpacity style={styles.locationButton} onPress={onRequestLocation}>
@@ -194,7 +204,6 @@ export default function TasksMap({
         </View>
       )}
 
-      {/* Task count badge */}
       {pins.length > 0 && (
         <View style={styles.taskCountBadge}>
           <Text style={styles.taskCountText}>
@@ -204,6 +213,7 @@ export default function TasksMap({
       )}
     </View>
   );
+  */
 }
 
 const styles = StyleSheet.create({
