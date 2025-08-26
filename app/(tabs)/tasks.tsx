@@ -582,7 +582,7 @@ export default function TasksScreen() {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <GlobalHeader title="Tasks" showSearch={false} showDropdown={false} />
+        <GlobalHeader title="Tasks" showSearch={false} />
 
         {/* View Mode Toggle */}
         <View style={[styles.viewModeToggle, { marginTop: 8 }]}>

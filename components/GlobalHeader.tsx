@@ -129,25 +129,6 @@ const ProfileAvatar = ({ user, isGuest, onPress }: {
             <Text style={styles.levelBadgeText}>{user.profile.level}</Text>
           </View>
         )}
-        
-        {/* Show dropdown only if enabled */}
-        {showDropdown && !title && (
-          <View style={styles.brandSection}>
-            <View style={styles.logoContainer}>
-              <Image
-                source={require('../src/assets/images/image.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-              <View style={styles.logoGlow} />
-            </View>
-            
-            <HeaderDropdown
-              selectedOption={selectedHeaderOption}
-              onSelect={handleHeaderOptionSelect}
-            />
-          </View>
-        )}
       </Animated.View>
     </AnimatedTouchableOpacity>
   );
@@ -397,14 +378,12 @@ const SearchModal = ({
 interface GlobalHeaderProps {
   showSearch?: boolean;
   showNotifications?: boolean;
-  showDropdown?: boolean;
   title?: string;
 }
 
 export default function GlobalHeader({ 
   showSearch = true, 
   showNotifications = true,
-  showDropdown = true,
   title 
 }: GlobalHeaderProps) {
   const router = useRouter();
