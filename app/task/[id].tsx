@@ -217,12 +217,12 @@ export default function TaskDetailScreen() {
       setShowDeliveryForm(true);
       setShowStatusDropdown(false);
     } else {
-      handleStatusUpdate(newStatus);
+      handleStatusUpdate(newStatus, '', '');
     }
   };
 
   const handleDeliverySubmit = () => {
-    handleStatusUpdate('delivered', deliveryNote, deliveryPhoto);
+    handleStatusUpdate('delivered', deliveryNote, deliveryPhoto || '');
   };
 
   const handleReviewSubmitted = () => {

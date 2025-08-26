@@ -222,6 +222,13 @@ export class TaskRepo {
    */
   static async updateTaskStatus(data: UpdateTaskStatusData): Promise<{ data: any | null; error: string | null }> {
     try {
+      console.log('Updating task status with:', {
+        taskId: data.taskId,
+        newStatus: data.newStatus,
+        note: data.note,
+        photoUrl: data.photoUrl
+      });
+      
       const { data: result, error } = await supabase.rpc('update_task_status', {
         p_task_id: data.taskId,
         p_new_status: data.newStatus,
@@ -230,6 +237,7 @@ export class TaskRepo {
       });
 
       if (error) {
+        console.error('RPC error:', error);
         return { data: null, error: error.message };
       }
 
