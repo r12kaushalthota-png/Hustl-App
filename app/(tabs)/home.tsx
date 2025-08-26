@@ -182,23 +182,12 @@ const stats = [
 
 // Animated Background Component
 const AnimatedBackground = () => {
-  const floatingAnimation1 = useSharedValue(0);
-  const floatingAnimation2 = useSharedValue(0);
-  const floatingAnimation3 = useSharedValue(0);
-  const haloAnimation = useSharedValue(0);
-  const haloRotation = useSharedValue(0);
+  const particle1 = useSharedValue(0);
+  const particle2 = useSharedValue(0);
+  const particle3 = useSharedValue(0);
 
   React.useEffect(() => {
-    floatingAnimation1.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 8000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0, { duration: 8000, easing: Easing.inOut(Easing.sin) })
-      ),
-      -1,
-      true
-    );
-
-    floatingAnimation2.value = withRepeat(
+    particle1.value = withRepeat(
       withSequence(
         withTiming(1, { duration: 12000, easing: Easing.inOut(Easing.sin) }),
         withTiming(0, { duration: 12000, easing: Easing.inOut(Easing.sin) })
@@ -207,35 +196,28 @@ const AnimatedBackground = () => {
       true
     );
 
-    floatingAnimation3.value = withRepeat(
+    particle2.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 15000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0, { duration: 15000, easing: Easing.inOut(Easing.sin) })
+        withTiming(1, { duration: 16000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 16000, easing: Easing.inOut(Easing.sin) })
       ),
       -1,
       true
     );
 
-    // Purple-orange halo animation
-    haloAnimation.value = withRepeat(
+    particle3.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0, { duration: 4000, easing: Easing.inOut(Easing.sin) })
+        withTiming(1, { duration: 20000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 20000, easing: Easing.inOut(Easing.sin) })
       ),
       -1,
       true
-    );
-
-    haloRotation.value = withRepeat(
-      withTiming(360, { duration: 20000, easing: Easing.linear }),
-      -1,
-      false
     );
   }, []);
 
   const animatedStyle1 = useAnimatedStyle(() => {
-    const translateY = interpolate(floatingAnimation1.value, [0, 1], [0, -30]);
-    const opacity = interpolate(floatingAnimation1.value, [0, 0.5, 1], [0.3, 0.6, 0.3]);
+    const translateY = interpolate(particle1.value, [0, 1], [0, -20]);
+    const opacity = interpolate(particle1.value, [0, 0.5, 1], [0.02, 0.05, 0.02]);
     return {
       transform: [{ translateY }],
       opacity,
@@ -243,8 +225,8 @@ const AnimatedBackground = () => {
   });
 
   const animatedStyle2 = useAnimatedStyle(() => {
-    const translateY = interpolate(floatingAnimation2.value, [0, 1], [0, 40]);
-    const opacity = interpolate(floatingAnimation2.value, [0, 0.5, 1], [0.2, 0.5, 0.2]);
+    const translateY = interpolate(particle2.value, [0, 1], [0, 25]);
+    const opacity = interpolate(particle2.value, [0, 0.5, 1], [0.03, 0.06, 0.03]);
     return {
       transform: [{ translateY }],
       opacity,
@@ -252,41 +234,19 @@ const AnimatedBackground = () => {
   });
 
   const animatedStyle3 = useAnimatedStyle(() => {
-    const translateY = interpolate(floatingAnimation3.value, [0, 1], [0, -20]);
-    const opacity = interpolate(floatingAnimation3.value, [0, 0.5, 1], [0.4, 0.7, 0.4]);
+    const translateY = interpolate(particle3.value, [0, 1], [0, -15]);
+    const opacity = interpolate(particle3.value, [0, 0.5, 1], [0.04, 0.08, 0.04]);
     return {
       transform: [{ translateY }],
       opacity,
     };
   });
 
-  const animatedHaloStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(haloAnimation.value, [0, 0.5, 1], [0.1, 0.3, 0.1]);
-    const scale = interpolate(haloAnimation.value, [0, 1], [0.8, 1.2]);
-    return {
-      opacity,
-      transform: [
-        { scale },
-        { rotate: `${haloRotation.value}deg` }
-      ],
-    };
-  });
-
   return (
     <View style={styles.backgroundContainer}>
-      {/* Purple-Orange Halo */}
-      <Animated.View style={[styles.haloBackground, animatedHaloStyle]}>
-        <LinearGradient
-          colors={['#8B5CF6', '#FA4616', '#FF6B35', '#8B5CF6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.haloGradient}
-        />
-      </Animated.View>
-      
-      <Animated.View style={[styles.floatingElement1, animatedStyle1]} />
-      <Animated.View style={[styles.floatingElement2, animatedStyle2]} />
-      <Animated.View style={[styles.floatingElement3, animatedStyle3]} />
+      <Animated.View style={[styles.particle1, animatedStyle1]} />
+      <Animated.View style={[styles.particle2, animatedStyle2]} />
+      <Animated.View style={[styles.particle3, animatedStyle3]} />
     </View>
   );
 };
@@ -371,30 +331,34 @@ const HeroSection = () => {
             onPress={handleGetStarted}
             activeOpacity={0.9}
           >
-            <LinearGradient
-              colors={['#0047FF', '#0021A5']}
-              style={styles.ctaGradient}
-            >
-              <Text style={styles.ctaText}>
-                {isGuest ? 'Get Started' : 'Post a Task'}
-              </Text>
-              <ChevronRight size={18} color={Colors.white} strokeWidth={2.5} />
-            </LinearGradient>
+            <View style={styles.buttonRow}>
+              <LinearGradient
+                colors={['#0047FF', '#0021A5']}
+                style={styles.ctaGradient}
+              >
+                <Text style={styles.ctaText}>
+                  {isGuest ? 'Get Started' : 'Post a Task'}
+                </Text>
+                <ChevronRight size={18} color={Colors.white} strokeWidth={2.5} />
+              </LinearGradient>
+            </View>
           </TouchableOpacity>
           
-          {/* Choose Task Button */}
+          {/* Pick Task Button */}
           <TouchableOpacity 
-            style={styles.chooseTaskButton}
+            style={styles.pickTaskButton}
             onPress={() => router.push('/(tabs)/tasks')}
             activeOpacity={0.9}
           >
-            <LinearGradient
-              colors={['#FA4616', '#FF6B35']}
-              style={styles.chooseTaskGradient}
-            >
-              <Text style={styles.chooseTaskText}>Choose a Task</Text>
-              <ChevronRight size={18} color={Colors.white} strokeWidth={2.5} />
-            </LinearGradient>
+            <View style={styles.buttonRow}>
+              <LinearGradient
+                colors={['#FA4616', '#FF6B35']}
+                style={styles.pickTaskGradient}
+              >
+                <Text style={styles.pickTaskText}>Pick a Task</Text>
+                <ChevronRight size={18} color={Colors.white} strokeWidth={2.5} />
+              </LinearGradient>
+            </View>
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -683,6 +647,8 @@ const ReferralBanner = () => {
   
   const glowAnimation = useSharedValue(0);
   const shimmerAnimation = useSharedValue(-1);
+  const haloRotation = useSharedValue(0);
+  const haloOpacity = useSharedValue(0.2);
 
   React.useEffect(() => {
     glowAnimation.value = withRepeat(
@@ -699,6 +665,21 @@ const ReferralBanner = () => {
       -1,
       false
     );
+
+    haloRotation.value = withRepeat(
+      withTiming(360, { duration: 15000, easing: Easing.linear }),
+      -1,
+      false
+    );
+
+    haloOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.4, { duration: 2500 }),
+        withTiming(0.2, { duration: 2500 })
+      ),
+      -1,
+      true
+    );
   }, []);
 
   const animatedGlowStyle = useAnimatedStyle(() => {
@@ -710,6 +691,11 @@ const ReferralBanner = () => {
     const translateX = interpolate(shimmerAnimation.value, [0, 1], [-200, width + 200]);
     return { transform: [{ translateX }] };
   });
+
+  const animatedHaloStyle = useAnimatedStyle(() => ({
+    opacity: haloOpacity.value,
+    transform: [{ rotate: `${haloRotation.value}deg` }],
+  }));
 
   const handlePress = () => {
     if (Platform.OS !== 'web') {
@@ -725,6 +711,9 @@ const ReferralBanner = () => {
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.95}>
       <Animated.View style={[styles.referralBanner, animatedGlowStyle]}>
+        {/* Animated Halo */}
+        <Animated.View style={[styles.referralHalo, animatedHaloStyle]} />
+        
         <LinearGradient
           colors={['#0047FF', '#0021A5', '#FA4616']}
           start={{ x: 0, y: 0 }}
@@ -967,46 +956,32 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 0,
   },
-  floatingElement1: {
+  particle1: {
     position: 'absolute',
-    top: '10%',
-    right: '15%',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(0, 33, 165, 0.08)',
-  },
-  floatingElement2: {
-    position: 'absolute',
-    top: '60%',
-    left: '10%',
+    top: '8%',
+    right: '12%',
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(250, 70, 22, 0.06)',
+    backgroundColor: '#0021A5',
   },
-  floatingElement3: {
+  particle2: {
     position: 'absolute',
-    top: '30%',
-    left: '70%',
+    top: '65%',
+    left: '8%',
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(59, 130, 246, 0.05)',
+    backgroundColor: '#FA4616',
   },
-  haloBackground: {
+  particle3: {
     position: 'absolute',
-    top: '20%',
-    left: '10%',
-    right: '10%',
-    bottom: '30%',
-    borderRadius: 200,
-    overflow: 'hidden',
-    zIndex: -1,
-  },
-  haloGradient: {
-    width: '100%',
-    height: '100%',
+    top: '35%',
+    left: '75%',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#8B5CF6',
   },
   content: {
     flex: 1,
@@ -1035,7 +1010,7 @@ const styles = StyleSheet.create({
   },
   heroContent: {
     padding: 32,
-    gap: 20,
+    gap: 24,
   },
   heroText: {
     gap: 12,
@@ -1060,7 +1035,14 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     opacity: 0.9,
   },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   ctaButton: {
+    flex: 1,
     borderRadius: 16,
     overflow: 'hidden',
     shadowColor: '#0021A5',
@@ -1068,11 +1050,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 12,
-    alignSelf: 'flex-start',
   },
   ctaGradient: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 16,
     gap: 8,
@@ -1086,7 +1068,8 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
-  chooseTaskButton: {
+  pickTaskButton: {
+    flex: 1,
     borderRadius: 16,
     overflow: 'hidden',
     shadowColor: '#FA4616',
@@ -1094,16 +1077,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 12,
-    alignSelf: 'flex-start',
   },
-  chooseTaskGradient: {
+  pickTaskGradient: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 16,
     gap: 8,
   },
-  chooseTaskText: {
+  pickTaskText: {
     fontSize: 16,
     fontWeight: '700',
     color: Colors.white,
@@ -1208,6 +1191,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 16 },
     shadowRadius: 32,
     elevation: 20,
+    position: 'relative',
+  },
+  referralHalo: {
+    position: 'absolute',
+    top: -10,
+    left: -10,
+    right: -10,
+    bottom: -10,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    borderTopColor: '#8B5CF6',
+    borderRightColor: '#FA4616',
+    borderBottomColor: '#FF6B35',
+    borderLeftColor: '#8B5CF6',
+    zIndex: -1,
   },
   referralGradient: {
     position: 'relative',
