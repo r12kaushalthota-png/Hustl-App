@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, RefreshCon
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Clock, MapPin, Store, MessageCircle, Map as MapIcon, List as ListIcon, ChevronRight } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Colors, ColorUtils } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,9 +31,9 @@ export default function TasksScreen() {
   const [doingTasks, setDoingTasks] = useState<Task[]>([]);
   const [postedTasks, setPostedTasks] = useState<Task[]>([]);
   
-  // Location state
-  const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
-  const [locationPermission, setLocationPermission] = useState<Location.PermissionStatus | null>(null);
+  // TODO: Re-enable location state when maps are restored
+  // const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
+  // const [locationPermission, setLocationPermission] = useState<Location.PermissionStatus | null>(null);
   
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
@@ -56,24 +55,25 @@ export default function TasksScreen() {
   const [taskToReview, setTaskToReview] = useState<Task | null>(null);
 
   // Request location permission on mount
-  useEffect(() => {
-    requestLocationPermission();
-  }, []);
-
-  const requestLocationPermission = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      setLocationPermission(status);
-      
-      if (status === 'granted') {
-        const location = await Location.getCurrentPositionAsync({});
-        setUserLocation(location);
-      }
-    } catch (error) {
-      console.warn('Location permission error:', error);
-      setLocationPermission('denied');
-    }
-  };
+  // TODO: Re-enable location permission request when maps are restored
+  // useEffect(() => {
+  //   requestLocationPermission();
+  // }, []);
+  //
+  // const requestLocationPermission = async () => {
+  //   try {
+  //     const { status } = await Location.requestForegroundPermissionsAsync();
+  //     setLocationPermission(status);
+  //     
+  //     if (status === 'granted') {
+  //       const location = await Location.getCurrentPositionAsync({});
+  //       setUserLocation(location);
+  //     }
+  //   } catch (error) {
+  //     console.warn('Location permission error:', error);
+  //     setLocationPermission('denied');
+  //   }
+  // };
 
   // Load tasks based on active tab
   const loadTasks = useCallback(async (showRefreshIndicator = false) => {
@@ -197,21 +197,21 @@ export default function TasksScreen() {
         });
 
         // Open Google Maps navigation if location is available
-        if (userLocation && task.dropoff_address) {
-          try {
-            // For demo, use UF campus coordinates for store location
-            const storeLocation = { lat: 29.6436, lng: -82.3549 };
-            const dropoffLocation = { lat: 29.6436 + (Math.random() - 0.5) * 0.02, lng: -82.3549 + (Math.random() - 0.5) * 0.02 };
-            
-            await openGoogleMapsNavigation({
-              start: { lat: userLocation.coords.latitude, lng: userLocation.coords.longitude },
-              dest: dropoffLocation,
-              waypoint: storeLocation, // Pickup location
-            });
-          } catch (error) {
-            console.warn('Failed to open navigation:', error);
-          }
-        }
+        // TODO: Re-enable navigation when location is restored
+        // if (userLocation && task.dropoff_address) {
+        //   try {
+        //     const storeLocation = { lat: 29.6436, lng: -82.3549 };
+        //     const dropoffLocation = { lat: 29.6436 + (Math.random() - 0.5) * 0.02, lng: -82.3549 + (Math.random() - 0.5) * 0.02 };
+        //     
+        //     await openGoogleMapsNavigation({
+        //       start: { lat: userLocation.coords.latitude, lng: userLocation.coords.longitude },
+        //       dest: dropoffLocation,
+        //       waypoint: storeLocation,
+        //     });
+        //   } catch (error) {
+        //     console.warn('Failed to open navigation:', error);
+        //   }
+        // }
       }
     } catch (error) {
       setToast({
@@ -463,9 +463,9 @@ export default function TasksScreen() {
       <TasksMap
         pins={pins}
         onPressPin={(taskId) => console.log('Task details:', taskId)}
-        showsUserLocation={locationPermission === 'granted'}
-        locationPermission={locationPermission}
-        onRequestLocation={requestLocationPermission}
+        showsUserLocation={false}
+        locationPermission={null}
+        onRequestLocation={() => console.log('TODO: Enable location')}
       />
     );
   };
