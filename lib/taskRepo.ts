@@ -222,9 +222,12 @@ export class TaskRepo {
    */
   static async updateTaskStatus(data: UpdateTaskStatusData): Promise<{ data: any | null; error: string | null }> {
     try {
+      // Ensure status is lowercase to match database enum
+      const normalizedStatus = data.newStatus.toLowerCase() as TaskCurrentStatus;
+      
       const { data: result, error } = await supabase.rpc('update_task_status', {
         p_task_id: data.taskId,
-        p_new_status: data.newStatus,
+        p_new_status: normalizedStatus,
         p_note: data.note || '',
         p_photo_url: data.photoUrl || ''
       });

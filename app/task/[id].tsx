@@ -445,7 +445,9 @@ export default function TaskDetailScreen() {
               {task.dropoff_instructions && (
                 <View style={styles.detailRow}>
                   <Text style={styles.instructionsLabel}>Instructions:</Text>
-                  <Text style={styles.instructionsText}>{task.dropoff_instructions}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.instructionsText}>{task.dropoff_instructions}</Text>
+                  </View>
                 </View>
               )}
               
