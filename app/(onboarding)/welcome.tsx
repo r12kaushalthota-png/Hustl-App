@@ -58,7 +58,7 @@ const GlowingLogo = () => {
     <Animated.View style={[styles.logoContainer, animatedGlowStyle]}>
       <View style={styles.logoWrapper}>
         <Image
-          source={require('../../src/assets/images/image.png')}
+          source={require('../../src/assets/images/image copy.png')}
           style={styles.logo}
           resizeMode="contain"
         />
