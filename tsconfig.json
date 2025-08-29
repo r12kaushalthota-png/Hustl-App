@@ -2,6 +2,8 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "sourceMap": false,
+    "inlineSources": false,
     "baseUrl": ".",
     "paths": {
       "@/*": ["*"],
