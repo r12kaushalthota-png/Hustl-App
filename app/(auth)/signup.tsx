@@ -38,11 +38,7 @@ export default function SignUpScreen() {
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <ArrowLeft size={24} color={Colors.semantic.bodyText} strokeWidth={2} />
           </TouchableOpacity>
-          <Image
-            source={require('../../src/assets/images/image.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <View style={styles.placeholder} />
           <TouchableOpacity onPress={handleSkip}>
             <Text style={styles.skipText}>Skip</Text>
           </TouchableOpacity>
