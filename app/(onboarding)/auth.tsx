@@ -121,7 +121,7 @@ const BrandLogo = () => {
       <Animated.View style={[styles.logoHalo, animatedRotateStyle]} />
       <View style={styles.logoWrapper}>
         <Image
-          source={require('../../src/assets/images/image.png')}
+          source={require('@/assets/images/image.png')}
           style={styles.authLogo}
           resizeMode="contain"
         />
