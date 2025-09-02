@@ -25,7 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: "com.hustl.app",
     adaptiveIcon: {
-      foregroundImage: "./src/assets/images/adaptive-icon.png",
+      foregroundImage: "./src/assets/images/icon.png",
       backgroundColor: "#FFFFFF",
     },
   },
