@@ -411,3 +411,6 @@ function PostScreenContent() {
       
       // Clear form for next use
       clearForm();
+    }
+  }
+}
