@@ -16,6 +16,7 @@ import { X, Search, ShoppingCart } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/theme/colors';
 import { useFoodOrder } from '@/contexts/FoodOrderContext';
+import { FoodOrderUtils } from '@/lib/foodOrderUtils';
 import type { RestaurantMenu, MenuItem } from '@/types/food';
 import ItemDetailModal from './ItemDetailModal';
 
