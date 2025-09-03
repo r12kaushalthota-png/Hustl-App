@@ -477,7 +477,7 @@ const CategoryCard = ({
   const borderAnimation = useSharedValue(0);
 
   React.useEffect(() => {
-    const delay = 800 + index * 100;
+    const delay = 400 + index * 100;
     
     opacityAnimation.value = withDelay(delay, withTiming(1, { duration: 500 }));
     scaleAnimation.value = withDelay(delay, withSpring(1, { damping: 15, stiffness: 300 }));
@@ -669,13 +669,12 @@ const CategoryCard = ({
   );
 };
 
-// Enhanced Referral Banner
-const ReferralBanner = () => {
+// Simplified Referral Banner
+const SimpleReferralBanner = () => {
   const router = useRouter();
   const { user } = useAuth();
   
   const glowAnimation = useSharedValue(0);
-  const shimmerAnimation = useSharedValue(-1);
 
   React.useEffect(() => {
     glowAnimation.value = withRepeat(
@@ -686,12 +685,6 @@ const ReferralBanner = () => {
       -1,
       true
     );
-
-    shimmerAnimation.value = withRepeat(
-      withTiming(1, { duration: 4000, easing: Easing.linear }),
-      -1,
-      false
-    );
   }, []);
 
   const animatedGlowStyle = useAnimatedStyle(() => {
@@ -699,10 +692,6 @@ const ReferralBanner = () => {
     return { shadowOpacity };
   });
 
-  const animatedShimmerStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(shimmerAnimation.value, [0, 1], [-200, width + 200]);
-    return { transform: [{ translateX }] };
-  });
 
   const handlePress = () => {
     if (Platform.OS !== 'web') {
@@ -725,7 +714,6 @@ const ReferralBanner = () => {
           locations={[0, 0.6, 1]}
           style={styles.referralGradient}
         >
-          <Animated.View style={[styles.shimmerOverlay, animatedShimmerStyle]} />
           
           <View style={styles.referralContent}>
             <View style={styles.referralIcon}>
@@ -749,95 +737,36 @@ const ReferralBanner = () => {
   );
 };
 
-// Quick Actions Section
-const QuickActionsSection = () => {
-  const router = useRouter();
+// Simple Greeting Section
+const GreetingSection = () => {
   const { user, isGuest } = useAuth();
   
-  const quickActions = [
-    {
-      title: 'Browse Tasks',
-      subtitle: 'Find available tasks',
-      icon: Package,
-      color: '#3B82F6',
-      route: '/(tabs)/tasks',
-    },
-    {
-      title: 'My Messages',
-      subtitle: 'Chat with students',
-      icon: Plus,
-      color: '#8B5CF6',
-      route: '/(tabs)/chats',
-    },
-  ];
+  const fadeIn = useSharedValue(0);
+  const slideUp = useSharedValue(30);
 
-  const handleActionPress = (route: string) => {
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.selectionAsync();
-      } catch (error) {
-        // Haptics not available, continue silently
-      }
-    }
-    router.push(route as any);
+  React.useEffect(() => {
+    fadeIn.value = withTiming(1, { duration: 800 });
+    slideUp.value = withSpring(0, { damping: 15, stiffness: 300 });
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: fadeIn.value,
+    transform: [{ translateY: slideUp.value }],
+  }));
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
   };
 
   return (
-    <View style={styles.quickActionsSection}>
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
-      <View style={styles.quickActionsGrid}>
-        {quickActions.map((action, index) => {
-          const scale = useSharedValue(0.9);
-          const glowOpacity = useSharedValue(0);
-
-          React.useEffect(() => {
-            scale.value = withDelay(
-              1200 + index * 150,
-              withSpring(1, { damping: 15, stiffness: 300 })
-            );
-            
-            glowOpacity.value = withDelay(
-              1400 + index * 150,
-              withRepeat(
-                withSequence(
-                  withTiming(0.1, { duration: 2500 }),
-                  withTiming(0.05, { duration: 2500 })
-                ),
-                -1,
-                true
-              )
-            );
-          }, []);
-
-          const animatedStyle = useAnimatedStyle(() => ({
-            transform: [{ scale: scale.value }],
-          }));
-
-          const animatedGlowStyle = useAnimatedStyle(() => ({
-            shadowOpacity: glowOpacity.value,
-          }));
-
-          return (
-            <TouchableOpacity
-              key={action.title}
-              style={styles.quickActionCard}
-              onPress={() => handleActionPress(action.route)}
-              activeOpacity={0.9}
-            >
-              <Animated.View style={[animatedStyle, animatedGlowStyle, { shadowColor: action.color }]}>
-                <View style={styles.quickActionContent}>
-                  <View style={[styles.quickActionIcon, { backgroundColor: action.color + '15' }]}>
-                    <action.icon size={24} color={action.color} strokeWidth={2} />
-                  </View>
-                  <Text style={styles.quickActionTitle}>{action.title}</Text>
-                  <Text style={styles.quickActionSubtitle}>{action.subtitle}</Text>
-                </View>
-              </Animated.View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
+    <Animated.View style={[styles.greetingSection, animatedStyle]}>
+      <Text style={styles.greeting}>
+        {getGreeting()}{user ? `, ${user.displayName.split(' ')[0]}` : ''}
+      </Text>
+    </Animated.View>
   );
 };
 
@@ -893,42 +822,14 @@ export default function HomeScreen() {
         bounces={true}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Hero Section */}
-        <HeroSection />
-
-        {/* XP Progress for Authenticated Users */}
-        {user?.profile && (
-          <View style={styles.xpSection}>
-            <View style={styles.xpHeader}>
-              <Text style={styles.xpTitle}>Your Progress</Text>
-              <Text style={styles.xpSubtitle}>Level {user.profile.level}</Text>
-            </View>
-            <XPProgressBar
-              currentXP={user.profile.xp}
-              currentLevel={user.profile.level}
-              size="medium"
-            />
-          </View>
-        )}
-
-        {/* Live Stats */}
-        <LiveStatsSection />
+        {/* Greeting */}
+        <GreetingSection />
 
         {/* Referral Banner */}
-        <ReferralBanner />
-
-        {/* Quick Actions */}
-        <QuickActionsSection />
+        <SimpleReferralBanner />
 
         {/* Task Categories Grid */}
         <View style={styles.categoriesSection}>
-          <View style={styles.categoriesHeader}>
-            <Text style={styles.categoriesTitle}>Task Categories</Text>
-            <Text style={styles.categoriesSubtitle}>
-              Choose what you need help with
-            </Text>
-          </View>
-          
           <View style={styles.categoriesGrid}>
             {categories.map((category, index) => (
               <CategoryCard
@@ -1005,192 +906,24 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
 
-  // Hero Section
-  heroSection: {
-    marginHorizontal: 20,
-    marginTop: 8,
-    marginBottom: 24,
-    borderRadius: 24,
-    overflow: 'hidden',
-    shadowColor: '#0021A5',
-    shadowOffset: { width: 0, height: 12 },
-    shadowRadius: 24,
-    elevation: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-  },
-  heroGradient: {
-    borderRadius: 24,
-  },
-  heroContent: {
-    padding: 32,
-    gap: 20,
-  },
-  heroText: {
-    gap: 12,
+  // Greeting Section
+  greetingSection: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
   greeting: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#0021A5',
-    opacity: 0.8,
-    letterSpacing: 0.3,
-  },
-  heroTitle: {
-    fontSize: isTablet ? 32 : 28,
+    fontSize: 24,
     fontWeight: '700',
     color: '#111827',
-    lineHeight: isTablet ? 40 : 36,
-    letterSpacing: -0.5,
-  },
-  heroSubtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    lineHeight: 24,
-    opacity: 0.9,
-  },
-  ctaButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#0021A5',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
-    alignSelf: 'flex-start',
-  },
-  ctaGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    gap: 8,
-  },
-  ctaText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.white,
     letterSpacing: 0.3,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  chooseTaskButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#FA4616',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
-    alignSelf: 'flex-start',
-  },
-  chooseTaskGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    gap: 8,
-  },
-  chooseTaskText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.white,
-    letterSpacing: 0.3,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
 
-  // XP Section
-  xpSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: '#0021A5',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
-    backdropFilter: 'blur(20px)',
-  },
-  xpHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  xpTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    letterSpacing: -0.3,
-  },
-  xpSubtitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0021A5',
-  },
-
-  // Stats Section
-  statsSection: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  statsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
-    textAlign: 'center',
-    letterSpacing: -0.3,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    gap: 8,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 16,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    backdropFilter: 'blur(20px)',
-  },
-  statIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    letterSpacing: -0.5,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
 
   // Referral Banner
   referralBanner: {
     marginHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 32,
     borderRadius: 20,
     overflow: 'hidden',
     shadowColor: '#0047FF',
@@ -1201,24 +934,16 @@ const styles = StyleSheet.create({
   referralGradient: {
     position: 'relative',
   },
-  shimmerOverlay: {
-    position: 'absolute',
-    top: 0,
-    width: 200,
-    height: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    transform: [{ skewX: '-20deg' }],
-  },
   referralContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 24,
+    padding: 20,
     gap: 16,
   },
   referralIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1228,7 +953,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   referralTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.white,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -1236,90 +961,23 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   referralSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: 'rgba(255, 255, 255, 0.9)',
     lineHeight: 18,
   },
   referralArrow: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-
-  // Quick Actions
-  quickActionsSection: {
-    marginHorizontal: 20,
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
-    letterSpacing: -0.3,
-  },
-  quickActionsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  quickActionCard: {
-    flex: 1,
-  },
-  quickActionContent: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    gap: 12,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 16,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    backdropFilter: 'blur(20px)',
-  },
-  quickActionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  quickActionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    textAlign: 'center',
-    letterSpacing: -0.2,
-  },
-  quickActionSubtitle: {
-    fontSize: 13,
-    color: '#6B7280',
-    textAlign: 'center',
   },
 
   // Categories Section
   categoriesSection: {
     marginHorizontal: 20,
     marginBottom: 40,
-  },
-  categoriesHeader: {
-    marginBottom: 20,
-    gap: 8,
-  },
-  categoriesTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-    letterSpacing: -0.5,
-  },
-  categoriesSubtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    lineHeight: 22,
   },
   categoriesGrid: {
     flexDirection: 'row',
