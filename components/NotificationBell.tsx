@@ -2,19 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Bell } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring, 
-  withTiming,
-  withRepeat,
-  withSequence,
-  interpolate
-} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
-
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 interface NotificationBellProps {
   unreadCount: number;
@@ -22,52 +11,6 @@ interface NotificationBellProps {
 }
 
 export default function NotificationBell({ unreadCount, onPress }: NotificationBellProps) {
-  const scale = useSharedValue(1);
-  const bellRotation = useSharedValue(0);
-  const badgePulse = useSharedValue(1);
-  const glowOpacity = useSharedValue(0);
-
-  React.useEffect(() => {
-    if (unreadCount > 0) {
-      // Bell shake animation for new notifications
-      bellRotation.value = withRepeat(
-        withSequence(
-          withTiming(-8, { duration: 100 }),
-          withTiming(8, { duration: 100 }),
-          withTiming(-8, { duration: 100 }),
-          withTiming(0, { duration: 100 })
-        ),
-        -1,
-        false
-      );
-
-      // Badge pulse animation
-      badgePulse.value = withRepeat(
-        withSequence(
-          withTiming(1.2, { duration: 800 }),
-          withTiming(1, { duration: 800 })
-        ),
-        -1,
-        true
-      );
-    }
-  }, [unreadCount]);
-
-  const animatedBellStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { rotate: `${bellRotation.value}deg` }
-    ],
-  }));
-
-  const animatedBadgeStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: badgePulse.value }],
-  }));
-
-  const animatedGlowStyle = useAnimatedStyle(() => ({
-    shadowOpacity: glowOpacity.value,
-  }));
-
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
       try {
@@ -79,14 +22,6 @@ export default function NotificationBell({ unreadCount, onPress }: NotificationB
   };
 
   const handlePress = () => {
-    scale.value = withSequence(
-      withTiming(0.9, { duration: 100 }),
-      withSpring(1, { damping: 15 })
-    );
-    glowOpacity.value = withSequence(
-      withTiming(0.4, { duration: 100 }),
-      withTiming(0, { duration: 300 })
-    );
     triggerHaptics();
     onPress();
   };
@@ -95,16 +30,15 @@ export default function NotificationBell({ unreadCount, onPress }: NotificationB
   const showBadge = unreadCount > 0;
 
   return (
-    <AnimatedTouchableOpacity
-      style={[styles.container, animatedBellStyle]}
+    <TouchableOpacity
+      style={styles.container}
       onPress={handlePress}
       accessibilityLabel={`Notifications. ${unreadCount} unread`}
       accessibilityRole="button"
     >
-      <Animated.View style={[
+      <View style={[
         styles.iconContainer,
-        { shadowColor: showBadge ? Colors.secondary : Colors.primary },
-        animatedGlowStyle
+        { shadowColor: showBadge ? Colors.secondary : Colors.primary }
       ]}>
         <Bell 
           size={22} 
@@ -113,17 +47,17 @@ export default function NotificationBell({ unreadCount, onPress }: NotificationB
         />
         
         {showBadge && (
-          <Animated.View style={[styles.badge, animatedBadgeStyle]}>
+          <View style={styles.badge}>
             <LinearGradient
               colors={['#FF5A1F', '#FA4616']}
               style={styles.badgeGradient}
             >
               <Text style={styles.badgeText}>{displayCount}</Text>
             </LinearGradient>
-          </Animated.View>
+          </View>
         )}
-      </Animated.View>
-    </AnimatedTouchableOpacity>
+      </View>
+    </TouchableOpacity>
   );
 }
 
