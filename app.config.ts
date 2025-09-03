@@ -53,6 +53,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "YOUR_GOOGLE_MAPS_KEY",
       },
     ],
+    "expo-font",
+    "expo-web-browser"
   ],
 
   experiments: {
