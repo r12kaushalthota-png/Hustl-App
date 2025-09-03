@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Chrome as HomeIcon, List as ListIcon, MessageCircle, Gift, Zap } from 'lucide-react-native';
+import { Home as HomeIcon, List as ListIcon, Grid3X3, MessageCircle, Gift, Zap } from 'lucide-react-native';
 import { TouchableOpacity, View, StyleSheet, Platform, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
