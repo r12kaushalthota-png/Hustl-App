@@ -216,8 +216,19 @@ export default function ProfileSidebar({ visible, onClose }: ProfileSidebarProps
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             {/* Profile Section */}
+            <View style={styles.profileSection}>
+              <LinearGradient
+                colors={['#0021A5', '#FA4616']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.profileGradient}
+              >
+                <View style={styles.profileContent}>
+                  <View style={styles.avatarContainer}>
+                    <View style={styles.avatar}>
+                      <Text style={styles.avatarText}>
                         {user ? getInitials(user.displayName) : (isGuest ? '?' : 'U')}
-      <View style={[styles.statusCard, styles.statusCardShifted]}>
+                      </Text>
                     </View>
                     {user?.profile?.level && user.profile.level > 1 && (
                       <View style={[
@@ -246,19 +257,8 @@ export default function ProfileSidebar({ visible, onClose }: ProfileSidebarProps
               </LinearGradient>
             </View>
 
-            {/* XP Progress */}
-            {user?.profile && (
-              <View style={styles.xpCard}>
-                <XPProgressBar
-                  currentXP={user.profile.xp}
-                  currentLevel={user.profile.level}
-                  size="small"
-                />
-              </View>
-            )}
-
             {/* Account Status Card */}
-            <View style={styles.statusCard}>
+            <View style={[styles.statusCard, styles.statusCardShifted]}>
               <View style={styles.statusHeader}>
                 <View style={styles.statusIcon}>
                   {isGuest ? (
