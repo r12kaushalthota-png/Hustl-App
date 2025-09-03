@@ -648,6 +648,11 @@ export default function PostScreen() {
                       enablePoweredByContainer={false}
                      predefinedPlaces={[]}
                      predefinedPlacesAlwaysVisible={false}
+                     nearbyPlacesAPI="GooglePlacesSearch"
+                     GooglePlacesSearchQuery={{
+                       rankby: 'distance',
+                       type: 'establishment'
+                     }}
                      listEmptyComponent={() => (
                        <View style={styles.placesEmpty}>
                          <Text style={styles.placesEmptyText}>
@@ -732,6 +737,10 @@ export default function PostScreen() {
                       enablePoweredByContainer={false}
                      predefinedPlaces={[]}
                      predefinedPlacesAlwaysVisible={false}
+                     nearbyPlacesAPI="GooglePlacesSearch"
+                     GooglePlacesSearchQuery={{
+                       rankby: 'distance'
+                     }}
                      listEmptyComponent={() => (
                        <View style={styles.placesEmpty}>
                          <Text style={styles.placesEmptyText}>
