@@ -13,7 +13,7 @@ Hustl-App
    - In Bolt, go to **Integrations → Expo**
    - Sign in with your Expo account credentials
    - Verify the integration shows as "Connected"
-
+nn
 2. **Start Metro Bundler**:
    - Click **Preview → Start** in Bolt
    - Wait for Metro bundler to initialize (you'll see "Metro waiting on...")
