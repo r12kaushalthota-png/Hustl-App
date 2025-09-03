@@ -30,6 +30,7 @@ export default function ChatsScreen() {
         <View style={styles.content}>
           <ChatsList 
             onChatPress={handleChatPress}
+            onProfilePress={handleProfilePress}
           />
         </View>
       </SafeAreaView>

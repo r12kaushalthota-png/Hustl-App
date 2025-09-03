@@ -11,7 +11,7 @@ import {
   Platform
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronRight, MessageSquare } from 'lucide-react-native';
+import { MessageSquare } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, { 
   useSharedValue, 
@@ -86,7 +86,15 @@ const EmptyState = () => {
 };
 
 // Chat row component
-const ChatRow = ({ item, onPress }: { item: InboxItem; onPress: () => void }) => {
+const ChatRow = ({ 
+  item, 
+  onPress, 
+  onProfilePress 
+}: { 
+  item: InboxItem; 
+  onPress: () => void;
+  onProfilePress: (userId: string) => void;
+}) => {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -116,6 +124,11 @@ const ChatRow = ({ item, onPress }: { item: InboxItem; onPress: () => void }) =>
     onPress();
   };
 
+  const handleProfilePress = () => {
+    triggerHaptics();
+    onProfilePress(item.other_id);
+  };
+
   const formatTimestamp = (timestamp: string): string => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -137,8 +150,6 @@ const ChatRow = ({ item, onPress }: { item: InboxItem; onPress: () => void }) =>
     }
   };
 
-  const displayCount = item.unread_count > 99 ? '99+' : item.unread_count.toString();
-
   return (
     <Animated.View style={animatedStyle}>
       <TouchableOpacity
@@ -150,7 +161,11 @@ const ChatRow = ({ item, onPress }: { item: InboxItem; onPress: () => void }) =>
         accessibilityLabel={`Chat with ${item.other_name || 'User'}`}
         accessibilityRole="button"
       >
-        <View style={styles.avatarContainer}>
+        <TouchableOpacity 
+          style={styles.avatarContainer}
+          onPress={handleProfilePress}
+          activeOpacity={0.7}
+        >
           {item.other_avatar_url ? (
             <Image source={{ uri: item.other_avatar_url }} style={styles.avatar} />
           ) : (
@@ -160,41 +175,33 @@ const ChatRow = ({ item, onPress }: { item: InboxItem; onPress: () => void }) =>
               </Text>
             </View>
           )}
-        </View>
+        </TouchableOpacity>
         
         <View style={styles.chatContent}>
-          <View style={styles.chatHeader}>
+          <TouchableOpacity 
+            style={styles.nameContainer}
+            onPress={handleProfilePress}
+            activeOpacity={0.7}
+          >
             <Text style={styles.chatName} numberOfLines={1}>
               {item.other_name || 'User'}
             </Text>
-            <View style={styles.chatMeta}>
-              {item.last_message_at && (
-                <Text style={styles.timestamp}>
-                  {formatTimestamp(item.last_message_at)}
-                </Text>
-              )}
-              {item.unread_count > 0 && (
-                <View style={styles.unreadBadge}>
-                  <Text style={styles.unreadText}>{displayCount}</Text>
-                </View>
-              )}
-            </View>
-          </View>
+          </TouchableOpacity>
           
-          <View style={styles.chatPreview}>
-            <Text style={styles.lastMessage} numberOfLines={1}>
-              {item.last_message || 'No messages yet'}
-            </Text>
-            {item.other_major && (
-              <Text style={styles.userMajor} numberOfLines={1}>
-                {item.other_major}
-              </Text>
-            )}
-          </View>
+          <Text style={styles.lastMessage} numberOfLines={1}>
+            {item.last_message || 'No messages yet'}
+          </Text>
         </View>
         
-        <View style={styles.chatChevron}>
-          <ChevronRight size={16} color={Colors.semantic.tabInactive} strokeWidth={1.5} />
+        <View style={styles.rightSection}>
+          {item.last_message_at && (
+            <Text style={styles.timestamp}>
+              {formatTimestamp(item.last_message_at)}
+            </Text>
+          )}
+          {item.unread_count > 0 && (
+            <View style={styles.unreadDot} />
+          )}
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -203,9 +210,10 @@ const ChatRow = ({ item, onPress }: { item: InboxItem; onPress: () => void }) =>
 
 interface ChatsListProps {
   onChatPress: (roomId: string) => void;
+  onProfilePress?: (userId: string) => void;
 }
 
-export default function ChatsList({ onChatPress }: ChatsListProps) {
+export default function ChatsList({ onChatPress, onProfilePress }: ChatsListProps) {
   const { user, isGuest } = useAuth();
   const [inbox, setInbox] = useState<InboxItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -255,10 +263,15 @@ export default function ChatsList({ onChatPress }: ChatsListProps) {
     onChatPress(item.room_id);
   };
 
+  const handleProfilePress = (userId: string) => {
+    onProfilePress?.(userId);
+  };
+
   const renderChatItem = ({ item }: { item: InboxItem }) => (
     <ChatRow
       item={item}
       onPress={() => handleChatPress(item)}
+      onProfilePress={handleProfilePress}
     />
   );
 
@@ -336,103 +349,64 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     backgroundColor: Colors.white,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(229, 231, 235, 0.6)',
-    minHeight: 80,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+    minHeight: 72,
   },
   avatarContainer: {
-    marginRight: 16,
+    marginRight: 12,
   },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   avatarPlaceholder: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
   },
   avatarText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.white,
   },
   chatContent: {
     flex: 1,
-    marginRight: 12,
-  },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  chatName: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: Colors.semantic.headingText,
-    flex: 1,
-    marginRight: 12,
-  },
-  chatMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  timestamp: {
-    fontSize: 13,
-    color: Colors.semantic.tabInactive,
-    fontWeight: '500',
-  },
-  unreadBadge: {
-    backgroundColor: Colors.secondary,
-    borderRadius: 12,
-    minWidth: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    shadowColor: Colors.secondary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  unreadText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.white,
-  },
-  chatPreview: {
     gap: 4,
   },
+  nameContainer: {
+    alignSelf: 'flex-start',
+  },
+  chatName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.semantic.headingText,
+  },
   lastMessage: {
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.semantic.tabInactive,
-    lineHeight: 20,
+    lineHeight: 18,
   },
-  userMajor: {
-    fontSize: 13,
-    color: Colors.semantic.tabInactive,
-    fontWeight: '500',
-    opacity: 0.8,
-  },
-  chatChevron: {
-    justifyContent: 'center',
+  rightSection: {
+    flexDirection: 'row',
     alignItems: 'center',
-    width: 20,
-    height: 20,
+    gap: 6,
+  },
+  timestamp: {
+    fontSize: 12,
+    color: Colors.semantic.tabInactive,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#007AFF',
   },
   skeletonContainer: {
     paddingTop: 8,
@@ -441,18 +415,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     backgroundColor: Colors.white,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(229, 231, 235, 0.6)',
-    minHeight: 80,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+    minHeight: 72,
   },
   skeletonAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.muted,
-    marginRight: 16,
+    marginRight: 12,
   },
   skeletonContent: {
     flex: 1,
@@ -466,12 +440,12 @@ const styles = StyleSheet.create({
   },
   skeletonMessage: {
     width: '80%',
-    height: 14,
-    borderRadius: 7,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: Colors.muted,
   },
   skeletonTime: {
-    width: 40,
+    width: 30,
     height: 12,
     borderRadius: 6,
     backgroundColor: Colors.muted,

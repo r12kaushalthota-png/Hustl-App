@@ -13,7 +13,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Send, Plus, MoveHorizontal as MoreHorizontal } from 'lucide-react-native';
+import { Send, Shield } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, { 
   useSharedValue, 
@@ -23,7 +23,6 @@ import Animated, {
   withSequence,
   interpolate
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatService } from '@/lib/chat';
@@ -117,17 +116,7 @@ const MessageBubble = ({
 }) => {
   const formatTime = (timestamp: string): string => {
     const date = new Date(timestamp);
-    const now = new Date();
-    const diffInMinutes = (now.getTime() - date.getTime()) / (1000 * 60);
-    const isToday = date.toDateString() === now.toDateString();
-    
-    if (diffInMinutes < 1) {
-      return 'now';
-    } else if (isToday) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    }
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -366,15 +355,15 @@ export default function Conversation({ roomId, onProfilePress }: ConversationPro
           <Text style={styles.headerTitle}>
             {ProfileService.getDisplayName(otherUserProfile || {} as UserProfile)}
           </Text>
-          {otherUserProfile && ProfileService.isVerified(otherUserProfile) && (
+          {otherUserProfile?.is_verified && (
             <View style={styles.verifiedBadge}>
-              <Text style={styles.verifiedText}>✓</Text>
+              <Shield size={12} color={Colors.white} strokeWidth={2} />
             </View>
           )}
         </View>
-        {otherUserProfile?.major && (
-          <Text style={styles.headerSubtitle}>{otherUserProfile.major}</Text>
-        )}
+        <Text style={styles.headerSubtitle}>
+          @{otherUserProfile?.username || 'user'}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -387,10 +376,6 @@ export default function Conversation({ roomId, onProfilePress }: ConversationPro
       {/* Header */}
       <View style={styles.header}>
         {renderHeader()}
-        
-        <TouchableOpacity style={styles.optionsButton}>
-          <MoreHorizontal size={20} color={Colors.semantic.bodyText} strokeWidth={2} />
-        </TouchableOpacity>
       </View>
 
       {/* Messages */}
@@ -425,48 +410,38 @@ export default function Conversation({ roomId, onProfilePress }: ConversationPro
 
       {/* Input */}
       <View style={[styles.inputContainer, { paddingBottom: insets.bottom + 16 }]}>
-        <View style={styles.inputRow}>
-          <TouchableOpacity style={styles.attachButton} disabled>
-            <Plus size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-          </TouchableOpacity>
-          
-          <TextInput
-            style={styles.textInput}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="Type a message..."
-            placeholderTextColor={Colors.semantic.tabInactive}
-            multiline
-            maxLength={1000}
-            returnKeyType="send"
-            onSubmitEditing={handleSendMessage}
-            blurOnSubmit={false}
-          />
-        </View>
-        
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            (!inputText.trim() || isSending) && styles.sendButtonDisabled
-          ]}
-          onPress={handleSendMessage}
-          disabled={!inputText.trim() || isSending}
-          accessibilityLabel="Send message"
-          accessibilityRole="button"
-        >
-          {(!inputText.trim() || isSending) ? (
-            <Send size={18} color={Colors.white} strokeWidth={2} />
-          ) : (
-            <LinearGradient
-              colors={[Colors.primary, Colors.secondary]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.sendButtonGradient}
+        <View style={styles.inputWrapper}>
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.textInput}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Message..."
+              placeholderTextColor={Colors.semantic.tabInactive}
+              multiline
+              maxLength={1000}
+              returnKeyType="send"
+              onSubmitEditing={handleSendMessage}
+              blurOnSubmit={false}
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                (!inputText.trim() || isSending) && styles.sendButtonDisabled
+              ]}
+              onPress={handleSendMessage}
+              disabled={!inputText.trim() || isSending}
+              accessibilityLabel="Send message"
+              accessibilityRole="button"
             >
-              <Send size={18} color={Colors.white} strokeWidth={2} />
-            </LinearGradient>
-          )}
-        </TouchableOpacity>
+              <Send 
+                size={16} 
+                color={inputText.trim() && !isSending ? Colors.primary : Colors.semantic.tabInactive} 
+                strokeWidth={2} 
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -480,17 +455,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 16,
     backgroundColor: Colors.white,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(229, 231, 235, 0.6)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-    minHeight: 72,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
   },
   headerCenter: {
     flex: 1,
@@ -525,47 +494,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 2,
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: Colors.semantic.headingText,
   },
   verifiedBadge: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: Colors.semantic.successAlert,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  verifiedText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Colors.white,
-  },
   headerSubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.semantic.tabInactive,
-    fontWeight: '500',
-  },
-  optionsButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(245, 245, 245, 0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 12,
   },
   messagesContainer: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#F8F9FA',
   },
   messagesContent: {
-    padding: 20,
-    paddingBottom: 12,
+    padding: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -586,30 +538,29 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   emptyIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(245, 245, 245, 0.8)',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: Colors.muted,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
   },
   emptyIcon: {
-    fontSize: 32,
+    fontSize: 24,
   },
   emptyText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.semantic.headingText,
     textAlign: 'center',
   },
   emptySubtext: {
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.semantic.tabInactive,
     textAlign: 'center',
   },
   messageContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   ownMessageContainer: {
     alignItems: 'flex-end',
@@ -620,11 +571,11 @@ const styles = StyleSheet.create({
   messageRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    maxWidth: width * 0.8,
+    maxWidth: width * 0.75,
   },
   messageAvatarContainer: {
-    marginRight: 8,
-    marginBottom: 4,
+    marginRight: 6,
+    marginBottom: 2,
   },
   messageAvatar: {
     width: 28,
@@ -649,29 +600,22 @@ const styles = StyleSheet.create({
     height: 28,
   },
   messageBubble: {
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-    maxWidth: width * 0.75,
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    maxWidth: width * 0.7,
   },
   ownMessageBubble: {
-    backgroundColor: Colors.primary,
-    borderBottomRightRadius: 6,
+    backgroundColor: '#0021A5',
+    borderBottomRightRadius: 4,
   },
   otherMessageBubble: {
-    backgroundColor: Colors.white,
-    borderBottomLeftRadius: 6,
-    borderWidth: 0.5,
-    borderColor: 'rgba(229, 231, 235, 0.8)',
+    backgroundColor: '#F5F5F5',
+    borderBottomLeftRadius: 4,
   },
   messageText: {
-    fontSize: 17,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 20,
   },
   ownMessageText: {
     color: Colors.white,
@@ -680,118 +624,78 @@ const styles = StyleSheet.create({
     color: Colors.semantic.bodyText,
   },
   messageFooter: {
-    marginTop: 6,
-    alignItems: 'flex-end',
+    marginTop: 4,
   },
   ownMessageFooter: {
     alignItems: 'flex-end',
   },
   otherMessageFooter: {
     alignItems: 'flex-start',
-    marginLeft: 36, // Account for avatar space
+    marginLeft: 34, // Account for avatar space
   },
   messageTime: {
-    fontSize: 11,
+    fontSize: 10,
     color: Colors.semantic.tabInactive,
-    fontWeight: '500',
   },
   typingContainer: {
     alignItems: 'flex-start',
-    marginBottom: 16,
-    marginLeft: 36, // Account for avatar space
+    marginBottom: 12,
+    marginLeft: 34, // Account for avatar space
   },
   typingBubble: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    borderBottomLeftRadius: 6,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderWidth: 0.5,
-    borderColor: 'rgba(229, 231, 235, 0.8)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 18,
+    borderBottomLeftRadius: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   typingDots: {
     flexDirection: 'row',
-    gap: 4,
+    gap: 3,
   },
   typingDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: Colors.semantic.tabInactive,
   },
   inputContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingHorizontal: 16,
+    paddingTop: 8,
     backgroundColor: Colors.white,
-    borderTopWidth: 0.5,
-    borderTopColor: 'rgba(229, 231, 235, 0.6)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 4,
+    borderTopWidth: 1,
+    borderTopColor: '#F5F5F5',
+  },
+  inputWrapper: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 20,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: 'rgba(245, 245, 245, 0.8)',
-    borderRadius: 24,
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.5)',
-    minHeight: 44,
-  },
-  attachButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-    opacity: 0.5, // Disabled state
+    gap: 8,
   },
   textInput: {
     flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 17,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
     color: Colors.semantic.inputText,
     backgroundColor: 'transparent',
-    maxHeight: 120,
-    minHeight: 36,
+    maxHeight: 100,
+    minHeight: 40,
   },
   sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.semantic.tabInactive,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
-    overflow: 'hidden',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
   sendButtonDisabled: {
-    backgroundColor: Colors.semantic.tabInactive,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  sendButtonGradient: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    opacity: 0.5,
   },
 });
