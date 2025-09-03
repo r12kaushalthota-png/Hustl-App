@@ -928,6 +928,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 100, // Space for tab bar
+  },
   // Greeting Section
   greetingSection: {
     paddingHorizontal: 16,
