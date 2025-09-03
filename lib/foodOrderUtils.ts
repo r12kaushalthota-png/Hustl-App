@@ -45,7 +45,7 @@ export class FoodOrderUtils {
     const lineTotal = this.calculateItemPrice(item, selectedOptions, quantity);
     
     return {
-      id: `${item.id}_${Date.now()}`, // Unique cart item ID
+      id: `${item.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // Unique cart item ID
       name: item.name,
       quantity,
       basePrice: item.basePrice,

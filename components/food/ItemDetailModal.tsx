@@ -116,7 +116,15 @@ export default function ItemDetailModal({ visible, onClose, item }: ItemDetailMo
     triggerHaptics();
     
     // Create cart item
-    const cartItem = FoodOrderUtils.createCartItem(item, selectedOptions, quantity, notes || undefined);
+    const cartItem = {
+      id: `${item.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: item.name,
+      quantity,
+      basePrice: item.basePrice,
+      selectedOptions,
+      notes: notes || undefined,
+      lineTotal: FoodOrderUtils.calculateItemPrice(item, selectedOptions, quantity),
+    };
     
     // Add to cart
     addToCart(cartItem);
