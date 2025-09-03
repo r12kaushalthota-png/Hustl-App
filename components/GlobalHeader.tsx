@@ -36,13 +36,6 @@ const searchSuggestions = [
   { id: 'history', title: 'Task History', subtitle: 'View completed tasks', route: '/profile/task-history', icon: Settings },
 ];
 
-// Header dropdown options
-const headerOptions = [
-  { id: 'hustl', label: 'Hustl', icon: Sparkles },
-  { id: 'wallet', label: 'Wallet', icon: Wallet },
-  { id: 'credits', label: 'Credits', icon: CreditCard },
-];
-
 // Enhanced Profile Avatar with Level Badge
 const ProfileAvatar = ({ user, isGuest, onPress }: { 
   user: any; 
@@ -188,109 +181,6 @@ const IconButton = ({
   );
 };
 
-// Header Dropdown Component
-const HeaderDropdown = ({ 
-  selectedOption, 
-  onSelect 
-}: { 
-  selectedOption: string; 
-  onSelect: (optionId: string) => void;
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuth();
-
-  const triggerHaptics = () => {
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch (error) {
-        // Haptics not available, continue silently
-      }
-    }
-  };
-
-  const handleOptionSelect = (optionId: string) => {
-    triggerHaptics();
-    onSelect(optionId);
-    setIsOpen(false);
-  };
-
-  const getDisplayValue = () => {
-    const option = headerOptions.find(opt => opt.id === selectedOption);
-    if (!option) return 'Hustl';
-
-    switch (option.id) {
-      case 'wallet':
-        return `$${((user?.profile?.credits || 0) / 100).toFixed(2)}`;
-      case 'credits':
-        return `${user?.profile?.credits || 0}`;
-      default:
-        return option.label;
-    }
-  };
-
-  const getDisplayIcon = () => {
-    const option = headerOptions.find(opt => opt.id === selectedOption);
-    const IconComponent = option?.icon || Sparkles;
-    return <IconComponent size={16} color={Colors.primary} strokeWidth={2} />;
-  };
-
-  return (
-    <View style={styles.dropdownContainer}>
-      <TouchableOpacity
-        style={styles.dropdownTrigger}
-        onPress={() => {
-          triggerHaptics();
-          setIsOpen(!isOpen);
-        }}
-        accessibilityLabel="Header options"
-        accessibilityRole="button"
-      >
-        <View style={styles.dropdownContent}>
-          {getDisplayIcon()}
-          <Text style={styles.dropdownText} numberOfLines={1}>
-            {getDisplayValue()}
-          </Text>
-          <ChevronDown 
-            size={14} 
-            color={Colors.primary} 
-            strokeWidth={2}
-            style={[styles.chevron, isOpen && styles.chevronOpen]}
-          />
-        </View>
-      </TouchableOpacity>
-
-      {isOpen && (
-        <View style={styles.dropdownMenu}>
-          {headerOptions.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={[
-                styles.dropdownOption,
-                selectedOption === option.id && styles.selectedDropdownOption
-              ]}
-              onPress={() => handleOptionSelect(option.id)}
-            >
-              <option.icon size={16} color={Colors.primary} strokeWidth={2} />
-              <Text style={styles.dropdownOptionText}>{option.label}</Text>
-              {option.id === 'wallet' && user?.profile && (
-                <Text style={styles.dropdownOptionValue}>
-                  ${((user.profile.credits || 0) / 100).toFixed(2)}
-                </Text>
-              )}
-              {option.id === 'credits' && user?.profile && (
-                <Text style={styles.dropdownOptionValue}>
-                  {user.profile.credits || 0}
-                </Text>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-};
-
 // Search Modal Component
 const SearchModal = ({ 
   visible, 
@@ -394,7 +284,7 @@ export default function GlobalHeader({
   const [showProfileSidebar, setShowProfileSidebar] = React.useState(false);
   const [showNotificationCenter, setShowNotificationCenter] = React.useState(false);
   const [showSearchModal, setShowSearchModal] = React.useState(false);
-  const [selectedHeaderOption, setSelectedHeaderOption] = React.useState('hustl');
+  const [showCampusMenu, setShowCampusMenu] = React.useState(false);
 
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
@@ -428,8 +318,9 @@ export default function GlobalHeader({
     setShowNotificationCenter(true);
   };
 
-  const handleHeaderOptionSelect = (optionId: string) => {
-    setSelectedHeaderOption(optionId);
+  const handleLogoPress = () => {
+    triggerHaptics();
+    setShowCampusMenu(true);
   };
 
   if (isGuest) {
@@ -444,14 +335,21 @@ export default function GlobalHeader({
                 onPress={handleProfilePress}
               />
               
-              <View style={styles.logoContainer}>
-                <Image
-                  source={require('../src/assets/images/image.png')}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
-                <View style={styles.logoGlow} />
-              </View>
+              <TouchableOpacity 
+                style={styles.logoChip}
+                onPress={handleLogoPress}
+                activeOpacity={0.7}
+                accessibilityLabel="Campus menu"
+                accessibilityRole="button"
+              >
+                <View style={styles.logoContainer}>
+                  <Image
+                    source={require('../src/assets/images/image.png')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                  />
+                </View>
+              </TouchableOpacity>
             </View>
             
             {title && (
@@ -489,21 +387,21 @@ export default function GlobalHeader({
               onPress={handleProfilePress}
             />
             
-            <View style={styles.brandSection}>
+            <TouchableOpacity 
+              style={styles.logoChip}
+              onPress={handleLogoPress}
+              activeOpacity={0.7}
+              accessibilityLabel="Campus menu"
+              accessibilityRole="button"
+            >
               <View style={styles.logoContainer}>
                 <Image
                   source={require('../src/assets/images/image.png')}
                   style={styles.logo}
                   resizeMode="contain"
                 />
-                <View style={styles.logoGlow} />
               </View>
-              
-              <HeaderDropdown
-                selectedOption={selectedHeaderOption}
-                onSelect={handleHeaderOptionSelect}
-              />
-            </View>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.rightSection}>
@@ -541,6 +439,12 @@ export default function GlobalHeader({
       <SearchModal
         visible={showSearchModal}
         onClose={() => setShowSearchModal(false)}
+      />
+
+      {/* Campus Menu Modal */}
+      <CampusMenuModal
+        visible={showCampusMenu}
+        onClose={() => setShowCampusMenu(false)}
       />
     </>
   );
