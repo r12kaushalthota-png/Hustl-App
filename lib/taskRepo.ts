@@ -143,7 +143,7 @@ export class TaskRepo {
     try {
       // Use atomic RPC function for race-safe acceptance with correct parameter name
       const { data, error } = await supabase.rpc('accept_task', { 
-        p_task_id: taskId 
+        task_id: taskId 
       });
 
       if (error) {
