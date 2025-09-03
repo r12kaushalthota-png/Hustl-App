@@ -154,8 +154,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingHorizontal: 16,
   },
   loadingState: {
     paddingVertical: 40,
@@ -166,7 +165,7 @@ const styles = StyleSheet.create({
     color: Colors.semantic.tabInactive,
   },
   tasksList: {
-    paddingBottom: 100,
+    paddingBottom: 80,
   },
   taskCard: {
     backgroundColor: Colors.semantic.card,
@@ -237,10 +236,9 @@ const styles = StyleSheet.create({
     color: Colors.semantic.bodyText,
   },
   emptyState: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: 40,
     gap: 16,
   },
   emptyStateText: {

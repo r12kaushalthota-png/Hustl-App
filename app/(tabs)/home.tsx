@@ -927,14 +927,12 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   scrollContent: {
-    paddingBottom: 120,
-  },
-
+    paddingBottom: 100, // Space for tab bar
   // Greeting Section
   greetingSection: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 8,
+    paddingBottom: 12,
   },
   greeting: {
     fontSize: 24,
@@ -946,8 +944,8 @@ const styles = StyleSheet.create({
 
   // Referral Banner
   referralBanner: {
-    marginHorizontal: 20,
-    marginBottom: 32,
+    marginHorizontal: 16,
+    marginBottom: 16,
     borderRadius: 20,
     overflow: 'hidden',
     shadowColor: '#0047FF',
@@ -1000,8 +998,8 @@ const styles = StyleSheet.create({
 
   // Categories Section
   categoriesSection: {
-    marginHorizontal: 20,
-    marginBottom: 40,
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
   categoriesGrid: {
     flexDirection: 'row',

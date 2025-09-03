@@ -725,18 +725,13 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  loadingState: {
-    paddingHorizontal: 16,
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
   loadingText: {
     fontSize: 16,
     color: Colors.semantic.tabInactive,
   },
   tasksList: {
     paddingHorizontal: 16,
-    paddingBottom: 80 + 24,
+    paddingBottom: 100,
   },
   taskCard: {
     backgroundColor: Colors.semantic.card,
@@ -941,12 +936,10 @@ const styles = StyleSheet.create({
     color: Colors.semantic.tabInactive,
   },
   emptyState: {
-    justifyContent: 'center',
+    flex: 1,
     alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingVertical: 60,
-    paddingBottom: 80 + 24,
-    minHeight: 300,
+    paddingHorizontal: 16,
+    paddingVertical: 40,
     gap: 16,
   },
   emptyStateLogo: {

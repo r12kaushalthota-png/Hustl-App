@@ -343,7 +343,7 @@ export default function ChatsList({ onChatPress, onProfilePress }: ChatsListProp
 
 const styles = StyleSheet.create({
   listContainer: {
-    paddingTop: 8,
+    paddingBottom: 100, // Space for tab bar
   },
   chatRow: {
     flexDirection: 'row',
@@ -451,11 +451,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.muted,
   },
   emptyState: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingVertical: 80,
+    paddingHorizontal: 16,
+    paddingVertical: 40,
     gap: 20,
   },
   emptyIconContainer: {
@@ -500,10 +499,10 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   guestContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 40,
   },
   guestText: {
     fontSize: 18,
@@ -512,10 +511,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   errorContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 40,
     gap: 16,
   },
   errorText: {

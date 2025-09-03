@@ -114,12 +114,9 @@ export default function ReferralsScreen() {
           style={styles.content} 
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={{
-            paddingBottom: insets.bottom + (tabBarHeight || 24) + 16
-          }}
+          contentContainerStyle={styles.scrollContent}
         >
-          <View style={styles.header}>
+          <View style={styles.pageHeader}>
             <Text style={styles.headerTitle}>Referrals</Text>
             <Text style={styles.headerSubtitle}>
               Earn credits by inviting friends to Hustl
@@ -251,14 +248,17 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+  scrollContent: {
+    paddingBottom: 100, // Space for tab bar
+  },
+  pageHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     alignItems: 'center',
     gap: 8,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
     color: Colors.semantic.headingText,
   },
@@ -270,9 +270,9 @@ const styles = StyleSheet.create({
   balanceCard: {
     backgroundColor: Colors.semantic.card,
     borderRadius: 24,
-    padding: 24,
-    marginHorizontal: 24,
-    marginBottom: 24,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
     alignItems: 'center',
     gap: 12,
     shadowColor: '#000',
@@ -304,8 +304,8 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
-    marginBottom: 32,
+    paddingHorizontal: 16,
+    marginBottom: 16,
     gap: 12,
   },
   statCard: {
@@ -334,14 +334,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   section: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
+    paddingHorizontal: 16,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.semantic.headingText,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   linkContainer: {
     flexDirection: 'row',
@@ -381,8 +381,8 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   inviteButtonContainer: {
-    marginHorizontal: 24,
-    marginBottom: 32,
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
   inviteButtonGradient: {
     flexDirection: 'row',
@@ -436,8 +436,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    marginHorizontal: 24,
+    paddingVertical: 12,
+    marginHorizontal: 16,
     gap: 6,
   },
   termsText: {

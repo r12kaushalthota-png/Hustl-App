@@ -348,17 +348,13 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  loadingState: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
   loadingText: {
     fontSize: 16,
     color: Colors.semantic.tabInactive,
   },
   reviewsList: {
     paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingBottom: 80,
   },
   reviewCard: {
     backgroundColor: Colors.semantic.card,
@@ -425,10 +421,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   emptyState: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: 40,
     gap: 16,
   },
   emptyStateText: {

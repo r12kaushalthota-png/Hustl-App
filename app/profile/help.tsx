@@ -121,11 +121,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
   },
   section: {
     alignItems: 'center',
-    paddingVertical: 32,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   iconContainer: {
     width: 80,
@@ -150,7 +150,8 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   contactSection: {
-    marginBottom: 32,
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
   contactCard: {
     flexDirection: 'row',

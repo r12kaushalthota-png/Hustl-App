@@ -8,7 +8,6 @@ import ChatsList from '@/components/ChatsList';
 import ProfileSheet from '@/components/ProfileSheet';
 
 export default function ChatsScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [showProfileSheet, setShowProfileSheet] = React.useState(false);
   const [selectedUserId, setSelectedUserId] = React.useState<string | null>(null);
