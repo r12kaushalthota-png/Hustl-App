@@ -378,13 +378,11 @@ const SearchModal = ({
 interface GlobalHeaderProps {
   showSearch?: boolean;
   showNotifications?: boolean;
-  title?: string;
 }
 
 export default function GlobalHeader({ 
   showSearch = true, 
   showNotifications = true,
-  title 
 }: GlobalHeaderProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -502,13 +500,6 @@ export default function GlobalHeader({
               <HeaderDropdown
                 selectedOption={selectedHeaderOption}
                 onSelect={handleHeaderOptionSelect}
-              />
-            </View>
-          </View>
-
-          {title && (
-            <Text style={styles.title}>{title}</Text>
-          )}
 
           <View style={styles.rightSection}>
             {showSearch && (
@@ -738,14 +729,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.primary,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.semantic.headingText,
-    textAlign: 'center',
-    flex: 1,
-    letterSpacing: 0.3,
   },
   rightSection: {
     flexDirection: 'row',

@@ -155,7 +155,7 @@ export default function ChatsScreen() {
 
   return (
     <View style={styles.container}>
-      <GlobalHeader title="Messages" showSearch={false} />
+      <GlobalHeader showSearch={true} showNotifications={true} />
 
       <ScrollView 
         style={styles.content} 

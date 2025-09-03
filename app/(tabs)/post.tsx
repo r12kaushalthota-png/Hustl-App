@@ -446,11 +446,7 @@ export default function PostScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={tabBarHeight + insets.top}
       >
-        <GlobalHeader 
-          title={prefilledCategory ? `Create ${categories.find(c => c.value === prefilledCategory)?.label || 'Task'}` : "Create Task"} 
-          showSearch={false} 
-          showNotifications={false} 
-        />
+        <GlobalHeader showSearch={true} showNotifications={true} />
 
         <ScrollView 
           style={styles.content} 
