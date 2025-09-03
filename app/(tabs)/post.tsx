@@ -352,13 +352,13 @@ export default function PostScreen() {
   const CategorySelector = () => (
     <View style={styles.inputGroup}>
       <Text style={styles.label}>Category *</Text>
-      <View style={styles.segmentedControl}>
+      <View style={styles.categoryGrid}>
         {categories.map((cat) => (
           <TouchableOpacity
             key={cat.value}
             style={[
-              styles.segment,
-              category === cat.value && styles.activeSegment
+              styles.categoryCard,
+              category === cat.value && styles.activeCategoryCard
             ]}
             onPress={() => {
               triggerHaptics();
@@ -368,8 +368,8 @@ export default function PostScreen() {
             disabled={isLoading}
           >
             <Text style={[
-              styles.segmentText,
-              category === cat.value && styles.activeSegmentText
+              styles.categoryCardText,
+              category === cat.value && styles.activeCategoryCardText
             ]}>
               {cat.label}
             </Text>
@@ -859,5 +859,41 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.primary,
+  },
+  categoryGrid: {
+    gap: 12,
+  },
+  categoryCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  activeCategoryCard: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  categoryCardText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.semantic.bodyText,
+  },
+  activeCategoryCardText: {
+    color: Colors.white,
+    fontWeight: '600',
   },
 });
