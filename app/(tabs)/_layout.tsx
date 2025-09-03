@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Chrome as HomeIcon, Grid3x3 as Grid3X3, MessageCircle, Gift, Zap } from 'lucide-react-native';
+import { Home as HomeIcon, List as ListIcon, MessageCircle, Gift, Zap } from 'lucide-react-native';
 import { TouchableOpacity, View, StyleSheet, Platform, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -223,9 +223,9 @@ export default function TabLayout() {
             backgroundColor: '#FFFFFF',
             borderTopColor: 'rgba(229, 231, 235, 0.2)',
             borderTopWidth: 0.5,
-            height: 92 + insets.bottom,
-            paddingBottom: insets.bottom + 4,
-            paddingTop: 16,
+            height: 70 + insets.bottom,
+            paddingBottom: insets.bottom + 8,
+            paddingTop: 12,
             position: 'absolute',
             bottom: 0,
             left: 0,
@@ -238,23 +238,17 @@ export default function TabLayout() {
           },
           tabBarActiveTintColor: '#0021A5',
           tabBarInactiveTintColor: '#9CA3AF',
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '600',
-            marginTop: 6,
-            letterSpacing: 0.3,
-          },
+          tabBarShowLabel: false,
           tabBarButton: (props) => <CustomTabButton {...props} />,
         }}
       >
         <Tabs.Screen
           name="home"
           options={{
-            title: 'Home',
             tabBarIcon: ({ size, color, focused }) => (
               <TabIcon 
                 IconComponent={HomeIcon} 
-                size={size} 
+                size={24} 
                 color={color} 
                 focused={focused}
               />
@@ -264,11 +258,10 @@ export default function TabLayout() {
         <Tabs.Screen
           name="tasks"
           options={{
-            title: 'Tasks',
             tabBarIcon: ({ size, color, focused }) => (
               <TabIcon 
-                IconComponent={Grid3X3} 
-                size={size} 
+                IconComponent={ListIcon} 
+                size={24} 
                 color={color} 
                 focused={focused}
               />
@@ -278,18 +271,16 @@ export default function TabLayout() {
         <Tabs.Screen
           name="post"
           options={{
-            title: 'Post Task',
             tabBarButton: PostTaskTabButton,
           }}
         />
         <Tabs.Screen
           name="chats"
           options={{
-            title: 'Chats',
             tabBarIcon: ({ size, color, focused }) => (
               <TabIcon 
                 IconComponent={MessageCircle} 
-                size={size} 
+                size={24} 
                 color={color} 
                 focused={focused}
               />
@@ -299,11 +290,10 @@ export default function TabLayout() {
         <Tabs.Screen
           name="referrals"
           options={{
-            title: 'Rewards',
             tabBarIcon: ({ size, color, focused }) => (
               <TabIcon 
                 IconComponent={Gift} 
-                size={size} 
+                size={24} 
                 color={color} 
                 focused={focused}
               />
@@ -350,13 +340,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 8,
-    paddingBottom: 8,
   },
   postTaskButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
   },
   postTaskIconContainer: {
     shadowColor: '#0021A5',
@@ -387,10 +374,5 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     borderWidth: 2,
     borderColor: 'rgba(0, 33, 165, 0.3)',
-  },
-  postTaskLabel: {
-    fontSize: 12,
-    textAlign: 'center',
-    letterSpacing: 0.3,
   },
 });
