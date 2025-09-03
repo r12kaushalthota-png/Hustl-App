@@ -1,0 +1,81 @@
+{
+  "restaurant": "Jimmy John's",
+  "categories": [
+    { "id": "subs", "name": "Subs", "order": 1 },
+    { "id": "clubs", "name": "Clubs", "order": 2 },
+    { "id": "sides", "name": "Sides", "order": 3 }
+  ],
+  "items": [
+    {
+      "id": "turkey-tom",
+      "name": "#4 Turkey Tom",
+      "description": "Fresh sliced turkey breast, topped with lettuce, tomato, and mayo.",
+      "basePrice": 649,
+      "image": "https://images.pexels.com/photos/7595072/pexels-photo-7595072.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["subs"],
+      "modifierGroups": [
+        {
+          "id": "bread",
+          "name": "Bread",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "french", "name": "French Bread", "priceDelta": 0 },
+            { "id": "wheat", "name": "9-Grain Wheat", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "customizations",
+          "name": "Customizations",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "no-mayo", "name": "No Mayo", "priceDelta": 0 },
+            { "id": "no-lettuce", "name": "No Lettuce", "priceDelta": 0 },
+            { "id": "no-tomato", "name": "No Tomato", "priceDelta": 0 },
+            { "id": "add-cheese", "name": "Add Cheese", "priceDelta": 75 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "italian-night-club",
+      "name": "#9 Italian Night Club",
+      "description": "Genoa salami, Italian capicola, smoked ham, and provolone cheese.",
+      "basePrice": 849,
+      "image": "https://images.pexels.com/photos/7595072/pexels-photo-7595072.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["clubs"],
+      "modifierGroups": [
+        {
+          "id": "bread",
+          "name": "Bread",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "french", "name": "French Bread", "priceDelta": 0 },
+            { "id": "wheat", "name": "9-Grain Wheat", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "customizations",
+          "name": "Customizations",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "no-mayo", "name": "No Mayo", "priceDelta": 0 },
+            { "id": "add-avocado", "name": "Add Avocado", "priceDelta": 125 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pickle",
+      "name": "Jumbo Kosher Dill Pickle",
+      "description": "A whole pickle spear.",
+      "basePrice": 99,
+      "image": "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["sides"],
+      "modifierGroups": []
+    }
+  ]
+}

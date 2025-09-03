@@ -31,6 +31,12 @@ const restaurants = [
   { id: 'chick-fil-a', name: 'Chick-fil-A', color: '#E51636' },
   { id: 'chipotle', name: 'Chipotle', color: '#A81612' },
   { id: 'taco-bell', name: 'Taco Bell', color: '#702F8A' },
+  { id: 'panda-express', name: 'Panda Express', color: '#C8102E' },
+  { id: 'starbucks', name: 'Starbucks', color: '#00704A' },
+  { id: 'mcdonalds', name: "McDonald's", color: '#FFC72C' },
+  { id: 'dunkin', name: "Dunkin'", color: '#FF6600' },
+  { id: 'subway', name: 'Subway', color: '#009639' },
+  { id: 'jimmy-johns', name: "Jimmy John's", color: '#FF6B35' },
 ];
 
 export default function MenuBrowser({ visible, onClose }: MenuBrowserProps) {
@@ -73,6 +79,24 @@ export default function MenuBrowser({ visible, onClose }: MenuBrowserProps) {
           break;
         case 'taco-bell':
           menuData = require('@/data/menus/taco-bell.json');
+          break;
+        case 'panda-express':
+          menuData = require('@/data/menus/panda-express.json');
+          break;
+        case 'starbucks':
+          menuData = require('@/data/menus/starbucks.json');
+          break;
+        case 'mcdonalds':
+          menuData = require('@/data/menus/mcdonalds.json');
+          break;
+        case 'dunkin':
+          menuData = require('@/data/menus/dunkin.json');
+          break;
+        case 'subway':
+          menuData = require('@/data/menus/subway.json');
+          break;
+        case 'jimmy-johns':
+          menuData = require('@/data/menus/jimmy-johns.json');
           break;
         default:
           menuData = require('@/data/menus/chick-fil-a.json');

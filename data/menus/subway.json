@@ -1,0 +1,105 @@
+{
+  "restaurant": "Subway",
+  "categories": [
+    { "id": "subs", "name": "Subs", "order": 1 },
+    { "id": "wraps", "name": "Wraps", "order": 2 },
+    { "id": "salads", "name": "Salads", "order": 3 },
+    { "id": "sides", "name": "Sides", "order": 4 }
+  ],
+  "items": [
+    {
+      "id": "italian-bmt",
+      "name": "Italian B.M.T.",
+      "description": "Genoa salami, spicy pepperoni, and Black Forest ham with your choice of fresh vegetables.",
+      "basePrice": 649,
+      "image": "https://images.pexels.com/photos/7595072/pexels-photo-7595072.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["subs"],
+      "modifierGroups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "6-inch", "name": "6-inch", "priceDelta": 0 },
+            { "id": "footlong", "name": "Footlong", "priceDelta": 400 }
+          ]
+        },
+        {
+          "id": "bread",
+          "name": "Bread",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "white", "name": "White", "priceDelta": 0 },
+            { "id": "wheat", "name": "9-Grain Wheat", "priceDelta": 0 },
+            { "id": "italian", "name": "Italian Herbs & Cheese", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "cheese",
+          "name": "Cheese",
+          "type": "single",
+          "required": false,
+          "options": [
+            { "id": "american", "name": "American", "priceDelta": 0 },
+            { "id": "provolone", "name": "Provolone", "priceDelta": 0 },
+            { "id": "swiss", "name": "Swiss", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "veggies",
+          "name": "Vegetables",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "lettuce", "name": "Lettuce", "priceDelta": 0 },
+            { "id": "tomatoes", "name": "Tomatoes", "priceDelta": 0 },
+            { "id": "onions", "name": "Red Onions", "priceDelta": 0 },
+            { "id": "pickles", "name": "Pickles", "priceDelta": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "turkey-breast",
+      "name": "Turkey Breast",
+      "description": "Oven-roasted turkey breast with your choice of fresh vegetables.",
+      "basePrice": 599,
+      "image": "https://images.pexels.com/photos/7595072/pexels-photo-7595072.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["subs"],
+      "modifierGroups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "6-inch", "name": "6-inch", "priceDelta": 0 },
+            { "id": "footlong", "name": "Footlong", "priceDelta": 400 }
+          ]
+        },
+        {
+          "id": "bread",
+          "name": "Bread",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "white", "name": "White", "priceDelta": 0 },
+            { "id": "wheat", "name": "9-Grain Wheat", "priceDelta": 0 },
+            { "id": "italian", "name": "Italian Herbs & Cheese", "priceDelta": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chips",
+      "name": "Lay's Classic Chips",
+      "description": "Crispy potato chips.",
+      "basePrice": 149,
+      "image": "https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["sides"],
+      "modifierGroups": []
+    }
+  ]
+}

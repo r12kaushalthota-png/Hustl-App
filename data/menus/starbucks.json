@@ -1,0 +1,130 @@
+{
+  "restaurant": "Starbucks",
+  "categories": [
+    { "id": "hot-coffee", "name": "Hot Coffee", "order": 1 },
+    { "id": "cold-coffee", "name": "Cold Coffee", "order": 2 },
+    { "id": "frappuccinos", "name": "Frappuccinos", "order": 3 },
+    { "id": "food", "name": "Food", "order": 4 }
+  ],
+  "items": [
+    {
+      "id": "pike-place-roast",
+      "name": "Pike Place Roast",
+      "description": "Our signature medium roast with a smooth, well-rounded flavor.",
+      "basePrice": 249,
+      "image": "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["hot-coffee"],
+      "modifierGroups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "tall", "name": "Tall (12 oz)", "priceDelta": 0 },
+            { "id": "grande", "name": "Grande (16 oz)", "priceDelta": 60 },
+            { "id": "venti", "name": "Venti (20 oz)", "priceDelta": 120 }
+          ]
+        },
+        {
+          "id": "milk",
+          "name": "Milk",
+          "type": "single",
+          "required": false,
+          "options": [
+            { "id": "2-percent", "name": "2% Milk", "priceDelta": 0 },
+            { "id": "nonfat", "name": "Nonfat Milk", "priceDelta": 0 },
+            { "id": "oat", "name": "Oat Milk", "priceDelta": 65 },
+            { "id": "almond", "name": "Almond Milk", "priceDelta": 65 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "caramel-macchiato",
+      "name": "Caramel Macchiato",
+      "description": "Steamed milk with vanilla syrup, marked with espresso and finished with caramel sauce.",
+      "basePrice": 549,
+      "image": "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["hot-coffee"],
+      "modifierGroups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "tall", "name": "Tall (12 oz)", "priceDelta": 0 },
+            { "id": "grande", "name": "Grande (16 oz)", "priceDelta": 60 },
+            { "id": "venti", "name": "Venti (20 oz)", "priceDelta": 120 }
+          ]
+        },
+        {
+          "id": "milk",
+          "name": "Milk",
+          "type": "single",
+          "required": false,
+          "options": [
+            { "id": "2-percent", "name": "2% Milk", "priceDelta": 0 },
+            { "id": "nonfat", "name": "Nonfat Milk", "priceDelta": 0 },
+            { "id": "oat", "name": "Oat Milk", "priceDelta": 65 },
+            { "id": "almond", "name": "Almond Milk", "priceDelta": 65 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "iced-coffee",
+      "name": "Iced Coffee",
+      "description": "Our signature espresso, served chilled and sweetened with classic syrup.",
+      "basePrice": 299,
+      "image": "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["cold-coffee"],
+      "modifierGroups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "tall", "name": "Tall (12 oz)", "priceDelta": 0 },
+            { "id": "grande", "name": "Grande (16 oz)", "priceDelta": 60 },
+            { "id": "venti", "name": "Venti (24 oz)", "priceDelta": 120 }
+          ]
+        },
+        {
+          "id": "sweetener",
+          "name": "Sweetener",
+          "type": "single",
+          "required": false,
+          "options": [
+            { "id": "classic", "name": "Classic Syrup", "priceDelta": 0 },
+            { "id": "vanilla", "name": "Vanilla Syrup", "priceDelta": 0 },
+            { "id": "no-sweetener", "name": "No Sweetener", "priceDelta": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "caramel-frappuccino",
+      "name": "Caramel Frappuccino",
+      "description": "Coffee blended with milk and ice, finished with caramel sauce.",
+      "basePrice": 549,
+      "image": "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["frappuccinos"],
+      "modifierGroups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "tall", "name": "Tall (12 oz)", "priceDelta": 0 },
+            { "id": "grande", "name": "Grande (16 oz)", "priceDelta": 60 },
+            { "id": "venti", "name": "Venti (24 oz)", "priceDelta": 120 }
+          ]
+        }
+      ]
+    }
+  ]
+}

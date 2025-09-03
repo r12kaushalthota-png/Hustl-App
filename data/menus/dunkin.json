@@ -1,0 +1,92 @@
+{
+  "restaurant": "Dunkin'",
+  "categories": [
+    { "id": "hot-coffee", "name": "Hot Coffee", "order": 1 },
+    { "id": "iced-coffee", "name": "Iced Coffee", "order": 2 },
+    { "id": "donuts", "name": "Donuts", "order": 3 },
+    { "id": "breakfast", "name": "Breakfast", "order": 4 }
+  ],
+  "items": [
+    {
+      "id": "original-blend",
+      "name": "Original Blend Coffee",
+      "description": "Our signature medium roast coffee with a smooth, balanced flavor.",
+      "basePrice": 229,
+      "image": "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["hot-coffee"],
+      "modifierGroups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "small", "name": "Small", "priceDelta": 0 },
+            { "id": "medium", "name": "Medium", "priceDelta": 40 },
+            { "id": "large", "name": "Large", "priceDelta": 80 }
+          ]
+        },
+        {
+          "id": "cream-sugar",
+          "name": "Cream & Sugar",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "cream", "name": "Cream", "priceDelta": 0 },
+            { "id": "sugar", "name": "Sugar", "priceDelta": 0 },
+            { "id": "oat-milk", "name": "Oat Milk", "priceDelta": 65 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "iced-coffee",
+      "name": "Iced Coffee",
+      "description": "Our refreshing, freshly brewed iced coffee.",
+      "basePrice": 249,
+      "image": "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["iced-coffee"],
+      "modifierGroups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "small", "name": "Small", "priceDelta": 0 },
+            { "id": "medium", "name": "Medium", "priceDelta": 40 },
+            { "id": "large", "name": "Large", "priceDelta": 80 }
+          ]
+        },
+        {
+          "id": "sweetener",
+          "name": "Sweetener",
+          "type": "single",
+          "required": false,
+          "options": [
+            { "id": "liquid-sugar", "name": "Liquid Sugar", "priceDelta": 0 },
+            { "id": "no-sweetener", "name": "No Sweetener", "priceDelta": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "glazed-donut",
+      "name": "Glazed Donut",
+      "description": "Our classic glazed donut with a sweet glaze.",
+      "basePrice": 149,
+      "image": "https://images.pexels.com/photos/2067396/pexels-photo-2067396.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["donuts"],
+      "modifierGroups": []
+    },
+    {
+      "id": "boston-kreme",
+      "name": "Boston Kreme Donut",
+      "description": "Our classic donut filled with Bavarian Kreme and topped with chocolate icing.",
+      "basePrice": 179,
+      "image": "https://images.pexels.com/photos/2067396/pexels-photo-2067396.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["donuts"],
+      "modifierGroups": []
+    }
+  ]
+}
