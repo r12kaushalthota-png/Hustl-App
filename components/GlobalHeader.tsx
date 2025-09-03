@@ -662,11 +662,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 33, 165, 0.1)',
     zIndex: 1,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.semantic.bodyText,
-  },
   dropdownContainer: {
     position: 'relative',
   },
@@ -739,6 +734,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.primary,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.semantic.headingText,
+    textAlign: 'center',
+    flex: 1,
+    letterSpacing: 0.3,
   },
   rightSection: {
     flexDirection: 'row',
