@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, TextInput, Modal, ScrollView, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Bell, Sparkles, ChevronDown, X, Wallet, CreditCard, CircleHelp as HelpCircle, Flag, MessageSquare, Settings } from 'lucide-react-native';
+import { Search, Bell, Sparkles, ChevronDown, X, Wallet, CreditCard, CircleHelp as HelpCircle, Flag, MessageSquare, Settings, MapPin, ChevronRight } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, { 
   useSharedValue, 
@@ -261,6 +261,87 @@ const SearchModal = ({
           </ScrollView>
         </View>
       </View>
+    </Modal>
+  );
+};
+
+// Campus Menu Modal Component
+const CampusMenuModal = ({ 
+  visible, 
+  onClose 
+}: { 
+  visible: boolean; 
+  onClose: () => void;
+}) => {
+  const router = useRouter();
+  const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+
+  const menuItems = [
+    {
+      id: 'wallet',
+      title: 'Wallet',
+      subtitle: user?.profile ? `$${((user.profile.credits || 0) / 100).toFixed(2)} available` : '$0.00 available',
+      icon: Wallet,
+      route: '/(tabs)/referrals'
+    },
+    {
+      id: 'credits',
+      title: 'Credits',
+      subtitle: user?.profile ? `${user.profile.credits || 0} credits` : '0 credits',
+      icon: CreditCard,
+      route: '/(tabs)/referrals'
+    },
+    {
+      id: 'campus',
+      title: 'University of Florida',
+      subtitle: 'Gainesville, FL',
+      icon: MapPin,
+      route: '/profile/settings'
+    },
+  ];
+
+  const handleMenuPress = (route: string) => {
+    onClose();
+    setTimeout(() => {
+      router.push(route as any);
+    }, 100);
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity 
+        style={styles.menuOverlay}
+        onPress={onClose}
+        activeOpacity={1}
+      >
+        <View style={[styles.menuModal, { paddingTop: insets.top + 80 }]}>
+          <View style={styles.menuContent}>
+            {menuItems.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.menuItem}
+                onPress={() => handleMenuPress(item.route)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.menuItemIcon}>
+                  <item.icon size={20} color={Colors.primary} strokeWidth={2} />
+                </View>
+                <View style={styles.menuItemContent}>
+                  <Text style={styles.menuItemTitle}>{item.title}</Text>
+                  <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
+                </View>
+                <ChevronRight size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </TouchableOpacity>
     </Modal>
   );
 };
@@ -548,96 +629,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  logoContainer: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logo: {
-    width: 36,
-    height: 36,
-    zIndex: 2,
-  },
-  logoGlow: {
-    position: 'absolute',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0, 33, 165, 0.1)',
-    zIndex: 1,
-  },
-  dropdownContainer: {
-    position: 'relative',
-  },
-  dropdownTrigger: {
+  logoChip: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    padding: 8,
     borderWidth: 1,
-    borderColor: 'rgba(0, 33, 165, 0.2)',
+    borderColor: 'rgba(229, 231, 235, 0.4)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
-  dropdownContent: {
-    flexDirection: 'row',
+  logoContainer: {
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'center',
   },
-  dropdownText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-    maxWidth: 80,
-  },
-  chevron: {
-    transform: [{ rotate: '0deg' }],
-  },
-  chevronOpen: {
-    transform: [{ rotate: '180deg' }],
-  },
-  dropdownMenu: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    marginTop: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.5)',
-    zIndex: 1000,
-  },
-  dropdownOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    gap: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(229, 231, 235, 0.3)',
-  },
-  selectedDropdownOption: {
-    backgroundColor: 'rgba(0, 33, 165, 0.08)',
-  },
-  dropdownOptionText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.semantic.bodyText,
-    flex: 1,
-  },
-  dropdownOptionValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary,
+  logo: {
+    width: 28,
+    height: 28,
   },
   title: {
     fontSize: 20,
@@ -748,6 +758,53 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   suggestionSubtitle: {
+    fontSize: 14,
+    color: Colors.semantic.tabInactive,
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  menuModal: {
+    paddingHorizontal: 20,
+  },
+  menuContent: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 12,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(229, 231, 235, 0.3)',
+    gap: 12,
+  },
+  menuItemIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.muted,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuItemContent: {
+    flex: 1,
+  },
+  menuItemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.semantic.bodyText,
+    marginBottom: 2,
+  },
+  menuItemSubtitle: {
     fontSize: 14,
     color: Colors.semantic.tabInactive,
   },
