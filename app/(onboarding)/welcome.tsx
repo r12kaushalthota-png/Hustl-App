@@ -223,18 +223,13 @@ export default function WelcomeScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Background with gradient overlay */}
-      <View style={styles.backgroundContainer}>
-        <Image
-          source={{ uri: 'https://images.pexels.com/photos/1595391/pexels-photo-1595391.jpeg?auto=compress&cs=tinysrgb&w=800' }}
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        />
-        <LinearGradient
-          colors={['rgba(0, 33, 165, 0.85)', 'rgba(250, 70, 22, 0.75)']}
-          style={styles.backgroundOverlay}
-        />
-      </View>
+      {/* Clean gradient background */}
+      <LinearGradient
+        colors={['#0021A5', '#FA4616']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.backgroundGradient}
+      />
 
       <ScrollView 
         style={styles.content} 
@@ -260,15 +255,6 @@ export default function WelcomeScreen() {
         {/* University Carousel */}
         <Animated.View style={[styles.universitySection, animatedContentStyle]}>
           <UniversityCarousel />
-          
-          <View style={styles.moreUniversities}>
-            <View style={styles.moreDots}>
-              <View style={styles.dot} />
-              <View style={styles.dot} />
-              <View style={styles.dot} />
-            </View>
-            <Text style={styles.moreText}>Your campus could be next 🚀</Text>
-          </View>
         </Animated.View>
       </ScrollView>
 
@@ -310,18 +296,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.semantic.screen,
   },
-  backgroundContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  backgroundImage: {
-    width: '100%',
-    height: '100%',
-  },
-  backgroundOverlay: {
+  backgroundGradient: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -412,7 +387,6 @@ const styles = StyleSheet.create({
   },
   carouselContainer: {
     height: 100,
-    marginBottom: 20,
     overflow: 'hidden',
   },
   carouselTrack: {
@@ -456,29 +430,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.white,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  moreUniversities: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  moreDots: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.white,
-    opacity: 0.6,
-  },
-  moreText: {
-    fontSize: 14,
-    color: Colors.white,
-    opacity: 0.8,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
