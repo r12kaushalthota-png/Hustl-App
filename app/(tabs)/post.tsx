@@ -14,6 +14,7 @@ import AuthPrompt from '@components/AuthPrompt';
 import GlobalHeader from '@/components/GlobalHeader';
 import TaskSuccessSheet from '@components/TaskSuccessSheet';
 import Toast from '@components/Toast';
+import StickyFormFooter from '@components/StickyFormFooter';
 
 // Extended categories to support all card types
 const categories: { value: string; label: string }[] = [

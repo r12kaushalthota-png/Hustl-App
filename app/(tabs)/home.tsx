@@ -895,7 +895,7 @@ const styles = StyleSheet.create({
     right: '10%',
     bottom: '30%',
     borderRadius: 200,
-    background: 'conic-gradient(from 0deg, #8B5CF6, #FA4616, #FF6B35, #8B5CF6)',
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
     zIndex: -1,
   },
   content: {
