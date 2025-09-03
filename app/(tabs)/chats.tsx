@@ -30,8 +30,6 @@ export default function ChatsScreen() {
           <ChatsList onChatPress={handleChatPress} />
         </View>
       </View>
-  );
-}
 
       <ProfileSheet
         visible={showProfileSheet}
@@ -42,8 +40,9 @@ export default function ChatsScreen() {
         userId={selectedUserId}
       />
     </>
-  )
+  );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -26,16 +26,6 @@ export default function ChatScreen() {
   };
 
   return (
-  )
-  const [showProfileSheet, setShowProfileSheet] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-
-  const handleProfilePress = (userId: string) => {
-    setSelectedUserId(userId);
-    setShowProfileSheet(true);
-  };
-
-  return (
     <>
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {/* Header */}
