@@ -214,10 +214,6 @@ export default function WelcomeScreen() {
   };
 
   const handleTerms = () => {
-    console.log('Terms of Service pressed');
-  };
-
-  const handleTerms = () => {
     router.push('/(onboarding)/terms');
   };
 
