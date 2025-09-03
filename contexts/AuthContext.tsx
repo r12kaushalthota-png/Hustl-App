@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { Session, User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { ProfileRepo } from '@/lib/profileRepo';
@@ -32,24 +32,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const isMounted = useRef(true);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // Initialize auth state and listen for changes
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        loadUserWithProfile(session.user);
-      } else {
-        setUser(null);
-        setUserProfile(null);
-      }
-      setIsLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      if (isMounted.current) {
         setSession(session);
         if (session?.user) {
           loadUserWithProfile(session.user);
@@ -59,6 +55,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setIsLoading(false);
       }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (isMounted.current) {
+          setSession(session);
+          if (session?.user) {
+            loadUserWithProfile(session.user);
+          } else {
+            setUser(null);
+            setUserProfile(null);
+          }
+          setIsLoading(false);
+        }
+      }
     );
 
     return () => subscription.unsubscribe();
@@ -67,7 +79,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Load user with profile data
   const loadUserWithProfile = async (supabaseUser: User) => {
     const authUser = mapSupabaseUser(supabaseUser);
-    setUser(authUser);
+    if (isMounted.current) {
+      setUser(authUser);
+    }
 
     // Initialize push notifications for authenticated user
     try {
@@ -79,16 +93,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Load profile data
     try {
       const { data: profile } = await ProfileRepo.getProfile(supabaseUser.id);
-      setUserProfile(profile);
-      
-      // Update auth user with profile data
-      if (profile) {
-        setUser(prev => prev ? {
-          ...prev,
-          displayName: profile.full_name || profile.username || prev.displayName,
-          university: profile.university || prev.university,
-          profile
-        } : null);
+      if (isMounted.current) {
+        setUserProfile(profile);
+        
+        // Update auth user with profile data
+        if (profile) {
+          setUser(prev => prev ? {
+            ...prev,
+            displayName: profile.full_name || profile.username || prev.displayName,
+            university: profile.university || prev.university,
+            profile
+          } : null);
+        }
       }
     } catch (error) {
       console.warn('Failed to load user profile:', error);

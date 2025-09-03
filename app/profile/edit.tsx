@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Camera, User, GraduationCap, Mail, MapPin, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { Colors } from '@/theme/colors';
 
 export default function EditProfileScreen() {
   const router = useRouter();
