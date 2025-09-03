@@ -196,7 +196,7 @@ const PostTaskButton = ({ focused }: { focused: boolean }) => {
           fontSize: focused ? 13 : 12
         }
       ]}>
-        Post Task
+        {/* Hidden label for icon-only nav */}
       </Text>
     </AnimatedTouchableOpacity>
   );
@@ -223,9 +223,9 @@ export default function TabLayout() {
             backgroundColor: '#FFFFFF',
             borderTopColor: 'rgba(229, 231, 235, 0.2)',
             borderTopWidth: 0.5,
-            height: 92 + insets.bottom,
-            paddingBottom: insets.bottom + 4,
-            paddingTop: 16,
+            height: 64 + insets.bottom,
+            paddingBottom: insets.bottom + 8,
+            paddingTop: 8,
             position: 'absolute',
             bottom: 0,
             left: 0,
@@ -238,19 +238,13 @@ export default function TabLayout() {
           },
           tabBarActiveTintColor: '#0021A5',
           tabBarInactiveTintColor: '#9CA3AF',
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '600',
-            marginTop: 6,
-            letterSpacing: 0.3,
-          },
+          tabBarShowLabel: false,
           tabBarButton: (props) => <CustomTabButton {...props} />,
         }}
       >
         <Tabs.Screen
           name="home"
           options={{
-            title: 'Home',
             tabBarIcon: ({ size, color, focused }) => (
               <TabIcon 
                 IconComponent={HomeIcon} 
@@ -264,7 +258,6 @@ export default function TabLayout() {
         <Tabs.Screen
           name="tasks"
           options={{
-            title: 'Tasks',
             tabBarIcon: ({ size, color, focused }) => (
               <TabIcon 
                 IconComponent={Grid3X3} 
@@ -278,14 +271,12 @@ export default function TabLayout() {
         <Tabs.Screen
           name="post"
           options={{
-            title: 'Post Task',
             tabBarButton: PostTaskTabButton,
           }}
         />
         <Tabs.Screen
           name="chats"
           options={{
-            title: 'Chats',
             tabBarIcon: ({ size, color, focused }) => (
               <TabIcon 
                 IconComponent={MessageCircle} 
@@ -299,7 +290,6 @@ export default function TabLayout() {
         <Tabs.Screen
           name="referrals"
           options={{
-            title: 'Rewards',
             tabBarIcon: ({ size, color, focused }) => (
               <TabIcon 
                 IconComponent={Gift} 
