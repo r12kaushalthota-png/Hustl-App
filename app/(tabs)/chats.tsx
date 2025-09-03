@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, SafeAreaView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/theme/colors';
@@ -16,6 +16,7 @@ export default function ChatsScreen() {
   const handleChatPress = (roomId: string) => {
     router.push(`/chat/${roomId}`);
   };
+  
   const handleProfilePress = (userId: string) => {
     setSelectedUserId(userId);
     setShowProfileSheet(true);
@@ -23,13 +24,15 @@ export default function ChatsScreen() {
 
   return (
     <>
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <SafeAreaView style={styles.container}>
         <GlobalHeader showSearch={true} showNotifications={true} />
         
         <View style={styles.content}>
-          <ChatsList onChatPress={handleChatPress} />
+          <ChatsList 
+            onChatPress={handleChatPress}
+          />
         </View>
-      </View>
+      </SafeAreaView>
 
       <ProfileSheet
         visible={showProfileSheet}

@@ -72,6 +72,13 @@ export interface UserProfile {
   xp: number;
   level: number;
   credits: number;
+  bio: string | null;
+  is_verified: boolean;
+  completed_tasks_count: number;
+  response_rate: number;
+  xp: number;
+  level: number;
+  credits: number;
   created_at: string;
   updated_at: string;
 }

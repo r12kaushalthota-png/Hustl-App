@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
@@ -27,7 +27,7 @@ export default function ChatScreen() {
 
   return (
     <>
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <SafeAreaView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -42,7 +42,7 @@ export default function ChatScreen() {
           roomId={roomId} 
           onProfilePress={handleProfilePress}
         />
-      </View>
+      </SafeAreaView>
 
       {/* Profile Sheet */}
       <ProfileSheet

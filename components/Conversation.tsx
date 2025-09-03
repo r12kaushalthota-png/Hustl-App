@@ -13,21 +13,93 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Send, Plus, MoveHorizontal as MoreHorizontal } from 'lucide-react-native';
+import { Send, Plus, MoreHorizontal } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withTiming,
+  withRepeat,
+  withSequence,
+  interpolate
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatService } from '@/lib/chat';
 import { ProfileService } from '@/services/profileService';
+import { supabase } from '@/lib/supabase';
 import type { ChatMessage, UserProfile } from '@/types/chat';
 
 const { width } = Dimensions.get('window');
 
-interface ConversationProps {
-  roomId: string;
-  onProfilePress: (userId: string) => void;
-}
+// Typing indicator component
+const TypingIndicator = () => {
+  const dot1 = useSharedValue(0);
+  const dot2 = useSharedValue(0);
+  const dot3 = useSharedValue(0);
+
+  React.useEffect(() => {
+    const animateDots = () => {
+      dot1.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 400 }),
+          withTiming(0, { duration: 400 })
+        ),
+        -1,
+        true
+      );
+      
+      setTimeout(() => {
+        dot2.value = withRepeat(
+          withSequence(
+            withTiming(1, { duration: 400 }),
+            withTiming(0, { duration: 400 })
+          ),
+          -1,
+          true
+        );
+      }, 133);
+      
+      setTimeout(() => {
+        dot3.value = withRepeat(
+          withSequence(
+            withTiming(1, { duration: 400 }),
+            withTiming(0, { duration: 400 })
+          ),
+          -1,
+          true
+        );
+      }, 266);
+    };
+
+    animateDots();
+  }, []);
+
+  const animatedDot1Style = useAnimatedStyle(() => ({
+    opacity: dot1.value,
+  }));
+
+  const animatedDot2Style = useAnimatedStyle(() => ({
+    opacity: dot2.value,
+  }));
+
+  const animatedDot3Style = useAnimatedStyle(() => ({
+    opacity: dot3.value,
+  }));
+
+  return (
+    <View style={styles.typingContainer}>
+      <View style={styles.typingBubble}>
+        <View style={styles.typingDots}>
+          <Animated.View style={[styles.typingDot, animatedDot1Style]} />
+          <Animated.View style={[styles.typingDot, animatedDot2Style]} />
+          <Animated.View style={[styles.typingDot, animatedDot3Style]} />
+        </View>
+      </View>
+    </View>
+  );
+};
 
 // Message bubble component
 const MessageBubble = ({ 
@@ -115,73 +187,10 @@ const MessageBubble = ({
   );
 };
 
-// Typing indicator component
-const TypingIndicator = () => {
-  const dot1 = useSharedValue(0);
-  const dot2 = useSharedValue(0);
-  const dot3 = useSharedValue(0);
-
-  React.useEffect(() => {
-    const animateDots = () => {
-      dot1.value = withRepeat(
-        withSequence(
-          withTiming(1, { duration: 400 }),
-          withTiming(0, { duration: 400 })
-        ),
-        -1,
-        true
-      );
-      
-      setTimeout(() => {
-        dot2.value = withRepeat(
-          withSequence(
-            withTiming(1, { duration: 400 }),
-            withTiming(0, { duration: 400 })
-          ),
-          -1,
-          true
-        );
-      }, 133);
-      
-      setTimeout(() => {
-        dot3.value = withRepeat(
-          withSequence(
-            withTiming(1, { duration: 400 }),
-            withTiming(0, { duration: 400 })
-          ),
-          -1,
-          true
-        );
-      }, 266);
-    };
-
-    animateDots();
-  }, []);
-
-  const animatedDot1Style = useAnimatedStyle(() => ({
-    opacity: dot1.value,
-  }));
-
-  const animatedDot2Style = useAnimatedStyle(() => ({
-    opacity: dot2.value,
-  }));
-
-  const animatedDot3Style = useAnimatedStyle(() => ({
-    opacity: dot3.value,
-  }));
-
-  return (
-    <View style={styles.typingContainer}>
-      <View style={styles.typingBubble}>
-        <View style={styles.typingDots}>
-          <Animated.View style={[styles.typingDot, animatedDot1Style]} />
-          <Animated.View style={[styles.typingDot, animatedDot2Style]} />
-          <Animated.View style={[styles.typingDot, animatedDot3Style]} />
-        </View>
-      </View>
-    </View>
-  );
-};
+interface ConversationProps {
+  roomId: string;
+  onProfilePress: (userId: string) => void;
+}
 
 export default function Conversation({ roomId, onProfilePress }: ConversationProps) {
   const insets = useSafeAreaInsets();
