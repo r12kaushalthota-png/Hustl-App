@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Camera, User, GraduationCap, Maiimport { ArrowLeft, Camera, User, GraduationCap, Mail, MapPin, CircleAlert as AlertCircle } from 'lucide-react-native'm '@/contexts/AuthContext';
+import { ArrowLeft, Camera, User, GraduationCap, Mail, MapPin, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function EditProfileScreen() {
   const router = useRouter();
