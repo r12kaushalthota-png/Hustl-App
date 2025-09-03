@@ -218,7 +218,7 @@ export default function WelcomeScreen() {
   };
 
   const handlePrivacy = () => {
-    console.log('Privacy Policy pressed');
+    router.push('/(onboarding)/privacy');
   };
 
   return (
