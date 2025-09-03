@@ -639,6 +639,18 @@ export default function PostScreen() {
                       }}
                       fetchDetails={true}
                       enablePoweredByContainer={false}
+                     predefinedPlaces={[]}
+                     predefinedPlacesAlwaysVisible={false}
+                     listEmptyComponent={() => (
+                       <View style={styles.placesEmpty}>
+                         <Text style={styles.placesEmptyText}>
+                           {process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY' || !process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+                             ? 'Google Places API key not configured'
+                             : 'No places found'
+                           }
+                         </Text>
+                       </View>
+                     )}
                       styles={{
                         container: styles.placesContainer,
                         textInputContainer: [
@@ -675,6 +687,9 @@ export default function PostScreen() {
                           store: 'Failed to load places. Please try again.'
                         }));
                       }}
+                     suppressDefaultStyles={false}
+                     keepResultsAfterBlur={false}
+                     debounce={200}
                     />
                   </View>
                   {store && (
@@ -708,6 +723,18 @@ export default function PostScreen() {
                       }}
                       fetchDetails={true}
                       enablePoweredByContainer={false}
+                     predefinedPlaces={[]}
+                     predefinedPlacesAlwaysVisible={false}
+                     listEmptyComponent={() => (
+                       <View style={styles.placesEmpty}>
+                         <Text style={styles.placesEmptyText}>
+                           {process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY' || !process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+                             ? 'Google Places API key not configured'
+                             : 'No places found'
+                           }
+                         </Text>
+                       </View>
+                     )}
                       styles={{
                         container: styles.placesContainer,
                         textInputContainer: [
@@ -744,6 +771,9 @@ export default function PostScreen() {
                           dropoffAddress: 'Failed to load places. Please try again.'
                         }));
                       }}
+                     suppressDefaultStyles={false}
+                     keepResultsAfterBlur={false}
+                     debounce={200}
                     />
                   </View>
                   {dropoffAddress && (
@@ -1011,6 +1041,17 @@ const styles = StyleSheet.create({
   placesLoader: {
     backgroundColor: Colors.white,
     paddingVertical: 16,
+  },
+  placesEmpty: {
+    backgroundColor: Colors.white,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  placesEmptyText: {
+    fontSize: 14,
+    color: Colors.semantic.tabInactive,
+    textAlign: 'center',
   },
   selectedPlace: {
     fontSize: 12,
