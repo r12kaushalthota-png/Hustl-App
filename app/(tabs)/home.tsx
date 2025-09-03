@@ -1058,7 +1058,7 @@ const styles = StyleSheet.create({
   trendingBadge: {
     position: 'absolute',
     top: 12,
-    right: 12,
+    left: 12,
     zIndex: 10,
     borderRadius: 12,
     overflow: 'hidden',
