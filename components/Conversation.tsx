@@ -13,7 +13,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Send, Plus, MoreHorizontal } from 'lucide-react-native';
+import { Send, Plus, MoveHorizontal as MoreHorizontal } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
