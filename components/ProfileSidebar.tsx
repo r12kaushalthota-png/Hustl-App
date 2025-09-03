@@ -216,19 +216,8 @@ export default function ProfileSidebar({ visible, onClose }: ProfileSidebarProps
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             {/* Profile Section */}
-            <View style={styles.profileSection}>
-              <LinearGradient
-                colors={['#0021A5', '#FA4616']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.profileGradient}
-              >
-                <View style={styles.profileContent}>
-                  <View style={styles.avatarContainer}>
-                    <View style={styles.avatar}>
-                      <Text style={styles.avatarText}>
                         {user ? getInitials(user.displayName) : (isGuest ? '?' : 'U')}
-                      </Text>
+      <View style={[styles.statusCard, styles.statusCardShifted]}>
                     </View>
                     {user?.profile?.level && user.profile.level > 1 && (
                       <View style={[
@@ -492,7 +481,7 @@ const styles = StyleSheet.create({
   statusCard: {
     backgroundColor: Colors.semantic.card,
     marginHorizontal: 16,
-    marginBottom: 24,
+    marginBottom: 20,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
@@ -502,6 +491,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 16,
     elevation: 4,
+  },
+  statusCardShifted: {
+    marginTop: 8,
   },
   statusHeader: {
     flexDirection: 'row',
