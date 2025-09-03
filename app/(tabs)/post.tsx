@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, KeyboardAvoidingView, SafeAreaView, ActivityIndicator } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  TouchableOpacity, 
+  TextInput, 
+  Platform, 
+  KeyboardAvoidingView, 
+  SafeAreaView, 
+  ActivityIndicator,
+  Keyboard,
+  Dimensions
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { X, MapPin, Clock, Store, Package, Zap, CircleAlert as AlertCircle } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,16 +27,23 @@ import AuthPrompt from '@components/AuthPrompt';
 import GlobalHeader from '@/components/GlobalHeader';
 import TaskSuccessSheet from '@components/TaskSuccessSheet';
 import Toast from '@components/Toast';
-import StickyFormFooter from '@components/StickyFormFooter';
+
+const { width } = Dimensions.get('window');
 
 // Extended categories to support all card types
 const categories: { value: string; label: string }[] = [
-  { value: 'car', label: 'Car Rides' },
   { value: 'food', label: 'Food Pickup' },
-  { value: 'workout', label: 'Workout Partner' },
   { value: 'coffee', label: 'Coffee Run' },
+  { value: 'grocery', label: 'Grocery Shopping' },
   { value: 'study', label: 'Study Partner' },
-  { value: 'custom', label: 'Custom Task' },
+  { value: 'workout', label: 'Workout Buddy' },
+  { value: 'transport', label: 'Campus Rides' },
+  { value: 'gaming', label: 'Gaming Partner' },
+  { value: 'tutoring', label: 'Tutoring' },
+  { value: 'events', label: 'Event Buddy' },
+  { value: 'photography', label: 'Photography' },
+  { value: 'repair', label: 'Tech Repair' },
+  { value: 'laundry', label: 'Laundry Help' },
 ];
 
 const urgencyOptions: { value: string; label: string; price: number }[] = [
@@ -35,70 +55,109 @@ const urgencyOptions: { value: string; label: string; price: number }[] = [
 const BASE_PRICE_CENTS = 150; // $1.50 base price
 const MIN_PRICE_CENTS = 200; // $2.00 minimum
 const MAX_PRICE_CENTS = 2500; // $25.00 maximum
+const FOOTER_HEIGHT = 80;
+
+interface PlaceData {
+  place_id: string;
+  description: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+// Validation schema
+const validateField = (field: string, value: string | PlaceData | null): string => {
+  switch (field) {
+    case 'title':
+      if (!value || typeof value !== 'string') return 'Task title is required';
+      if (value.trim().length < 3) return 'Title must be at least 3 characters';
+      return '';
+    case 'category':
+      return !value ? 'Please select a category' : '';
+    case 'store':
+      if (!value || typeof value !== 'object' || !value.place_id) {
+        return 'Please choose a location from the list';
+      }
+      return '';
+    case 'dropoffAddress':
+      if (!value || typeof value !== 'object' || !value.place_id) {
+        return 'Please choose a location from the list';
+      }
+      return '';
+    case 'estimatedMinutes':
+      if (!value || typeof value !== 'string') return 'Estimated time is required';
+      const minutes = Number(value);
+      if (isNaN(minutes)) return 'Please enter a valid number';
+      if (minutes < 5) return 'Minimum 5 minutes';
+      if (minutes > 180) return 'Maximum 180 minutes';
+      return '';
+    case 'urgency':
+      return !value ? 'Please select urgency level' : '';
+    default:
+      return '';
+  }
+};
 
 // Category defaults for prefilling
 const getCategoryDefaults = (categoryId: string) => {
   const defaults = {
-    car: {
-      title: 'Need a ride',
-      description: 'Quick campus ride. Can split gas if needed.',
-      store: '',
-      estimatedMinutes: '15',
-      urgency: 'medium' as const,
-    },
     food: {
       title: 'Food pickup',
       description: 'Pick up my order and drop it off.',
-      store: 'Chipotle / Chick-fil-A / Other',
       estimatedMinutes: '20',
       urgency: 'medium' as const,
-    },
-    workout: {
-      title: 'Workout partner',
-      description: 'Looking for a gym/sports buddy.',
-      store: '',
-      estimatedMinutes: '45',
-      urgency: 'low' as const,
     },
     coffee: {
       title: 'Coffee run',
       description: 'Grab a coffee and drop it off.',
-      store: 'Starbucks / Dunkin / Other',
       estimatedMinutes: '15',
       urgency: 'medium' as const,
+    },
+    grocery: {
+      title: 'Grocery shopping',
+      description: 'Pick up groceries and deliver.',
+      estimatedMinutes: '30',
+      urgency: 'low' as const,
     },
     study: {
       title: 'Study partner',
       description: 'Study session—subject/topic flexible.',
-      store: '',
       estimatedMinutes: '60',
       urgency: 'low' as const,
     },
-    custom: {
-      title: 'Custom task',
-      description: 'Describe what you need help with.',
-      store: '',
-      estimatedMinutes: '20',
+    workout: {
+      title: 'Workout partner',
+      description: 'Looking for a gym/sports buddy.',
+      estimatedMinutes: '45',
+      urgency: 'low' as const,
+    },
+    transport: {
+      title: 'Need a ride',
+      description: 'Quick campus ride. Can split gas if needed.',
+      estimatedMinutes: '15',
       urgency: 'medium' as const,
     },
   };
   
-  return defaults[categoryId as keyof typeof defaults] || defaults.custom;
+  return defaults[categoryId as keyof typeof defaults] || {
+    title: 'Custom task',
+    description: 'Describe what you need help with.',
+    estimatedMinutes: '20',
+    urgency: 'medium' as const,
+  };
 };
 
 export default function PostScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = Platform.OS === 'web' ? 0 : useBottomTabBarHeight();
   const { user, isGuest } = useAuth();
   
   // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<string>('');
-  const [store, setStore] = useState('');
-  const [dropoffAddress, setDropoffAddress] = useState('');
+  const [store, setStore] = useState<PlaceData | null>(null);
+  const [dropoffAddress, setDropoffAddress] = useState<PlaceData | null>(null);
   const [dropoffInstructions, setDropoffInstructions] = useState('');
   const [urgency, setUrgency] = useState<string>('medium');
   const [estimatedMinutes, setEstimatedMinutes] = useState('');
@@ -116,6 +175,8 @@ export default function PostScreen() {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [showSuccessSheet, setShowSuccessSheet] = useState(false);
   const [lastCreatedTaskId, setLastCreatedTaskId] = useState<string | null>(null);
+  const [isLoadingStore, setIsLoadingStore] = useState(false);
+  const [isLoadingDropoff, setIsLoadingDropoff] = useState(false);
 
   // Toast state
   const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>({
@@ -134,13 +195,13 @@ export default function PostScreen() {
       setTitle(defaults.title);
       setDescription(defaults.description);
       setCategory(categoryParam);
-      setStore(defaults.store);
       setEstimatedMinutes(defaults.estimatedMinutes);
       setUrgency(defaults.urgency);
       setPrefilledCategory(categoryParam);
       
       // Clear other fields
-      setDropoffAddress('');
+      setStore(null);
+      setDropoffAddress(null);
       setDropoffInstructions('');
       setFieldErrors({});
       setSubmitError('');
@@ -169,10 +230,6 @@ export default function PostScreen() {
     setComputedPriceCents(total);
   }, [urgency]);
 
-  const handleClose = () => {
-    router.back();
-  };
-
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
       try {
@@ -183,31 +240,7 @@ export default function PostScreen() {
     }
   };
 
-  const validateField = (field: string, value: string): string => {
-    switch (field) {
-      case 'title':
-        return !value.trim() ? 'Task title is required' : '';
-      case 'category':
-        return !value ? 'Please select a category' : '';
-      case 'store':
-        return !value.trim() ? 'Store name is required' : '';
-      case 'dropoffAddress':
-        return !value.trim() ? 'Drop-off address is required' : '';
-      case 'estimatedMinutes':
-        const minutes = Number(value);
-        if (!value.trim()) return 'Estimated time is required';
-        if (isNaN(minutes)) return 'Please enter a valid number';
-        if (minutes < 5) return 'Minimum 5 minutes';
-        if (minutes > 180) return 'Maximum 180 minutes';
-        return '';
-      case 'urgency':
-        return !value ? 'Please select urgency level' : '';
-      default:
-        return '';
-    }
-  };
-
-  const updateFieldError = (field: string, value: string) => {
+  const updateFieldError = (field: string, value: string | PlaceData | null) => {
     const error = validateField(field, value);
     setFieldErrors(prev => ({
       ...prev,
@@ -218,15 +251,20 @@ export default function PostScreen() {
   const isFormValid = (): boolean => {
     const requiredFields = {
       title,
-      category: category as string,
+      category,
       store,
       dropoffAddress,
       estimatedMinutes,
-      urgency: urgency as string,
+      urgency,
     };
 
     // Check if all required fields have values
-    const hasAllValues = Object.values(requiredFields).every(value => value.trim());
+    const hasAllValues = title.trim().length >= 3 &&
+      category &&
+      store?.place_id &&
+      dropoffAddress?.place_id &&
+      estimatedMinutes.trim() &&
+      urgency;
     
     // Check if any field has validation errors
     const hasErrors = Object.values(fieldErrors).some(error => error);
@@ -234,8 +272,30 @@ export default function PostScreen() {
     return hasAllValues && !hasErrors && !isLoading;
   };
 
+  const handlePlaceSelect = async (
+    data: any, 
+    details: any, 
+    type: 'store' | 'dropoff'
+  ) => {
+    const placeData: PlaceData = {
+      place_id: data.place_id,
+      description: data.description,
+      latitude: details?.geometry?.location?.lat,
+      longitude: details?.geometry?.location?.lng,
+    };
+
+    if (type === 'store') {
+      setStore(placeData);
+      updateFieldError('store', placeData);
+    } else {
+      setDropoffAddress(placeData);
+      updateFieldError('dropoffAddress', placeData);
+    }
+  };
+
   const handleSubmit = async () => {
     triggerHaptics();
+    Keyboard.dismiss();
 
     // Check authentication
     if (isGuest || !user) {
@@ -249,11 +309,11 @@ export default function PostScreen() {
     // Final validation of all fields
     const errors: Record<string, string> = {};
     errors.title = validateField('title', title);
-    errors.category = validateField('category', category as string);
+    errors.category = validateField('category', category);
     errors.store = validateField('store', store);
     errors.dropoffAddress = validateField('dropoffAddress', dropoffAddress);
     errors.estimatedMinutes = validateField('estimatedMinutes', estimatedMinutes);
-    errors.urgency = validateField('urgency', urgency as string);
+    errors.urgency = validateField('urgency', urgency);
 
     // Remove empty errors
     Object.keys(errors).forEach(key => {
@@ -276,8 +336,8 @@ export default function PostScreen() {
         title: title.trim(),
         description: description.trim(),
         category: mapCategoryToDatabase(category),
-        store: store.trim(),
-        dropoff_address: dropoffAddress.trim(),
+        store: store!.description,
+        dropoff_address: dropoffAddress!.description,
         dropoff_instructions: dropoffInstructions.trim(),
         urgency: urgency as TaskUrgency,
         estimated_minutes: Number(estimatedMinutes),
@@ -319,8 +379,8 @@ export default function PostScreen() {
     setTitle('');
     setDescription('');
     setCategory('');
-    setStore('');
-    setDropoffAddress('');
+    setStore(null);
+    setDropoffAddress(null);
     setDropoffInstructions('');
     setUrgency('medium');
     setEstimatedMinutes('');
@@ -331,12 +391,18 @@ export default function PostScreen() {
   // Map UI categories to database categories
   const mapCategoryToDatabase = (uiCategory: string): TaskCategory => {
     const mapping: Record<string, TaskCategory> = {
-      car: 'food', // Map to existing category for now
       food: 'food',
-      workout: 'food', // Map to existing category for now
       coffee: 'coffee',
+      grocery: 'grocery',
       study: 'food', // Map to existing category for now
-      custom: 'food', // Map to existing category for now
+      workout: 'food', // Map to existing category for now
+      transport: 'food', // Map to existing category for now
+      gaming: 'food', // Map to existing category for now
+      tutoring: 'food', // Map to existing category for now
+      events: 'food', // Map to existing category for now
+      photography: 'food', // Map to existing category for now
+      repair: 'food', // Map to existing category for now
+      laundry: 'food', // Map to existing category for now
     };
     return mapping[uiCategory] || 'food';
   };
@@ -358,8 +424,8 @@ export default function PostScreen() {
           <TouchableOpacity
             key={cat.value}
             style={[
-              styles.categoryCard,
-              category === cat.value && styles.activeCategoryCard
+              styles.categoryPill,
+              category === cat.value && styles.activeCategoryPill
             ]}
             onPress={() => {
               triggerHaptics();
@@ -367,11 +433,13 @@ export default function PostScreen() {
               updateFieldError('category', cat.value);
             }}
             disabled={isLoading}
+            accessibilityLabel={`Select ${cat.label} category`}
+            accessibilityRole="button"
           >
             <Text style={[
-              styles.categoryCardText,
-              category === cat.value && styles.activeCategoryCardText
-            ]}>
+              styles.categoryPillText,
+              category === cat.value && styles.activeCategoryPillText
+            ]} numberOfLines={1}>
               {cat.label}
             </Text>
           </TouchableOpacity>
@@ -400,6 +468,8 @@ export default function PostScreen() {
               updateFieldError('urgency', option.value);
             }}
             disabled={isLoading}
+            accessibilityLabel={`Select ${option.label} urgency`}
+            accessibilityRole="button"
           >
             <Text style={[
               styles.segmentText,
@@ -440,195 +510,314 @@ export default function PostScreen() {
     );
   };
 
+  const Footer = () => (
+    <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+      <TouchableOpacity
+        style={[
+          styles.submitButton,
+          (!isFormValid() || isLoading) && styles.submitButtonDisabled
+        ]}
+        onPress={handleSubmit}
+        disabled={!isFormValid() || isLoading}
+        accessibilityLabel="Post Task"
+        accessibilityRole="button"
+      >
+        {isFormValid() && !isLoading ? (
+          <LinearGradient
+            colors={['#0047FF', '#0021A5']}
+            style={styles.submitButtonGradient}
+          >
+            <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
+            <Text style={styles.submitButtonText}>Post Task</Text>
+          </LinearGradient>
+        ) : (
+          <View style={styles.disabledButtonContent}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color={Colors.white} />
+            ) : (
+              <Text style={styles.disabledButtonText}>Post Task</Text>
+            )}
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <>
-      <KeyboardAvoidingView 
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={tabBarHeight + insets.top}
-      >
-        <GlobalHeader showSearch={true} showNotifications={true} />
-
-        <ScrollView 
-          style={styles.content} 
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: 120 + tabBarHeight + insets.bottom }
-          ]}
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView 
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={styles.form}>
-            {/* Prefilled Category Chip */}
-            {prefilledCategory && (
-              <View style={styles.prefilledChip}>
-                <Text style={styles.prefilledChipText}>
-                  Prefilled from {categories.find(c => c.value === prefilledCategory)?.label}
-                </Text>
-              </View>
-            )}
+          <GlobalHeader showSearch={true} showNotifications={true} />
 
-            {/* Submit Error */}
-            {submitError ? (
-              <View style={styles.submitErrorContainer}>
-                <AlertCircle size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
-                <Text style={styles.submitErrorText}>{submitError}</Text>
-              </View>
-            ) : null}
+          <ScrollView 
+            style={styles.content} 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: FOOTER_HEIGHT + 24 }
+            ]}
+          >
+            <View style={styles.form}>
+              {/* Prefilled Category Chip */}
+              {prefilledCategory && (
+                <View style={styles.prefilledChip}>
+                  <Text style={styles.prefilledChipText}>
+                    Prefilled from {categories.find(c => c.value === prefilledCategory)?.label}
+                  </Text>
+                </View>
+              )}
 
-            {/* Task Details Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Task Details</Text>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Task Title *</Text>
-                <TextInput
-                  style={[styles.input, fieldErrors.title && styles.inputError]}
-                  value={title}
-                  onChangeText={(value) => {
-                    setTitle(value);
-                    updateFieldError('title', value);
-                  }}
-                  placeholder="What do you need help with?"
-                  placeholderTextColor={Colors.muted.foreground}
-                  editable={!isLoading}
-                  accessibilityLabel="Task title"
-                />
-                {fieldErrors.title && (
-                  <Text style={styles.fieldError}>{fieldErrors.title}</Text>
-                )}
-              </View>
+              {/* Submit Error */}
+              {submitError ? (
+                <View style={styles.submitErrorContainer}>
+                  <AlertCircle size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
+                  <Text style={styles.submitErrorText}>{submitError}</Text>
+                </View>
+              ) : null}
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Description</Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholder="Provide more details about the task..."
-                  placeholderTextColor={Colors.muted.foreground}
-                  multiline
-                  numberOfLines={3}
-                  textAlignVertical="top"
-                  editable={!isLoading}
-                  accessibilityLabel="Task description"
-                />
-              </View>
-
-              <CategorySelector />
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Store *</Text>
-                <View style={[styles.inputWithIcon, fieldErrors.store && styles.inputError]}>
-                  <Store size={20} color={Colors.muted.foreground} strokeWidth={2} />
+              {/* Task Details Section */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Task Details</Text>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Task Title *</Text>
                   <TextInput
-                    style={styles.inputText}
-                    value={store}
+                    style={[styles.input, fieldErrors.title && styles.inputError]}
+                    value={title}
                     onChangeText={(value) => {
-                      setStore(value);
-                      updateFieldError('store', value);
+                      setTitle(value);
+                      updateFieldError('title', value);
                     }}
-                    placeholder="e.g., Publix, Starbucks, Target"
-                    placeholderTextColor={Colors.muted.foreground}
+                    onBlur={() => updateFieldError('title', title)}
+                    placeholder="What do you need help with?"
+                    placeholderTextColor={Colors.semantic.tabInactive}
                     editable={!isLoading}
-                    accessibilityLabel="Store name"
+                    returnKeyType="done"
+                    accessibilityLabel="Task title"
                   />
+                  {fieldErrors.title && (
+                    <Text style={styles.fieldError}>{fieldErrors.title}</Text>
+                  )}
                 </View>
-                {fieldErrors.store && (
-                  <Text style={styles.fieldError}>{fieldErrors.store}</Text>
-                )}
-              </View>
-            </View>
 
-            {/* Drop-off Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Drop-off</Text>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Drop-off Address *</Text>
-                <View style={[styles.inputWithIcon, fieldErrors.dropoffAddress && styles.inputError]}>
-                  <MapPin size={20} color={Colors.muted.foreground} strokeWidth={2} />
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Description</Text>
                   <TextInput
-                    style={styles.inputText}
-                    value={dropoffAddress}
-                    onChangeText={(value) => {
-                      setDropoffAddress(value);
-                      updateFieldError('dropoffAddress', value);
-                    }}
-                    placeholder="Where should this be delivered?"
-                    placeholderTextColor={Colors.muted.foreground}
+                    style={[styles.input, styles.textArea]}
+                    value={description}
+                    onChangeText={setDescription}
+                    placeholder="Provide more details about the task..."
+                    placeholderTextColor={Colors.semantic.tabInactive}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
                     editable={!isLoading}
-                    accessibilityLabel="Drop-off address"
+                    returnKeyType="done"
+                    accessibilityLabel="Task description"
                   />
                 </View>
-                {fieldErrors.dropoffAddress && (
-                  <Text style={styles.fieldError}>{fieldErrors.dropoffAddress}</Text>
-                )}
-              </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Drop-off Instructions</Text>
-                <View style={styles.inputWithIcon}>
-                  <Package size={20} color={Colors.muted.foreground} strokeWidth={2} />
-                  <TextInput
-                    style={styles.inputText}
-                    value={dropoffInstructions}
-                    onChangeText={setDropoffInstructions}
-                    placeholder="Any special delivery instructions?"
-                    placeholderTextColor={Colors.muted.foreground}
-                    editable={!isLoading}
-                    accessibilityLabel="Drop-off instructions"
-                  />
+                <CategorySelector />
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Store *</Text>
+                  <View style={styles.autocompleteContainer}>
+                    <GooglePlacesAutocomplete
+                      placeholder="Search for a store or restaurant..."
+                      onPress={(data, details = null) => {
+                        handlePlaceSelect(data, details, 'store');
+                      }}
+                      query={{
+                        key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY',
+                        language: 'en',
+                        location: '29.6436,-82.3549', // UF campus
+                        radius: 10000, // 10km radius
+                        types: 'establishment',
+                      }}
+                      fetchDetails={true}
+                      enablePoweredByContainer={false}
+                      styles={{
+                        container: styles.placesContainer,
+                        textInputContainer: [
+                          styles.placesInputContainer,
+                          fieldErrors.store && styles.inputError
+                        ],
+                        textInput: styles.placesInput,
+                        listView: styles.placesList,
+                        row: styles.placesRow,
+                        description: styles.placesDescription,
+                        loader: styles.placesLoader,
+                      }}
+                      textInputProps={{
+                        placeholderTextColor: Colors.semantic.tabInactive,
+                        returnKeyType: 'done',
+                        editable: !isLoading,
+                      }}
+                      renderLeftButton={() => (
+                        <View style={styles.inputIcon}>
+                          <Store size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                        </View>
+                      )}
+                      renderRightButton={() => (
+                        isLoadingStore ? (
+                          <View style={styles.inputIcon}>
+                            <ActivityIndicator size="small" color={Colors.semantic.tabInactive} />
+                          </View>
+                        ) : null
+                      )}
+                      onFail={(error) => {
+                        console.error('Places API error:', error);
+                        setFieldErrors(prev => ({
+                          ...prev,
+                          store: 'Failed to load places. Please try again.'
+                        }));
+                      }}
+                    />
+                  </View>
+                  {store && (
+                    <Text style={styles.selectedPlace}>
+                      Selected: {store.description}
+                    </Text>
+                  )}
+                  {fieldErrors.store && (
+                    <Text style={styles.fieldError}>{fieldErrors.store}</Text>
+                  )}
                 </View>
               </View>
-            </View>
 
-            {/* Timing & Urgency Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Timing & Urgency</Text>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Estimated Time *</Text>
-                <View style={[styles.inputWithIcon, fieldErrors.estimatedMinutes && styles.inputError]}>
-                  <Clock size={20} color={Colors.muted.foreground} strokeWidth={2} />
-                  <TextInput
-                    style={styles.inputText}
-                    value={estimatedMinutes}
-                    onChangeText={(value) => {
-                      setEstimatedMinutes(value);
-                      updateFieldError('estimatedMinutes', value);
-                    }}
-                    placeholder="30"
-                    placeholderTextColor={Colors.muted.foreground}
-                    keyboardType="number-pad"
-                    editable={!isLoading}
-                    accessibilityLabel="Estimated time in minutes"
-                  />
+              {/* Drop-off Section */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Drop-off</Text>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Drop-off Address *</Text>
+                  <View style={styles.autocompleteContainer}>
+                    <GooglePlacesAutocomplete
+                      placeholder="Where should this be delivered?"
+                      onPress={(data, details = null) => {
+                        handlePlaceSelect(data, details, 'dropoff');
+                      }}
+                      query={{
+                        key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY',
+                        language: 'en',
+                        location: '29.6436,-82.3549', // UF campus
+                        radius: 10000, // 10km radius
+                      }}
+                      fetchDetails={true}
+                      enablePoweredByContainer={false}
+                      styles={{
+                        container: styles.placesContainer,
+                        textInputContainer: [
+                          styles.placesInputContainer,
+                          fieldErrors.dropoffAddress && styles.inputError
+                        ],
+                        textInput: styles.placesInput,
+                        listView: styles.placesList,
+                        row: styles.placesRow,
+                        description: styles.placesDescription,
+                        loader: styles.placesLoader,
+                      }}
+                      textInputProps={{
+                        placeholderTextColor: Colors.semantic.tabInactive,
+                        returnKeyType: 'done',
+                        editable: !isLoading,
+                      }}
+                      renderLeftButton={() => (
+                        <View style={styles.inputIcon}>
+                          <MapPin size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                        </View>
+                      )}
+                      renderRightButton={() => (
+                        isLoadingDropoff ? (
+                          <View style={styles.inputIcon}>
+                            <ActivityIndicator size="small" color={Colors.semantic.tabInactive} />
+                          </View>
+                        ) : null
+                      )}
+                      onFail={(error) => {
+                        console.error('Places API error:', error);
+                        setFieldErrors(prev => ({
+                          ...prev,
+                          dropoffAddress: 'Failed to load places. Please try again.'
+                        }));
+                      }}
+                    />
+                  </View>
+                  {dropoffAddress && (
+                    <Text style={styles.selectedPlace}>
+                      Selected: {dropoffAddress.description}
+                    </Text>
+                  )}
+                  {fieldErrors.dropoffAddress && (
+                    <Text style={styles.fieldError}>{fieldErrors.dropoffAddress}</Text>
+                  )}
                 </View>
-                <Text style={styles.helperText}>in minutes</Text>
-                {fieldErrors.estimatedMinutes && (
-                  <Text style={styles.fieldError}>{fieldErrors.estimatedMinutes}</Text>
-                )}
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Drop-off Instructions</Text>
+                  <View style={styles.inputWithIcon}>
+                    <Package size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                    <TextInput
+                      style={styles.inputText}
+                      value={dropoffInstructions}
+                      onChangeText={setDropoffInstructions}
+                      placeholder="Any special delivery instructions?"
+                      placeholderTextColor={Colors.semantic.tabInactive}
+                      editable={!isLoading}
+                      returnKeyType="done"
+                      accessibilityLabel="Drop-off instructions"
+                    />
+                  </View>
+                </View>
               </View>
 
-              <UrgencySelector />
-            </View>
+              {/* Timing & Urgency Section */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Timing & Urgency</Text>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Estimated Time *</Text>
+                  <View style={[styles.inputWithIcon, fieldErrors.estimatedMinutes && styles.inputError]}>
+                    <Clock size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                    <TextInput
+                      style={styles.inputText}
+                      value={estimatedMinutes}
+                      onChangeText={(value) => {
+                        setEstimatedMinutes(value);
+                        updateFieldError('estimatedMinutes', value);
+                      }}
+                      onBlur={() => updateFieldError('estimatedMinutes', estimatedMinutes)}
+                      placeholder="30"
+                      placeholderTextColor={Colors.semantic.tabInactive}
+                      keyboardType="number-pad"
+                      editable={!isLoading}
+                      returnKeyType="done"
+                      accessibilityLabel="Estimated time in minutes"
+                    />
+                  </View>
+                  <Text style={styles.helperText}>in minutes</Text>
+                  {fieldErrors.estimatedMinutes && (
+                    <Text style={styles.fieldError}>{fieldErrors.estimatedMinutes}</Text>
+                  )}
+                </View>
 
-            {/* Pricing Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Pricing</Text>
-              <PricingBreakdown />
-            </View>
-          </View>
-        </ScrollView>
+                <UrgencySelector />
+              </View>
 
-        {/* Sticky Footer */}
-        <StickyFormFooter
-          onSubmit={handleSubmit}
-          isSubmitting={isLoading}
-          isValid={isFormValid()}
-          buttonText="Post Task"
-        />
-      </KeyboardAvoidingView>
+              {/* Pricing Section */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Pricing</Text>
+                <PricingBreakdown />
+              </View>
+            </View>
+          </ScrollView>
+
+          <Footer />
+        </KeyboardAvoidingView>
+      </SafeAreaView>
 
       {/* Auth Prompt Modal */}
       <AuthPrompt
@@ -661,6 +850,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.semantic.screen,
   },
+  keyboardView: {
+    flex: 1,
+  },
   content: {
     flex: 1,
   },
@@ -668,11 +860,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   form: {
-    padding: 24,
-    gap: 32,
+    padding: 20,
+    gap: 24,
   },
   section: {
-    gap: 20,
+    gap: 16,
   },
   sectionTitle: {
     fontSize: 20,
@@ -690,19 +882,14 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.6)',
+    borderColor: '#E5E7EB',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 16,
     color: Colors.semantic.inputText,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: Colors.white,
     minHeight: 44,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
   },
   inputError: {
     borderColor: Colors.semantic.errorAlert,
@@ -715,23 +902,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.6)',
+    borderColor: '#E5E7EB',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 16,
     gap: 12,
     minHeight: 44,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
+    backgroundColor: Colors.white,
   },
   inputText: {
     flex: 1,
     fontSize: 16,
     color: Colors.semantic.inputText,
+  },
+  inputIcon: {
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   helperText: {
     fontSize: 14,
@@ -743,18 +930,102 @@ const styles = StyleSheet.create({
     color: Colors.semantic.errorAlert,
     marginTop: 4,
   },
+  
+  // Category Pills Grid
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  categoryPill: {
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: (width - 64) / 3 - 8, // 3 columns with gaps
+    maxWidth: (width - 64) / 2 - 6, // 2 columns fallback
+  },
+  activeCategoryPill: {
+    backgroundColor: '#0021A5',
+    borderColor: '#0021A5',
+  },
+  categoryPillText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.semantic.bodyText,
+    textAlign: 'center',
+  },
+  activeCategoryPillText: {
+    color: Colors.white,
+    fontWeight: '600',
+  },
+
+  // Google Places Autocomplete
+  autocompleteContainer: {
+    position: 'relative',
+    zIndex: 1,
+  },
+  placesContainer: {
+    flex: 0,
+  },
+  placesInputContainer: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    backgroundColor: Colors.white,
+    paddingHorizontal: 0,
+  },
+  placesInput: {
+    fontSize: 16,
+    color: Colors.semantic.inputText,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    minHeight: 44,
+  },
+  placesList: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    backgroundColor: Colors.white,
+    maxHeight: 200,
+  },
+  placesRow: {
+    backgroundColor: Colors.white,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  placesDescription: {
+    fontSize: 14,
+    color: Colors.semantic.bodyText,
+  },
+  placesLoader: {
+    backgroundColor: Colors.white,
+    paddingVertical: 16,
+  },
+  selectedPlace: {
+    fontSize: 12,
+    color: Colors.semantic.successAlert,
+    fontWeight: '500',
+    marginTop: 4,
+  },
+
   segmentedControl: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(245, 245, 245, 0.8)',
+    backgroundColor: '#F9FAFB',
     borderRadius: 16,
     padding: 4,
     borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.5)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
+    borderColor: '#E5E7EB',
   },
   segment: {
     flex: 1,
@@ -767,12 +1038,10 @@ const styles = StyleSheet.create({
   activeSegment: {
     backgroundColor: Colors.white,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 33, 165, 0.1)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   segmentText: {
     fontSize: 14,
@@ -784,17 +1053,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   pricingCard: {
-    backgroundColor: 'rgba(245, 245, 245, 0.8)',
+    backgroundColor: '#F9FAFB',
     borderRadius: 16,
     padding: 16,
     gap: 8,
     borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.5)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 2,
+    borderColor: '#E5E7EB',
   },
   pricingRow: {
     flexDirection: 'row',
@@ -812,7 +1076,7 @@ const styles = StyleSheet.create({
   },
   pricingTotal: {
     borderTopWidth: 1,
-    borderTopColor: Colors.semantic.divider,
+    borderTopColor: '#E5E7EB',
     paddingTop: 8,
     marginTop: 4,
   },
@@ -829,27 +1093,22 @@ const styles = StyleSheet.create({
   submitErrorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: '#FEF2F2',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: '#FECACA',
     borderRadius: 16,
-    padding: 18,
+    padding: 16,
     gap: 12,
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
   },
   submitErrorText: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     color: Colors.semantic.errorAlert,
     lineHeight: 20,
   },
   prefilledChip: {
-    backgroundColor: Colors.primary + '15', // 15% opacity
+    backgroundColor: Colors.primary + '15',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -861,40 +1120,46 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.primary,
   },
-  categoryGrid: {
-    gap: 12,
-  },
-  categoryCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    paddingVertical: 16,
+
+  // Footer
+  footer: {
+    backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
     paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  submitButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    minHeight: 56,
+  },
+  submitButtonGradient: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    paddingVertical: 18,
+    gap: 10,
+    minHeight: 56,
   },
-  activeCategoryCard: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-    shadowColor: Colors.primary,
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  categoryCardText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: Colors.semantic.bodyText,
-  },
-  activeCategoryCardText: {
+  submitButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
     color: Colors.white,
+    letterSpacing: 0.5,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#E5E7EB',
+  },
+  disabledButtonContent: {
+    paddingVertical: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 56,
+  },
+  disabledButtonText: {
+    fontSize: 18,
     fontWeight: '600',
+    color: '#9CA3AF',
   },
 });
