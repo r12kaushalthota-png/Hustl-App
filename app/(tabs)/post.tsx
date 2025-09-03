@@ -260,10 +260,6 @@ function PostScreenContent() {
   const updateFieldError = (field: string, value: string | PlaceData | null) => {
     const error = validateField(field, value);
     setFieldErrors(prev => ({
-          // Add food order data if it's a food task
-          ...(category === 'food' && getFinalOrder() && {
-            food_order: getFinalOrder()
-          })
       ...prev,
       [field]: error
     }));
