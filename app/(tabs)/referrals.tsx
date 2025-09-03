@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Platform, SafeAreaView } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Copy, Share2, Gift, Users, DollarSign, Award, ExternalLink } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,6 +32,7 @@ const howItWorksSteps = [
 
 export default function ReferralsScreen() {
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const { user, isGuest } = useAuth();
   const [toast, setToast] = useState<{ visible: boolean; message: string }>({
     visible: false,
@@ -103,10 +105,18 @@ export default function ReferralsScreen() {
 
   return (
     <>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <GlobalHeader showSearch={true} showNotifications={true} />
         
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + (tabBarHeight || 24) + 16
+          }}
+        >
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Referrals</Text>
             <Text style={styles.headerSubtitle}>
@@ -218,7 +228,7 @@ export default function ReferralsScreen() {
             <ExternalLink size={14} color={Colors.semantic.tabInactive} strokeWidth={2} />
           </TouchableOpacity>
         </ScrollView>
-      </View>
+      </SafeAreaView>
 
       <Toast
         visible={toast.visible}
@@ -425,7 +435,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     marginHorizontal: 24,
-    marginBottom: 40,
     gap: 6,
   },
   termsText: {
