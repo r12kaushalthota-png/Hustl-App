@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Platform, SafeAreaView } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Copy, Share2, Gift, Users, DollarSign, Award, ExternalLink } from 'lucide-react-native';
@@ -31,6 +32,7 @@ const howItWorksSteps = [
 ];
 
 export default function ReferralsScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { user, isGuest } = useAuth();
