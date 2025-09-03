@@ -604,7 +604,7 @@ function PostScreenContent() {
             onPress={() => setShowMenuBrowser(true)}
           >
             <Text style={styles.addItemsText}>Add Items</Text>
-            <Text style={styles.addItemsSubtext}>Choose from Chick-fil-A, Chipotle, or Taco Bell</Text>
+            <Text style={styles.addItemsSubtext}>Choose from Chick-fil-A, Chipotle, Taco Bell, Bento, Publix, Krispy Kreme, Relish, Blaze Pizza, Pita Pit, or Krishna Lunch</Text>
           </TouchableOpacity>
         )}
       </View>
