@@ -8,7 +8,6 @@ import {
   TextInput, 
   Platform, 
   KeyboardAvoidingView, 
-  SafeAreaView, 
   ActivityIndicator,
   Keyboard,
   Dimensions
@@ -24,7 +23,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { TaskCategory, TaskUrgency } from '@/types/database';
 import AuthPrompt from '@components/AuthPrompt';
-import GlobalHeader from '@/components/GlobalHeader';
 import TaskSuccessSheet from '@components/TaskSuccessSheet';
 import Toast from '@components/Toast';
 
@@ -55,7 +53,6 @@ const urgencyOptions: { value: string; label: string; price: number }[] = [
 const BASE_PRICE_CENTS = 150; // $1.50 base price
 const MIN_PRICE_CENTS = 200; // $2.00 minimum
 const MAX_PRICE_CENTS = 2500; // $25.00 maximum
-const FOOTER_HEIGHT = 80;
 
 interface PlaceData {
   place_id: string;
@@ -545,20 +542,30 @@ export default function PostScreen() {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        {/* Single Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <X size={24} color={Colors.white} strokeWidth={2} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Create Task</Text>
+          <View style={styles.placeholder} />
+        </View>
+
         <KeyboardAvoidingView 
           style={styles.keyboardView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
         >
-          <GlobalHeader showSearch={true} showNotifications={true} />
-
           <ScrollView 
             style={styles.content} 
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[
               styles.scrollContent,
-              { paddingBottom: FOOTER_HEIGHT + 24 }
+              { paddingBottom: 24 }
             ]}
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets={false}
           >
             <View style={styles.form}>
               {/* Prefilled Category Chip */}
@@ -844,10 +851,40 @@ export default function PostScreen() {
               </View>
             </View>
           </ScrollView>
-
-          <Footer />
+          
+          {/* Non-sticky Footer */}
+          <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                (!isFormValid() || isLoading) && styles.submitButtonDisabled
+              ]}
+              onPress={handleSubmit}
+              disabled={!isFormValid() || isLoading}
+              accessibilityLabel="Post Task"
+              accessibilityRole="button"
+            >
+              {isFormValid() && !isLoading ? (
+                <LinearGradient
+                  colors={['#0047FF', '#0021A5']}
+                  style={styles.submitButtonGradient}
+                >
+                  <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
+                  <Text style={styles.submitButtonText}>Post Task</Text>
+                </LinearGradient>
+              ) : (
+                <View style={styles.disabledButtonContent}>
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color={Colors.white} />
+                  ) : (
+                    <Text style={styles.disabledButtonText}>Post Task</Text>
+                  )}
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
 
       {/* Auth Prompt Modal */}
       <AuthPrompt
@@ -880,6 +917,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.semantic.screen,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: Colors.primary,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.white + '33',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.white,
+  },
+  placeholder: {
+    width: 40,
+  },
   keyboardView: {
     flex: 1,
   },
@@ -887,10 +948,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   form: {
-    padding: 20,
     gap: 24,
   },
   section: {
@@ -1164,16 +1225,21 @@ const styles = StyleSheet.create({
 
   // Footer
   footer: {
-    backgroundColor: Colors.white,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingHorizontal: 20,
+    backgroundColor: Colors.semantic.screen,
+    paddingHorizontal: 16,
     paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(229, 231, 235, 0.5)',
   },
   submitButton: {
     borderRadius: 16,
     overflow: 'hidden',
     minHeight: 56,
+    shadowColor: '#0021A5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   submitButtonGradient: {
     flexDirection: 'row',
@@ -1191,6 +1257,8 @@ const styles = StyleSheet.create({
   },
   submitButtonDisabled: {
     backgroundColor: '#E5E7EB',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   disabledButtonContent: {
     paddingVertical: 18,
