@@ -8,7 +8,7 @@ import {
   TextInput,
   Platform
 } from 'react-native';
-import { ShoppingCart, Edit3, Trash2, Plus, Minus } from 'lucide-react-native';
+import { ShoppingCart, CreditCard as Edit3, Trash2, Plus, Minus } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/theme/colors';
 import { useFoodOrder } from '@/contexts/FoodOrderContext';
