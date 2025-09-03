@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, KeyboardAvoidingView, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, MapPin, Clock, Store, Package, Zap, AlertCircle } from 'lucide-react-native';
+import { X, MapPin, Clock, Store, Package, Zap, CircleAlert as AlertCircle } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
@@ -33,7 +33,6 @@ const urgencyOptions: { value: string; label: string; price: number }[] = [
 const BASE_PRICE_CENTS = 150; // $1.50 base price
 const MIN_PRICE_CENTS = 200; // $2.00 minimum
 const MAX_PRICE_CENTS = 2500; // $25.00 maximum
-const FOOTER_HEIGHT = 80;
 
 // Category defaults for prefilling
 const getCategoryDefaults = (categoryId: string) => {
@@ -89,6 +88,7 @@ export default function PostScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const { user, isGuest } = useAuth();
   
   // Form state
@@ -438,48 +438,12 @@ export default function PostScreen() {
     );
   };
 
-  // Footer component with non-sticky button
-  const FormFooter = () => (
-    <View style={[styles.footer, { paddingBottom: insets.bottom + 24 }]}>
-      <TouchableOpacity
-        style={[
-          styles.submitButton,
-          (!isFormValid() || isLoading) && styles.submitButtonDisabled
-        ]}
-        onPress={handleSubmit}
-        disabled={!isFormValid() || isLoading}
-        activeOpacity={0.9}
-        accessibilityRole="button"
-        accessibilityLabel="Post Task"
-      >
-        {isFormValid() && !isLoading ? (
-          <LinearGradient
-            colors={['#0047FF', '#0021A5']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={styles.submitButtonGradient}
-          >
-            <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
-            <Text style={styles.submitButtonText}>Post Task</Text>
-          </LinearGradient>
-        ) : (
-          <View style={styles.submitButtonDisabledContent}>
-            {isLoading ? (
-              <ActivityIndicator size="small" color={Colors.white} />
-            ) : (
-              <Text style={styles.submitButtonDisabledText}>Post Task</Text>
-            )}
-          </View>
-        )}
-      </TouchableOpacity>
-    </View>
-  );
-
   return (
-    <SafeAreaView style={styles.container}>
+    <>
       <KeyboardAvoidingView 
-        style={styles.keyboardContainer}
+        style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={tabBarHeight + insets.top}
       >
         <GlobalHeader showSearch={true} showNotifications={true} />
 
@@ -488,7 +452,7 @@ export default function PostScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: FOOTER_HEIGHT + 24 }
+            { paddingBottom: 120 + tabBarHeight + insets.bottom }
           ]}
         >
           <View style={styles.form}>
@@ -523,7 +487,7 @@ export default function PostScreen() {
                     updateFieldError('title', value);
                   }}
                   placeholder="What do you need help with?"
-                  placeholderTextColor={Colors.semantic.tabInactive}
+                  placeholderTextColor={Colors.muted.foreground}
                   editable={!isLoading}
                   accessibilityLabel="Task title"
                 />
@@ -539,7 +503,7 @@ export default function PostScreen() {
                   value={description}
                   onChangeText={setDescription}
                   placeholder="Provide more details about the task..."
-                  placeholderTextColor={Colors.semantic.tabInactive}
+                  placeholderTextColor={Colors.muted.foreground}
                   multiline
                   numberOfLines={3}
                   textAlignVertical="top"
@@ -553,7 +517,7 @@ export default function PostScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Store *</Text>
                 <View style={[styles.inputWithIcon, fieldErrors.store && styles.inputError]}>
-                  <Store size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                  <Store size={20} color={Colors.muted.foreground} strokeWidth={2} />
                   <TextInput
                     style={styles.inputText}
                     value={store}
@@ -562,7 +526,7 @@ export default function PostScreen() {
                       updateFieldError('store', value);
                     }}
                     placeholder="e.g., Publix, Starbucks, Target"
-                    placeholderTextColor={Colors.semantic.tabInactive}
+                    placeholderTextColor={Colors.muted.foreground}
                     editable={!isLoading}
                     accessibilityLabel="Store name"
                   />
@@ -580,7 +544,7 @@ export default function PostScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Drop-off Address *</Text>
                 <View style={[styles.inputWithIcon, fieldErrors.dropoffAddress && styles.inputError]}>
-                  <MapPin size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                  <MapPin size={20} color={Colors.muted.foreground} strokeWidth={2} />
                   <TextInput
                     style={styles.inputText}
                     value={dropoffAddress}
@@ -589,7 +553,7 @@ export default function PostScreen() {
                       updateFieldError('dropoffAddress', value);
                     }}
                     placeholder="Where should this be delivered?"
-                    placeholderTextColor={Colors.semantic.tabInactive}
+                    placeholderTextColor={Colors.muted.foreground}
                     editable={!isLoading}
                     accessibilityLabel="Drop-off address"
                   />
@@ -602,13 +566,13 @@ export default function PostScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Drop-off Instructions</Text>
                 <View style={styles.inputWithIcon}>
-                  <Package size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                  <Package size={20} color={Colors.muted.foreground} strokeWidth={2} />
                   <TextInput
                     style={styles.inputText}
                     value={dropoffInstructions}
                     onChangeText={setDropoffInstructions}
                     placeholder="Any special delivery instructions?"
-                    placeholderTextColor={Colors.semantic.tabInactive}
+                    placeholderTextColor={Colors.muted.foreground}
                     editable={!isLoading}
                     accessibilityLabel="Drop-off instructions"
                   />
@@ -623,7 +587,7 @@ export default function PostScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Estimated Time *</Text>
                 <View style={[styles.inputWithIcon, fieldErrors.estimatedMinutes && styles.inputError]}>
-                  <Clock size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                  <Clock size={20} color={Colors.muted.foreground} strokeWidth={2} />
                   <TextInput
                     style={styles.inputText}
                     value={estimatedMinutes}
@@ -632,7 +596,7 @@ export default function PostScreen() {
                       updateFieldError('estimatedMinutes', value);
                     }}
                     placeholder="30"
-                    placeholderTextColor={Colors.semantic.tabInactive}
+                    placeholderTextColor={Colors.muted.foreground}
                     keyboardType="number-pad"
                     editable={!isLoading}
                     accessibilityLabel="Estimated time in minutes"
@@ -655,10 +619,14 @@ export default function PostScreen() {
           </View>
         </ScrollView>
 
-        {/* Non-sticky Footer */}
-        <FormFooter />
+        {/* Sticky Footer */}
+        <StickyFormFooter
+          onSubmit={handleSubmit}
+          isSubmitting={isLoading}
+          isValid={isFormValid()}
+          buttonText="Post Task"
+        />
       </KeyboardAvoidingView>
-
 
       {/* Auth Prompt Modal */}
       <AuthPrompt
@@ -682,7 +650,7 @@ export default function PostScreen() {
         type={toast.type}
         onHide={hideToast}
       />
-    </SafeAreaView>
+    </>
   );
 }
 
@@ -690,9 +658,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.semantic.screen,
-  },
-  keyboardContainer: {
-    flex: 1,
   },
   content: {
     flex: 1,
@@ -929,57 +894,5 @@ const styles = StyleSheet.create({
   activeCategoryCardText: {
     color: Colors.white,
     fontWeight: '600',
-  },
-  footer: {
-    backgroundColor: Colors.semantic.screen,
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: Colors.semantic.divider,
-  },
-  submitButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#0047FF',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-    minHeight: 56,
-  },
-  submitButtonDisabled: {
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  submitButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    gap: 10,
-    minHeight: 56,
-  },
-  submitButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.white,
-    letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  submitButtonDisabledContent: {
-    backgroundColor: '#E5E7EB',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 56,
-  },
-  submitButtonDisabledText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#9CA3AF',
   },
 });
