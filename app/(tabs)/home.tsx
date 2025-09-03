@@ -60,6 +60,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: true,
     trending: false,
+    actionText: 'Order',
+    actionIcon: Package,
   },
   {
     id: 'coffee',
@@ -70,6 +72,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: true,
     trending: false,
+    actionText: 'Request',
+    actionIcon: Coffee,
   },
   {
     id: 'grocery',
@@ -80,6 +84,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
     trending: true,
+    actionText: 'Request',
+    actionIcon: ShoppingCart,
   },
   {
     id: 'study',
@@ -90,6 +96,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
     trending: false,
+    actionText: 'Learn',
+    actionIcon: BookOpen,
   },
   {
     id: 'workout',
@@ -100,6 +108,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
     trending: false,
+    actionText: 'Connect',
+    actionIcon: Heart,
   },
   {
     id: 'transport',
@@ -110,6 +120,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
     trending: false,
+    actionText: 'Request',
+    actionIcon: Car,
   },
   {
     id: 'gaming',
@@ -120,6 +132,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
     trending: false,
+    actionText: 'Play',
+    actionIcon: Gamepad2,
   },
   {
     id: 'tutoring',
@@ -130,6 +144,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
     trending: false,
+    actionText: 'Join',
+    actionIcon: BookOpen,
   },
   {
     id: 'events',
@@ -140,6 +156,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
     trending: false,
+    actionText: 'RSVP',
+    actionIcon: Heart,
   },
   {
     id: 'photography',
@@ -150,6 +168,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
     trending: false,
+    actionText: 'Book',
+    actionIcon: Camera,
   },
   {
     id: 'repair',
@@ -160,6 +180,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/298863/pexels-photo-298863.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
     trending: false,
+    actionText: 'Hire',
+    actionIcon: Wrench,
   },
   {
     id: 'laundry',
@@ -170,6 +192,8 @@ const categories = [
     image: 'https://images.pexels.com/photos/963278/pexels-photo-963278.jpeg?auto=compress&cs=tinysrgb&w=800',
     popular: false,
     trending: false,
+    actionText: 'Request',
+    actionIcon: Shirt,
   },
 ];
 
@@ -658,8 +682,8 @@ const CategoryCard = ({
                 colors={['#0047FF', '#0021A5']}
                 style={styles.selectGradient}
               >
-                <Text style={styles.selectText}>Select</Text>
-                <ChevronRight size={14} color={Colors.white} strokeWidth={2.5} />
+                <category.actionIcon size={14} color={Colors.white} strokeWidth={2.5} />
+                <Text style={styles.selectText}>{category.actionText}</Text>
               </LinearGradient>
             )}
           </TouchableOpacity>
