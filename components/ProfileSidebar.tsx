@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(229, 231, 235, 0.3)',
   },
   footer: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     alignItems: 'center',
     gap: 12,
   },

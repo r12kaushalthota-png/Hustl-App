@@ -316,9 +316,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   termsContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-    paddingBottom: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   titleSection: {
     alignItems: 'center',

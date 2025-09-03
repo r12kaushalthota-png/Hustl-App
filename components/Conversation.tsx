@@ -517,10 +517,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   messagesContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingBottom: 16,
   },
   loadingContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
@@ -531,10 +532,9 @@ const styles = StyleSheet.create({
     color: Colors.semantic.tabInactive,
   },
   emptyContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: 40,
     gap: 16,
   },
   emptyIconContainer: {

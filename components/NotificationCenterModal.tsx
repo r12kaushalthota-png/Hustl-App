@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loadingState: {
-    paddingVertical: 60,
+    paddingVertical: 40,
     alignItems: 'center',
     gap: 16,
   },
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   errorState: {
-    paddingVertical: 60,
+    paddingVertical: 40,
     alignItems: 'center',
     gap: 16,
   },
@@ -516,11 +516,10 @@ const styles = StyleSheet.create({
     color: Colors.semantic.tabInactive,
   },
   emptyState: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 80,
-    paddingHorizontal: 40,
+    paddingVertical: 40,
+    paddingHorizontal: 16,
     gap: 20,
   },
   emptyIconContainer: {
