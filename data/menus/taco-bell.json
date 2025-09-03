@@ -1,0 +1,146 @@
+{
+  "restaurant": "Taco Bell",
+  "categories": [
+    { "id": "tacos", "name": "Tacos", "order": 1 },
+    { "id": "burritos", "name": "Burritos", "order": 2 },
+    { "id": "combos", "name": "Combos", "order": 3 },
+    { "id": "sides", "name": "Sides", "order": 4 },
+    { "id": "drinks", "name": "Drinks", "order": 5 }
+  ],
+  "items": [
+    {
+      "id": "crunchy-taco",
+      "name": "Crunchy Taco",
+      "description": "A crunchy taco shell filled with seasoned beef, crispy lettuce and shredded cheddar cheese.",
+      "basePrice": 149,
+      "image": "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["tacos"],
+      "modifierGroups": [
+        {
+          "id": "protein",
+          "name": "Protein",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "seasoned-beef", "name": "Seasoned Beef", "priceDelta": 0 },
+            { "id": "chicken", "name": "Chicken", "priceDelta": 0 },
+            { "id": "steak", "name": "Steak", "priceDelta": 100 }
+          ]
+        },
+        {
+          "id": "make-supreme",
+          "name": "Make it Supreme",
+          "type": "single",
+          "required": false,
+          "options": [
+            { "id": "regular", "name": "Regular", "priceDelta": 0 },
+            { "id": "supreme", "name": "Supreme (+Tomatoes & Sour Cream)", "priceDelta": 60 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "soft-taco",
+      "name": "Soft Taco",
+      "description": "A warm flour tortilla filled with seasoned beef, crispy lettuce and shredded cheddar cheese.",
+      "basePrice": 149,
+      "image": "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["tacos"],
+      "modifierGroups": [
+        {
+          "id": "protein",
+          "name": "Protein",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "seasoned-beef", "name": "Seasoned Beef", "priceDelta": 0 },
+            { "id": "chicken", "name": "Chicken", "priceDelta": 0 },
+            { "id": "steak", "name": "Steak", "priceDelta": 100 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "beefy-5-layer-burrito",
+      "name": "Beefy 5-Layer Burrito",
+      "description": "A warm flour tortilla filled with seasoned beef, beans, cheese, nacho cheese sauce, and sour cream.",
+      "basePrice": 249,
+      "image": "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["burritos"],
+      "modifierGroups": [
+        {
+          "id": "add-ons",
+          "name": "Add-ons",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "extra-cheese", "name": "Extra Cheese", "priceDelta": 60 },
+            { "id": "add-potatoes", "name": "Add Potatoes", "priceDelta": 65 },
+            { "id": "extra-beef", "name": "Extra Beef", "priceDelta": 100 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crunchwrap-combo",
+      "name": "Crunchwrap Supreme Combo",
+      "description": "A flour tortilla layered with seasoned beef, warm nacho cheese sauce, a crispy tostada shell, crispy lettuce, tomatoes and cool sour cream all wrapped in our signature crunchwrap fold. Served with a drink and side.",
+      "basePrice": 899,
+      "image": "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["combos"],
+      "modifierGroups": [
+        {
+          "id": "drink-size",
+          "name": "Drink Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "regular", "name": "Regular Drink", "priceDelta": 0 },
+            { "id": "large", "name": "Large Drink", "priceDelta": 50 }
+          ]
+        },
+        {
+          "id": "side-choice",
+          "name": "Side Choice",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "chips-nacho", "name": "Chips & Nacho Cheese", "priceDelta": 0 },
+            { "id": "cinnamon-twists", "name": "Cinnamon Twists", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "drink-type",
+          "name": "Drink Type",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "pepsi", "name": "Pepsi", "priceDelta": 0 },
+            { "id": "mountain-dew", "name": "Mountain Dew", "priceDelta": 0 },
+            { "id": "sierra-mist", "name": "Sierra Mist", "priceDelta": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nacho-fries",
+      "name": "Nacho Fries",
+      "description": "Golden fries seasoned with bold Mexican spices and served with warm nacho cheese sauce for dipping.",
+      "basePrice": 149,
+      "image": "https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["sides"],
+      "modifierGroups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "regular", "name": "Regular", "priceDelta": 0 },
+            { "id": "large", "name": "Large", "priceDelta": 100 }
+          ]
+        }
+      ]
+    }
+  ]
+}

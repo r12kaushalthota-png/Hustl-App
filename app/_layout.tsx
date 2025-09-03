@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SupabaseProvider } from '@/contexts/SupabaseContext';
+import { FoodOrderProvider } from '@/contexts/FoodOrderContext';
 import { NotificationService } from '@/services/notifications';
 import { useRouter } from 'expo-router';
 
@@ -33,16 +34,18 @@ export default function RootLayout() {
   return (
     <SupabaseProvider>
       <AuthProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(onboarding)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="profile" />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="auto" />
-        </GestureHandlerRootView>
+        <FoodOrderProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="(onboarding)" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="profile" />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="auto" />
+          </GestureHandlerRootView>
+        </FoodOrderProvider>
       </AuthProvider>
     </SupabaseProvider>
   );

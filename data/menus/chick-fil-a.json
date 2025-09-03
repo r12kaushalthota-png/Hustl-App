@@ -1,0 +1,141 @@
+{
+  "restaurant": "Chick-fil-A",
+  "categories": [
+    { "id": "entrees", "name": "Entrées", "order": 1 },
+    { "id": "sides", "name": "Sides", "order": 2 },
+    { "id": "drinks", "name": "Drinks", "order": 3 },
+    { "id": "desserts", "name": "Desserts", "order": 4 }
+  ],
+  "items": [
+    {
+      "id": "chick-fil-a-sandwich",
+      "name": "Chick-fil-A Chicken Sandwich",
+      "description": "A boneless breast of chicken seasoned to perfection, freshly breaded, pressure cooked in 100% refined peanut oil and served on a toasted, buttered bun with dill pickle chips.",
+      "basePrice": 549,
+      "image": "https://images.pexels.com/photos/2983101/pexels-photo-2983101.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["entrees"],
+      "modifierGroups": [
+        {
+          "id": "bun-type",
+          "name": "Bun Type",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "regular-bun", "name": "Regular Bun", "priceDelta": 0 },
+            { "id": "multigrain-bun", "name": "Multigrain Bun", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "add-ons",
+          "name": "Add-ons",
+          "type": "multi",
+          "required": false,
+          "max": 4,
+          "options": [
+            { "id": "cheese", "name": "American Cheese", "priceDelta": 60 },
+            { "id": "bacon", "name": "Bacon", "priceDelta": 120 },
+            { "id": "tomato", "name": "Tomato", "priceDelta": 0 },
+            { "id": "lettuce", "name": "Lettuce", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "sauces",
+          "name": "Sauces",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "chick-fil-a-sauce", "name": "Chick-fil-A Sauce", "priceDelta": 0 },
+            { "id": "polynesian-sauce", "name": "Polynesian Sauce", "priceDelta": 0 },
+            { "id": "bbq-sauce", "name": "Barbecue Sauce", "priceDelta": 0 },
+            { "id": "honey-mustard", "name": "Honey Mustard", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "no-pickles",
+          "name": "Pickles",
+          "type": "single",
+          "required": false,
+          "options": [
+            { "id": "with-pickles", "name": "With Pickles", "priceDelta": 0 },
+            { "id": "no-pickles", "name": "No Pickles", "priceDelta": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spicy-chicken-sandwich",
+      "name": "Spicy Chicken Sandwich",
+      "description": "A boneless breast of chicken seasoned with a spicy blend of peppers, freshly breaded, pressure cooked in 100% refined peanut oil and served on a toasted, buttered bun with dill pickle chips.",
+      "basePrice": 579,
+      "image": "https://images.pexels.com/photos/2983101/pexels-photo-2983101.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["entrees"],
+      "modifierGroups": [
+        {
+          "id": "bun-type",
+          "name": "Bun Type",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "regular-bun", "name": "Regular Bun", "priceDelta": 0 },
+            { "id": "multigrain-bun", "name": "Multigrain Bun", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "add-ons",
+          "name": "Add-ons",
+          "type": "multi",
+          "required": false,
+          "max": 4,
+          "options": [
+            { "id": "cheese", "name": "American Cheese", "priceDelta": 60 },
+            { "id": "bacon", "name": "Bacon", "priceDelta": 120 },
+            { "id": "tomato", "name": "Tomato", "priceDelta": 0 },
+            { "id": "lettuce", "name": "Lettuce", "priceDelta": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "waffle-fries",
+      "name": "Waffle Potato Fries",
+      "description": "Waffle-shaped potatoes with the skin. Cooked in canola oil until crispy outside and tender inside.",
+      "basePrice": 229,
+      "image": "https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["sides"],
+      "modifierGroups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "small", "name": "Small", "priceDelta": 0 },
+            { "id": "medium", "name": "Medium", "priceDelta": 50 },
+            { "id": "large", "name": "Large", "priceDelta": 100 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lemonade",
+      "name": "Chick-fil-A Lemonade",
+      "description": "Fresh-squeezed lemonade made with real lemon juice.",
+      "basePrice": 249,
+      "image": "https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["drinks"],
+      "modifierGroups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "small", "name": "Small", "priceDelta": 0 },
+            { "id": "medium", "name": "Medium", "priceDelta": 30 },
+            { "id": "large", "name": "Large", "priceDelta": 60 }
+          ]
+        }
+      ]
+    }
+  ]
+}

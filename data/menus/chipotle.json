@@ -1,0 +1,139 @@
+{
+  "restaurant": "Chipotle",
+  "categories": [
+    { "id": "bowls", "name": "Bowls & Burritos", "order": 1 },
+    { "id": "sides", "name": "Sides", "order": 2 },
+    { "id": "drinks", "name": "Drinks", "order": 3 }
+  ],
+  "items": [
+    {
+      "id": "chicken-bowl",
+      "name": "Chicken Bowl",
+      "description": "Your choice of freshly grilled meat or sofritas served in a delicious bowl with rice, beans, or fajita veggies, and topped with guac, salsa, queso blanco, sour cream or cheese.",
+      "basePrice": 895,
+      "image": "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["bowls"],
+      "modifierGroups": [
+        {
+          "id": "base",
+          "name": "Base",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "white-rice", "name": "White Rice", "priceDelta": 0 },
+            { "id": "brown-rice", "name": "Brown Rice", "priceDelta": 0 },
+            { "id": "no-rice", "name": "No Rice", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "protein",
+          "name": "Protein",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "chicken", "name": "Chicken", "priceDelta": 0 },
+            { "id": "steak", "name": "Steak", "priceDelta": 250 },
+            { "id": "barbacoa", "name": "Barbacoa", "priceDelta": 250 },
+            { "id": "carnitas", "name": "Carnitas", "priceDelta": 0 },
+            { "id": "sofritas", "name": "Sofritas", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "beans",
+          "name": "Beans",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "black-beans", "name": "Black Beans", "priceDelta": 0 },
+            { "id": "pinto-beans", "name": "Pinto Beans", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "toppings",
+          "name": "Toppings",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "mild-salsa", "name": "Mild Tomato Salsa", "priceDelta": 0 },
+            { "id": "medium-salsa", "name": "Roasted Chili-Corn Salsa", "priceDelta": 0 },
+            { "id": "hot-salsa", "name": "Tomatillo-Green Chili Salsa", "priceDelta": 0 },
+            { "id": "sour-cream", "name": "Sour Cream", "priceDelta": 0 },
+            { "id": "cheese", "name": "Cheese", "priceDelta": 0 },
+            { "id": "lettuce", "name": "Lettuce", "priceDelta": 0 },
+            { "id": "guacamole", "name": "Guacamole", "priceDelta": 250 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chicken-burrito",
+      "name": "Chicken Burrito",
+      "description": "Your choice of freshly grilled meat or sofritas wrapped in a warm flour tortilla with rice, beans, or fajita veggies, and topped with guac, salsa, queso blanco, sour cream or cheese.",
+      "basePrice": 895,
+      "image": "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["bowls"],
+      "modifierGroups": [
+        {
+          "id": "base",
+          "name": "Base",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "white-rice", "name": "White Rice", "priceDelta": 0 },
+            { "id": "brown-rice", "name": "Brown Rice", "priceDelta": 0 },
+            { "id": "no-rice", "name": "No Rice", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "protein",
+          "name": "Protein",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "chicken", "name": "Chicken", "priceDelta": 0 },
+            { "id": "steak", "name": "Steak", "priceDelta": 250 },
+            { "id": "barbacoa", "name": "Barbacoa", "priceDelta": 250 },
+            { "id": "carnitas", "name": "Carnitas", "priceDelta": 0 },
+            { "id": "sofritas", "name": "Sofritas", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "toppings",
+          "name": "Toppings",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "mild-salsa", "name": "Mild Tomato Salsa", "priceDelta": 0 },
+            { "id": "medium-salsa", "name": "Roasted Chili-Corn Salsa", "priceDelta": 0 },
+            { "id": "hot-salsa", "name": "Tomatillo-Green Chili Salsa", "priceDelta": 0 },
+            { "id": "sour-cream", "name": "Sour Cream", "priceDelta": 0 },
+            { "id": "cheese", "name": "Cheese", "priceDelta": 0 },
+            { "id": "lettuce", "name": "Lettuce", "priceDelta": 0 },
+            { "id": "guacamole", "name": "Guacamole", "priceDelta": 250 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chips-salsa",
+      "name": "Chips & Salsa",
+      "description": "Crispy tortilla chips served with your choice of salsa.",
+      "basePrice": 195,
+      "image": "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["sides"],
+      "modifierGroups": [
+        {
+          "id": "salsa-type",
+          "name": "Salsa Type",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "mild", "name": "Mild Tomato Salsa", "priceDelta": 0 },
+            { "id": "medium", "name": "Roasted Chili-Corn Salsa", "priceDelta": 0 },
+            { "id": "hot", "name": "Tomatillo-Green Chili Salsa", "priceDelta": 0 }
+          ]
+        }
+      ]
+    }
+  ]
+}
