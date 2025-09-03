@@ -221,6 +221,10 @@ export default function WelcomeScreen() {
     router.push('/(onboarding)/privacy');
   };
 
+  const handleTerms = () => {
+    router.push('/(onboarding)/terms');
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Clean gradient background */}
