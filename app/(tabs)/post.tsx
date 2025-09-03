@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { FoodOrderProvider, useFoodOrder } from '@/contexts/FoodOrderContext';
 import { TaskCategory, TaskUrgency } from '@/types/database';
+import { ModerationService } from '@/lib/moderation';
 import AuthPrompt from '@components/AuthPrompt';
 import TaskSuccessSheet from '@components/TaskSuccessSheet';
 import Toast from '@components/Toast';
@@ -188,6 +189,7 @@ function PostScreenContent() {
   const [showMenuBrowser, setShowMenuBrowser] = useState(false);
   const [isLoadingStore, setIsLoadingStore] = useState(false);
   const [isLoadingDropoff, setIsLoadingDropoff] = useState(false);
+  const [moderationError, setModerationError] = useState('');
 
   // Toast state
   const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>({
@@ -263,6 +265,11 @@ function PostScreenContent() {
       ...prev,
       [field]: error
     }));
+    
+    // Clear moderation error when user starts editing
+    if (field === 'title' || field === 'description') {
+      setModerationError('');
+    }
   };
 
   const isFormValid = (): boolean => {
@@ -294,7 +301,10 @@ function PostScreenContent() {
     // Check if any field has validation errors
     const hasErrors = Object.values(fieldErrors).some(error => error);
     
-    return hasAllValues && !hasErrors && !isLoading;
+    // Check for moderation errors
+    const hasModerationError = moderationError.length > 0;
+    
+    return hasAllValues && !hasErrors && !hasModerationError && !isLoading;
   };
 
   const handlePlaceSelect = async (
@@ -330,6 +340,7 @@ function PostScreenContent() {
 
     // Clear previous errors
     setSubmitError('');
+    setModerationError('');
 
     // Final validation of all fields
     const errors: Record<string, string> = {};
@@ -348,6 +359,13 @@ function PostScreenContent() {
     setFieldErrors(errors);
 
     if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    // Content moderation check
+    const moderationResult = ModerationService.moderateTask(title, description);
+    if (!moderationResult.isAllowed) {
+      setModerationError(moderationResult.message || 'Content not allowed');
       return;
     }
 
@@ -416,6 +434,7 @@ function PostScreenContent() {
     setEstimatedMinutes('');
     setFieldErrors({});
     setSubmitError('');
+    setModerationError('');
     clearCart();
   };
 
@@ -663,6 +682,14 @@ function PostScreenContent() {
                 <View style={styles.submitErrorContainer}>
                   <AlertCircle size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
                   <Text style={styles.submitErrorText}>{submitError}</Text>
+                </View>
+              ) : null}
+
+              {/* Moderation Error */}
+              {moderationError ? (
+                <View style={styles.moderationErrorContainer}>
+                  <AlertCircle size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
+                  <Text style={styles.moderationErrorText}>{moderationError}</Text>
                 </View>
               ) : null}
 
@@ -1369,6 +1396,24 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#9CA3AF',
+  },
+  moderationErrorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+    marginBottom: 16,
+  },
+  moderationErrorText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.semantic.errorAlert,
+    lineHeight: 20,
   },
   foodOrderCard: {
     backgroundColor: Colors.semantic.card,
