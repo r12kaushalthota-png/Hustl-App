@@ -410,4 +410,4 @@ function PostScreenContent() {
       setShowSuccessSheet(true);
       
       // Clear form for next use
-      clear
+      clearForm();
