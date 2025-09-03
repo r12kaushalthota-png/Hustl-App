@@ -1,10 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, Camera, ChevronRight, FileText, History, MessageSquare, Settings, CircleHelp as HelpCircle, LogOut, ArrowLeft, Star } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { ProfileRepo } from '@/lib/profileRepo';
+import { MediaUtils } from '@/lib/media';
+import Toast from '@/components/Toast';
 
 const menuItems = [
   { 
@@ -43,6 +47,20 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
+  
+  // Avatar state
+  const [avatarUri, setAvatarUri] = React.useState<string | null>(user?.profile?.avatar_url || null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = React.useState(false);
+  const [toast, setToast] = React.useState<{ visible: boolean; message: string; type: 'success' | 'error' }>({
+    visible: false,
+    message: '',
+    type: 'success'
+  });
+
+  // Update avatar when user profile changes
+  React.useEffect(() => {
+    setAvatarUri(user?.profile?.avatar_url || null);
+  }, [user?.profile?.avatar_url]);
 
   // Create menu items with user context
   const getMenuItems = () => [
@@ -92,17 +110,131 @@ export default function ProfileScreen() {
     router.replace('/(onboarding)/splash');
   };
 
+  const triggerHaptics = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch (error) {
+        // Haptics not available, continue silently
+      }
+    }
+  };
+
+  const handleAvatarPress = () => {
+    if (!user || isUploadingAvatar) return;
+    
+    triggerHaptics();
+    
+    MediaUtils.showAvatarActionSheet(
+      !!avatarUri,
+      () => handlePickAvatar('camera'),
+      () => handlePickAvatar('library'),
+      avatarUri ? handleRemoveAvatar : undefined
+    );
+  };
+
+  const handlePickAvatar = async (source: 'camera' | 'library') => {
+    if (!user || isUploadingAvatar) return;
+
+    try {
+      const result = await MediaUtils.pickAvatar(source);
+      
+      if (!result.success) {
+        if (result.error?.includes('permission')) {
+          setToast({
+            visible: true,
+            message: result.error,
+            type: 'error'
+          });
+          
+          // Show settings option after a delay
+          setTimeout(() => {
+            setToast({
+              visible: true,
+              message: 'Tap to open Settings',
+              type: 'error'
+            });
+          }, 2000);
+        }
+        return;
+      }
+
+      if (!result.uri) return;
+
+      // Set preview immediately
+      setAvatarUri(result.uri);
+      setIsUploadingAvatar(true);
+
+      // Upload to Supabase
+      const uploadResult = await MediaUtils.uploadAvatarAsync(result.uri, user.id);
+      
+      if (uploadResult.success && uploadResult.url) {
+        setAvatarUri(uploadResult.url);
+        setToast({
+          visible: true,
+          message: 'Profile photo updated!',
+          type: 'success'
+        });
+      } else {
+        // Revert to previous avatar on upload failure
+        setAvatarUri(user.profile?.avatar_url || null);
+        setToast({
+          visible: true,
+          message: uploadResult.error || 'Failed to upload photo',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      // Revert to previous avatar on error
+      setAvatarUri(user.profile?.avatar_url || null);
+      setToast({
+        visible: true,
+        message: 'Failed to update photo. Please try again.',
+        type: 'error'
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!user || isUploadingAvatar) return;
+
+    setIsUploadingAvatar(true);
+
+    try {
+      const result = await MediaUtils.removeAvatarAsync(user.id);
+      
+      if (result.success) {
+        setAvatarUri(null);
+        setToast({
+          visible: true,
+          message: 'Profile photo removed',
+          type: 'success'
+        });
+      } else {
+        setToast({
+          visible: true,
+          message: result.error || 'Failed to remove photo',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      setToast({
+        visible: true,
+        message: 'Failed to remove photo. Please try again.',
+        type: 'error'
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
   const handleBack = () => {
     router.back();
   };
 
-  const getInitials = (name: string): string => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, visible: false }));
   };
 
   const renderMenuItem = (item: any, index: number) => (
@@ -132,12 +264,33 @@ export default function ProfileScreen() {
       
       <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user ? getInitials(user.displayName) : 'U'}
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.cameraButton}>
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>
+                {user ? MediaUtils.getInitials(user.displayName) : 'U'}
+              </Text>
+            </View>
+          )}
+          
+          {/* Upload Progress Overlay */}
+          {isUploadingAvatar && (
+            <View style={styles.uploadOverlay}>
+              <ActivityIndicator size="large" color={Colors.white} />
+            </View>
+          )}
+          
+          <TouchableOpacity 
+            style={[
+              styles.cameraButton,
+              isUploadingAvatar && styles.cameraButtonDisabled
+            ]}
+            onPress={handleAvatarPress}
+            disabled={isUploadingAvatar}
+            accessibilityLabel="Change profile photo"
+            accessibilityRole="button"
+          >
             <Camera size={16} color={Colors.white} strokeWidth={2} />
           </TouchableOpacity>
         </View>
@@ -169,6 +322,13 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
     </View>
   );
 }
@@ -216,7 +376,12 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.white + '33', // 20% opacity
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.white + '33',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -224,6 +389,17 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: Colors.white,
+  },
+  uploadOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 40,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cameraButton: {
     position: 'absolute',
@@ -237,6 +413,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: Colors.primary,
+  },
+  cameraButtonDisabled: {
+    backgroundColor: Colors.semantic.tabInactive,
+    opacity: 0.6,
   },
   displayName: {
     fontSize: 24,

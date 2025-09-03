@@ -18,6 +18,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     infoPlist: {
       NSLocationWhenInUseUsageDescription:
         "We use your location to show nearby tasks on the map.",
+      NSCameraUsageDescription:
+        "We use your camera to take profile photos and task photos.",
+      NSPhotoLibraryUsageDescription:
+        "We use your photo library to select profile photos.",
       LSApplicationQueriesSchemes: ["comgooglemaps"],
     },
   },
