@@ -1,0 +1,63 @@
+{
+  "restaurant": "Krishna Lunch",
+  "categories": [
+    { "id": "plates", "name": "Plates", "order": 1 },
+    { "id": "sides", "name": "Sides", "order": 2 },
+    { "id": "drinks", "name": "Drinks", "order": 3 }
+  ],
+  "items": [
+    {
+      "id": "krishna-plate",
+      "name": "Krishna Lunch Plate",
+      "description": "Traditional vegetarian meal with rice, dal, vegetables, and chapati.",
+      "basePrice": 599,
+      "image": "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["plates"],
+      "modifierGroups": [
+        {
+          "id": "spice-level",
+          "name": "Spice Level",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "mild", "name": "Mild", "priceDelta": 0 },
+            { "id": "medium", "name": "Medium", "priceDelta": 0 },
+            { "id": "spicy", "name": "Spicy", "priceDelta": 0 }
+          ]
+        },
+        {
+          "id": "extras",
+          "name": "Extras",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "extra-rice", "name": "Extra Rice", "priceDelta": 100 },
+            { "id": "extra-dal", "name": "Extra Dal", "priceDelta": 150 },
+            { "id": "extra-chapati", "name": "Extra Chapati", "priceDelta": 100 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "samosa",
+      "name": "Samosa",
+      "description": "Crispy pastry filled with spiced potatoes and peas.",
+      "basePrice": 199,
+      "image": "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["sides"],
+      "modifierGroups": [
+        {
+          "id": "quantity",
+          "name": "Quantity",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "single", "name": "1 Samosa", "priceDelta": 0 },
+            { "id": "two", "name": "2 Samosas", "priceDelta": 150 },
+            { "id": "three", "name": "3 Samosas", "priceDelta": 300 }
+          ]
+        }
+      ]
+    }
+  ]
+}

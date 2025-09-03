@@ -1,0 +1,64 @@
+{
+  "restaurant": "Blaze Pizza",
+  "categories": [
+    { "id": "pizzas", "name": "Pizzas", "order": 1 },
+    { "id": "salads", "name": "Salads", "order": 2 },
+    { "id": "sides", "name": "Sides", "order": 3 },
+    { "id": "drinks", "name": "Drinks", "order": 4 }
+  ],
+  "items": [
+    {
+      "id": "margherita",
+      "name": "Margherita",
+      "description": "Simple pizza with tomato sauce, mozzarella, and fresh basil.",
+      "basePrice": 899,
+      "image": "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["pizzas"],
+      "modifierGroups": [
+        {
+          "id": "crust",
+          "name": "Crust",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "original", "name": "Original", "priceDelta": 0 },
+            { "id": "high-rise", "name": "High Rise", "priceDelta": 0 },
+            { "id": "cauliflower", "name": "Cauliflower", "priceDelta": 200 }
+          ]
+        },
+        {
+          "id": "toppings",
+          "name": "Additional Toppings",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "pepperoni", "name": "Pepperoni", "priceDelta": 100 },
+            { "id": "mushrooms", "name": "Mushrooms", "priceDelta": 75 },
+            { "id": "olives", "name": "Olives", "priceDelta": 75 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bbq-chicken",
+      "name": "BBQ Chicken",
+      "description": "BBQ sauce, grilled chicken, red onions, and cilantro.",
+      "basePrice": 1099,
+      "image": "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["pizzas"],
+      "modifierGroups": [
+        {
+          "id": "crust",
+          "name": "Crust",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "original", "name": "Original", "priceDelta": 0 },
+            { "id": "high-rise", "name": "High Rise", "priceDelta": 0 },
+            { "id": "cauliflower", "name": "Cauliflower", "priceDelta": 200 }
+          ]
+        }
+      ]
+    }
+  ]
+}

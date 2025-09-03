@@ -1,0 +1,64 @@
+{
+  "restaurant": "Bento",
+  "categories": [
+    { "id": "bowls", "name": "Bowls", "order": 1 },
+    { "id": "sushi", "name": "Sushi", "order": 2 },
+    { "id": "sides", "name": "Sides", "order": 3 },
+    { "id": "drinks", "name": "Drinks", "order": 4 }
+  ],
+  "items": [
+    {
+      "id": "teriyaki-chicken-bowl",
+      "name": "Teriyaki Chicken Bowl",
+      "description": "Grilled chicken with teriyaki sauce over steamed rice with vegetables.",
+      "basePrice": 899,
+      "image": "https://images.pexels.com/photos/2347311/pexels-photo-2347311.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["bowls"],
+      "modifierGroups": [
+        {
+          "id": "rice",
+          "name": "Rice",
+          "type": "single",
+          "required": true,
+          "options": [
+            { "id": "white-rice", "name": "White Rice", "priceDelta": 0 },
+            { "id": "brown-rice", "name": "Brown Rice", "priceDelta": 0 },
+            { "id": "fried-rice", "name": "Fried Rice", "priceDelta": 100 }
+          ]
+        },
+        {
+          "id": "vegetables",
+          "name": "Vegetables",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "broccoli", "name": "Broccoli", "priceDelta": 0 },
+            { "id": "carrots", "name": "Carrots", "priceDelta": 0 },
+            { "id": "edamame", "name": "Edamame", "priceDelta": 50 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "california-roll",
+      "name": "California Roll",
+      "description": "Crab, avocado, and cucumber roll with sesame seeds.",
+      "basePrice": 649,
+      "image": "https://images.pexels.com/photos/2347311/pexels-photo-2347311.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "categories": ["sushi"],
+      "modifierGroups": [
+        {
+          "id": "sauce",
+          "name": "Sauce",
+          "type": "multi",
+          "required": false,
+          "options": [
+            { "id": "soy-sauce", "name": "Soy Sauce", "priceDelta": 0 },
+            { "id": "spicy-mayo", "name": "Spicy Mayo", "priceDelta": 0 },
+            { "id": "eel-sauce", "name": "Eel Sauce", "priceDelta": 0 }
+          ]
+        }
+      ]
+    }
+  ]
+}
