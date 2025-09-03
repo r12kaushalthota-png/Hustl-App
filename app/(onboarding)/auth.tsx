@@ -130,49 +130,6 @@ const BrandLogo = () => {
   );
 };
 
-// Premium Feature Highlights
-const FeatureHighlights = () => {
-  const features = [
-    { icon: Zap, text: 'Instant Task Matching', color: '#0021A5' },
-    { icon: Shield, text: 'Verified Students Only', color: '#FA4616' },
-    { icon: Star, text: 'Premium Experience', color: '#FFD700' },
-  ];
-
-  return (
-    <View style={styles.featuresContainer}>
-      {features.map((feature, index) => {
-        const fadeIn = useSharedValue(0);
-        const slideUp = useSharedValue(20);
-
-        React.useEffect(() => {
-          fadeIn.value = withDelay(
-            1000 + index * 200,
-            withTiming(1, { duration: 600 })
-          );
-          slideUp.value = withDelay(
-            1000 + index * 200,
-            withSpring(0, { damping: 15 })
-          );
-        }, []);
-
-        const animatedStyle = useAnimatedStyle(() => ({
-          opacity: fadeIn.value,
-          transform: [{ translateY: slideUp.value }],
-        }));
-
-        return (
-          <Animated.View key={index} style={[styles.featureItem, animatedStyle]}>
-            <View style={[styles.featureIcon, { backgroundColor: feature.color + '20' }]}>
-              <feature.icon size={16} color={feature.color} strokeWidth={2} />
-            </View>
-            <Text style={styles.featureText}>{feature.text}</Text>
-          </Animated.View>
-        );
-      })}
-    </View>
-  );
-};
-
 export default function AuthScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -290,8 +247,6 @@ export default function AuthScreen() {
               {isLogin ? 'Continue your campus journey' : 'Start your premium campus experience'}
             </Text>
           </View>
-          
-          <FeatureHighlights />
         </Animated.View>
 
         {/* Error Message */}
@@ -551,38 +506,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 20,
-  },
-  featuresContainer: {
-    gap: 16,
-    alignItems: 'center',
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
-  },
-  featureIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  featureText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
   },
   errorContainer: {
     backgroundColor: 'rgba(254, 242, 242, 0.95)',
