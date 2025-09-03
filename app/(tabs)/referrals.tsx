@@ -92,7 +92,7 @@ export default function ReferralsScreen() {
   };
 
   const handleTermsPress = () => {
-    console.log('Terms pressed');
+    router.push('/legal/referral-terms');
   };
 
   const hideToast = () => {
@@ -222,7 +222,8 @@ export default function ReferralsScreen() {
             style={styles.termsButton} 
             onPress={handleTermsPress}
             accessibilityLabel="View terms and conditions"
-            accessibilityRole="button"
+            accessibilityRole="link"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Text style={styles.termsText}>Terms & Conditions</Text>
             <ExternalLink size={14} color={Colors.semantic.tabInactive} strokeWidth={2} />
