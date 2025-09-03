@@ -217,10 +217,6 @@ export default function WelcomeScreen() {
     console.log('Terms of Service pressed');
   };
 
-  const handlePrivacy = () => {
-    router.push('/(onboarding)/privacy');
-  };
-
   const handleTerms = () => {
     router.push('/(onboarding)/terms');
   };
