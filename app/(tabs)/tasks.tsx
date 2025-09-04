@@ -341,12 +341,12 @@ export default function TasksScreen() {
             <Text style={styles.taskTitle}>{task.title}</Text>
             <View style={styles.categoryBadge}>
               <Text style={styles.categoryText}>
-                {TaskRepo.formatCategory(task.category)}
+                {String(TaskRepo.formatCategory(task.category))}
               </Text>
             </View>
           </View>
           <Text style={styles.taskReward}>
-            {TaskRepo.formatReward(task.reward_cents)}
+            {String(TaskRepo.formatReward(task.reward_cents))}
           </Text>
         </View>
         
@@ -371,7 +371,7 @@ export default function TasksScreen() {
                 styles.statusText,
                 { color: getStatusColor(task.task_current_status) }
               ]}>
-                {formatStatus(task.task_current_status)}
+                {String(formatStatus(task.task_current_status))}
               </Text>
             </View>
             {task.last_status_update && (
@@ -394,7 +394,7 @@ export default function TasksScreen() {
           <View style={styles.detailRow}>
             <MapPin size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
             <Text style={styles.detailText} numberOfLines={1}>
-              {formatEstimatedTime(task.estimated_minutes)}
+              {String(formatEstimatedTime(task.estimated_minutes))}
             </Text>
           </View>
         </View>
@@ -404,7 +404,7 @@ export default function TasksScreen() {
             <View style={styles.metaItem}>
               <Clock size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
               <Text style={styles.metaText}>
-                {TaskRepo.formatEstimatedTime(task.estimated_minutes)}
+                {String(TaskRepo.formatEstimatedTime(task.estimated_minutes))}
               </Text>
             </View>
             
@@ -414,7 +414,7 @@ export default function TasksScreen() {
                 { backgroundColor: getUrgencyColor(task.urgency) }
               ]} />
               <Text style={styles.metaText}>
-                {formatUrgency(task.urgency)}
+                {String(formatUrgency(task.urgency))}
               </Text>
             </View>
           </View>
