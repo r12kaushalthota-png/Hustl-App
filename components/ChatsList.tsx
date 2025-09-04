@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
-  StyleSheet, j
+  StyleSheet, 
   TouchableOpacity, 
   FlatList, 
   RefreshControl,
