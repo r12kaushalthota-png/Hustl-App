@@ -283,8 +283,6 @@ function PostScreenContent() {
     const requiredFields = {
       title,
       category,
-      store,
-      dropoffAddress,
       estimatedMinutes,
       urgency,
     };
@@ -294,22 +292,6 @@ function PostScreenContent() {
       category &&
       estimatedMinutes.trim() &&
       urgency;
-    
-    // For location-based categories, require store and dropoff
-    const locationCategories = ['food', 'coffee', 'grocery'];
-    if (locationCategories.includes(category)) {
-      if (!store?.place_id || !dropoffAddress?.place_id) {
-        return false;
-      }
-    }
-    
-    // For food category, require at least one item in cart
-    if (category === 'food') {
-      const cartSummary = getCartSummary();
-      if (cartSummary.itemCount === 0) {
-        return false;
-      }
-    }
     
     // Check if any field has validation errors
     const hasErrors = Object.values(fieldErrors).some(error => error);
