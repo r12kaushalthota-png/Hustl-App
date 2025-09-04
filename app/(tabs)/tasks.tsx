@@ -613,7 +613,7 @@ export default function TasksScreen() {
           </View>
         ) : currentTasks.length > 0 ? (
           <View style={styles.tasksList}>
-            {currentTasks.map(renderTaskCard)}
+            {currentTasks.map(task => renderTaskCard(task))}
           </View>
         ) : (
           renderEmptyState()
