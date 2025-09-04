@@ -838,7 +838,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <AnimatedBackground />
-      <GlobalHeader showSearch={true} showNotifications={true} />
+      <GlobalHeader showSearch={true} showNotifications={false} />
 
       <ScrollView 
         style={styles.content} 

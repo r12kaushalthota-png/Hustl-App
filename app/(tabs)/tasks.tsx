@@ -582,7 +582,7 @@ export default function TasksScreen() {
   return (
     <>
       <View style={styles.container}>
-        <GlobalHeader showSearch={true} showNotifications={true} />
+        <GlobalHeader showSearch={true} showNotifications={false} />
 
         {/* View Mode Toggle */}
         <View style={styles.viewModeToggle}>

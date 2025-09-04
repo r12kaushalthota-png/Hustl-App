@@ -108,7 +108,7 @@ export default function ReferralsScreen() {
   return (
     <>
       <View style={styles.container}>
-        <GlobalHeader showSearch={true} showNotifications={true} />
+        <GlobalHeader showSearch={true} showNotifications={false} />
         
         <ScrollView 
           style={styles.content} 
