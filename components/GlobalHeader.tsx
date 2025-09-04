@@ -17,6 +17,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import ProfileSidebar from './ProfileSidebar';
+import WalletModal from './WalletModal';
+import CreditsModal from './CreditsModal';
 
 const { width } = Dimensions.get('window');
 
@@ -273,6 +275,8 @@ const CampusMenuModal = ({
   const router = useRouter();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  const [showCreditsModal, setShowCreditsModal] = useState(false);
 
   const menuItems = [
     {
@@ -280,66 +284,89 @@ const CampusMenuModal = ({
       title: 'Wallet',
       subtitle: user?.profile ? `$${((user.profile.credits || 0) / 100).toFixed(2)} available` : '$0.00 available',
       icon: Wallet,
-      route: '/profile/settings'
+      action: 'wallet'
     },
     {
       id: 'credits',
       title: 'Credits',
       subtitle: user?.profile ? `${user.profile.credits || 0} credits` : '0 credits',
       icon: CreditCard,
-      route: '/(tabs)/referrals'
+      action: 'credits'
     },
     {
       id: 'campus',
       title: 'University of Florida',
       subtitle: 'Gainesville, FL',
       icon: MapPin,
-      route: '/profile/settings'
+      action: 'campus'
     },
   ];
 
-  const handleMenuPress = (route: string) => {
+  const handleMenuPress = (action: string) => {
     onClose();
-    setTimeout(() => {
-      router.push(route as any);
-    }, 100);
+    
+    switch (action) {
+      case 'wallet':
+        setTimeout(() => setShowWalletModal(true), 100);
+        break;
+      case 'credits':
+        setTimeout(() => setShowCreditsModal(true), 100);
+        break;
+      case 'campus':
+        setTimeout(() => router.push('/profile/settings'), 100);
+        break;
+    }
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <TouchableOpacity 
-        style={styles.menuOverlay}
-        onPress={onClose}
-        activeOpacity={1}
+    <>
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={onClose}
       >
-        <View style={[styles.menuModal, { paddingTop: insets.top + 80 }]}>
-          <View style={styles.menuContent}>
-            {menuItems.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.menuItem}
-                onPress={() => handleMenuPress(item.route)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.menuItemIcon}>
-                  <item.icon size={20} color={Colors.primary} strokeWidth={2} />
-                </View>
-                <View style={styles.menuItemContent}>
-                  <Text style={styles.menuItemTitle}>{item.title}</Text>
-                  <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
-                </View>
-                <ChevronRight size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
-              </TouchableOpacity>
-            ))}
+        <TouchableOpacity 
+          style={styles.menuOverlay}
+          onPress={onClose}
+          activeOpacity={1}
+        >
+          <View style={[styles.menuModal, { paddingTop: insets.top + 80 }]}>
+            <View style={styles.menuContent}>
+              {menuItems.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.menuItem}
+                  onPress={() => handleMenuPress(item.action)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.menuItemIcon}>
+                    <item.icon size={20} color={Colors.primary} strokeWidth={2} />
+                  </View>
+                  <View style={styles.menuItemContent}>
+                    <Text style={styles.menuItemTitle}>{item.title}</Text>
+                    <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
+                  </View>
+                  <ChevronRight size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
-    </Modal>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Wallet Modal */}
+      <WalletModal
+        visible={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+      />
+
+      {/* Credits Modal */}
+      <CreditsModal
+        visible={showCreditsModal}
+        onClose={() => setShowCreditsModal(false)}
+      />
+    </>
   );
 };
 
