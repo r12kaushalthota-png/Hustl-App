@@ -785,3 +785,212 @@ function PostScreenContent() {
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background.primary,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 100,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    backgroundColor: Colors.background.primary,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border.light,
+  },
+  closeButton: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text.primary,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  formContainer: {
+    padding: 16,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: Colors.border.light,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: Colors.text.primary,
+    backgroundColor: Colors.background.secondary,
+  },
+  inputError: {
+    borderColor: Colors.error,
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  errorText: {
+    color: Colors.error,
+    fontSize: 14,
+    marginTop: 4,
+  },
+  categoryScroll: {
+    marginHorizontal: -16,
+    paddingHorizontal: 16,
+  },
+  categoryChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.background.secondary,
+    borderWidth: 1,
+    borderColor: Colors.border.light,
+    marginRight: 8,
+  },
+  categoryChipSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  categoryChipText: {
+    fontSize: 14,
+    color: Colors.text.primary,
+    fontWeight: '500',
+  },
+  categoryChipTextSelected: {
+    color: 'white',
+  },
+  autocompleteContainer: {
+    flex: 0,
+  },
+  autocompleteList: {
+    backgroundColor: Colors.background.secondary,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  autocompleteRow: {
+    backgroundColor: Colors.background.secondary,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  autocompleteText: {
+    fontSize: 16,
+    color: Colors.text.primary,
+  },
+  menuButton: {
+    backgroundColor: Colors.primary,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  menuButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  urgencyContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  urgencyOption: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: Colors.background.secondary,
+    borderWidth: 1,
+    borderColor: Colors.border.light,
+    alignItems: 'center',
+  },
+  urgencyOptionSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  urgencyOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text.primary,
+  },
+  urgencyOptionTextSelected: {
+    color: 'white',
+  },
+  urgencyPrice: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+    marginTop: 2,
+  },
+  urgencyPriceSelected: {
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  priceContainer: {
+    backgroundColor: Colors.background.secondary,
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  priceLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text.primary,
+  },
+  priceValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.background.error,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    gap: 8,
+  },
+  errorMessage: {
+    flex: 1,
+    color: Colors.error,
+    fontSize: 14,
+  },
+  footer: {
+    padding: 16,
+    backgroundColor: Colors.background.primary,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border.light,
+  },
+  submitButton: {
+    backgroundColor: Colors.primary,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  submitButtonDisabled: {
+    backgroundColor: Colors.text.disabled,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
