@@ -433,4 +433,355 @@ function PostScreenContent() {
     setModerationError('');
     clearCart();
   };
+
+  const mapCategoryToDatabase = (category: string): TaskCategory => {
+    const mapping: Record<string, TaskCategory> = {
+      'food': 'food',
+      'coffee': 'coffee',
+      'grocery': 'grocery',
+    };
+    return mapping[category] || 'food';
+  };
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ visible: true, message, type });
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, visible: false }));
+    }, 3000);
+  };
+
+  return (
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <TouchableOpacity 
+            style={styles.closeButton} 
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+          >
+            <X size={24} color={Colors.text.primary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Post a Task</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+
+        {/* Form Content */}
+        <View style={styles.formContainer}>
+          {/* Title Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>What do you need?</Text>
+            <TextInput
+              style={[styles.input, fieldErrors.title && styles.inputError]}
+              value={title}
+              onChangeText={(text) => {
+                setTitle(text);
+                updateFieldError('title', text);
+              }}
+              placeholder="e.g., Pick up my Chipotle order"
+              placeholderTextColor={Colors.text.secondary}
+              maxLength={100}
+            />
+            {fieldErrors.title && (
+              <Text style={styles.errorText}>{fieldErrors.title}</Text>
+            )}
+          </View>
+
+          {/* Category Selection */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Category</Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.categoryScroll}
+            >
+              {categories.map((cat) => (
+                <TouchableOpacity
+                  key={cat.value}
+                  style={[
+                    styles.categoryChip,
+                    category === cat.value && styles.categoryChipSelected
+                  ]}
+                  onPress={() => {
+                    setCategory(cat.value);
+                    updateFieldError('category', cat.value);
+                    triggerHaptics();
+                  }}
+                >
+                  <Text style={[
+                    styles.categoryChipText,
+                    category === cat.value && styles.categoryChipTextSelected
+                  ]}>
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            {fieldErrors.category && (
+              <Text style={styles.errorText}>{fieldErrors.category}</Text>
+            )}
+          </View>
+
+          {/* Store Location */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>
+              <Store size={16} color={Colors.text.primary} /> Store/Location
+            </Text>
+            <GooglePlacesAutocomplete
+              placeholder="Search for a store or restaurant..."
+              onPress={(data, details) => handlePlaceSelect(data, details, 'store')}
+              query={{
+                key: 'YOUR_GOOGLE_PLACES_API_KEY',
+                language: 'en',
+                types: 'establishment',
+              }}
+              styles={{
+                container: styles.autocompleteContainer,
+                textInput: [styles.input, fieldErrors.store && styles.inputError],
+                listView: styles.autocompleteList,
+                row: styles.autocompleteRow,
+                description: styles.autocompleteText,
+              }}
+              enablePoweredByContainer={false}
+              fetchDetails={true}
+              debounce={300}
+            />
+            {fieldErrors.store && (
+              <Text style={styles.errorText}>{fieldErrors.store}</Text>
+            )}
+          </View>
+
+          {/* Menu Browser for Food Category */}
+          {category === 'food' && store && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                <Package size={16} color={Colors.text.primary} /> Order Details
+              </Text>
+              <TouchableOpacity
+                style={styles.menuButton}
+                onPress={() => setShowMenuBrowser(true)}
+              >
+                <Text style={styles.menuButtonText}>Browse Menu & Add Items</Text>
+              </TouchableOpacity>
+              <CartSummary />
+            </View>
+          )}
+
+          {/* Dropoff Address */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>
+              <MapPin size={16} color={Colors.text.primary} /> Dropoff Location
+            </Text>
+            <GooglePlacesAutocomplete
+              placeholder="Where should we deliver?"
+              onPress={(data, details) => handlePlaceSelect(data, details, 'dropoff')}
+              query={{
+                key: 'YOUR_GOOGLE_PLACES_API_KEY',
+                language: 'en',
+              }}
+              styles={{
+                container: styles.autocompleteContainer,
+                textInput: [styles.input, fieldErrors.dropoffAddress && styles.inputError],
+                listView: styles.autocompleteList,
+                row: styles.autocompleteRow,
+                description: styles.autocompleteText,
+              }}
+              enablePoweredByContainer={false}
+              fetchDetails={true}
+              debounce={300}
+            />
+            {fieldErrors.dropoffAddress && (
+              <Text style={styles.errorText}>{fieldErrors.dropoffAddress}</Text>
+            )}
+          </View>
+
+          {/* Dropoff Instructions */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Delivery Instructions (Optional)</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={dropoffInstructions}
+              onChangeText={setDropoffInstructions}
+              placeholder="e.g., Leave at front desk, Ring doorbell..."
+              placeholderTextColor={Colors.text.secondary}
+              multiline
+              numberOfLines={3}
+              maxLength={200}
+            />
+          </View>
+
+          {/* Description */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Additional Details (Optional)</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={description}
+              onChangeText={(text) => {
+                setDescription(text);
+                updateFieldError('description', text);
+              }}
+              placeholder="Any special instructions or preferences..."
+              placeholderTextColor={Colors.text.secondary}
+              multiline
+              numberOfLines={3}
+              maxLength={300}
+            />
+          </View>
+
+          {/* Time Estimate */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>
+              <Clock size={16} color={Colors.text.primary} /> Estimated Time (minutes)
+            </Text>
+            <TextInput
+              style={[styles.input, fieldErrors.estimatedMinutes && styles.inputError]}
+              value={estimatedMinutes}
+              onChangeText={(text) => {
+                setEstimatedMinutes(text);
+                updateFieldError('estimatedMinutes', text);
+              }}
+              placeholder="20"
+              placeholderTextColor={Colors.text.secondary}
+              keyboardType="numeric"
+              maxLength={3}
+            />
+            {fieldErrors.estimatedMinutes && (
+              <Text style={styles.errorText}>{fieldErrors.estimatedMinutes}</Text>
+            )}
+          </View>
+
+          {/* Urgency Selection */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>
+              <Zap size={16} color={Colors.text.primary} /> Urgency Level
+            </Text>
+            <View style={styles.urgencyContainer}>
+              {urgencyOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.urgencyOption,
+                    urgency === option.value && styles.urgencyOptionSelected
+                  ]}
+                  onPress={() => {
+                    setUrgency(option.value);
+                    updateFieldError('urgency', option.value);
+                    triggerHaptics();
+                  }}
+                >
+                  <Text style={[
+                    styles.urgencyOptionText,
+                    urgency === option.value && styles.urgencyOptionTextSelected
+                  ]}>
+                    {option.label}
+                  </Text>
+                  {option.price > 0 && (
+                    <Text style={[
+                      styles.urgencyPrice,
+                      urgency === option.value && styles.urgencyPriceSelected
+                    ]}>
+                      +${(option.price / 100).toFixed(2)}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+            {fieldErrors.urgency && (
+              <Text style={styles.errorText}>{fieldErrors.urgency}</Text>
+            )}
+          </View>
+
+          {/* Price Display */}
+          <View style={styles.priceContainer}>
+            <Text style={styles.priceLabel}>Total Reward</Text>
+            <Text style={styles.priceValue}>
+              ${(computedPriceCents / 100).toFixed(2)}
+            </Text>
+          </View>
+
+          {/* Error Messages */}
+          {moderationError && (
+            <View style={styles.errorContainer}>
+              <AlertCircle size={16} color={Colors.error} />
+              <Text style={styles.errorMessage}>{moderationError}</Text>
+            </View>
+          )}
+
+          {submitError && (
+            <View style={styles.errorContainer}>
+              <AlertCircle size={16} color={Colors.error} />
+              <Text style={styles.errorMessage}>{submitError}</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Submit Button */}
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+        <TouchableOpacity
+          style={[
+            styles.submitButton,
+            !isFormValid() && styles.submitButtonDisabled
+          ]}
+          onPress={handleSubmit}
+          disabled={!isFormValid()}
+          accessibilityRole="button"
+          accessibilityLabel="Post task"
+        >
+          {isLoading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.submitButtonText}>
+              Post Task • ${(computedPriceCents / 100).toFixed(2)}
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {/* Modals */}
+      {showAuthPrompt && (
+        <AuthPrompt
+          visible={showAuthPrompt}
+          onClose={() => setShowAuthPrompt(false)}
+          message="Sign up to post tasks and start earning!"
+        />
+      )}
+
+      {showSuccessSheet && lastCreatedTaskId && (
+        <TaskSuccessSheet
+          visible={showSuccessSheet}
+          onClose={() => {
+            setShowSuccessSheet(false);
+            router.back();
+          }}
+          taskId={lastCreatedTaskId}
+        />
+      )}
+
+      {showMenuBrowser && store && (
+        <MenuBrowser
+          visible={showMenuBrowser}
+          onClose={() => setShowMenuBrowser(false)}
+          storeName={store.description}
+        />
+      )}
+
+      {/* Toast */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast(prev => ({ ...prev, visible: false }))}
+      />
+    </KeyboardAvoidingView>
+  );
 }
