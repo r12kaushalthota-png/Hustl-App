@@ -425,7 +425,7 @@ export default function GlobalHeader({
               >
                 <View style={styles.logoContainer}>
                   <Image
-                    source={require('../src/assets/images/image.png')}
+                    source={require('../assets/images/image.png')}
                     style={styles.logo}
                     resizeMode="contain"
                   />
@@ -477,7 +477,7 @@ export default function GlobalHeader({
             >
               <View style={styles.logoContainer}>
                 <Image
-                  source={require('../src/assets/images/image.png')}
+                  source={require('../assets/images/image.png')}
                   style={styles.logo}
                   resizeMode="contain"
                 />
