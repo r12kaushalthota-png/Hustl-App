@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Shield, Mail } from 'lucide-react-native';
-import { Colors } from '@/theme/colors';
+import Colors from '@/theme/colors';
 
 export default function PrivacyPolicyScreen() {
   const router = useRouter();

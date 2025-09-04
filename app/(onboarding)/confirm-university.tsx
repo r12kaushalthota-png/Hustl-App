@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
-import { Colors } from '@constants/Colors';
+import Colors from '@/theme/colors';
 
 export default function ConfirmUniversity() {
   const router = useRouter();

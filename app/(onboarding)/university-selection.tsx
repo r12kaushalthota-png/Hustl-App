@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronRight, Lock } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, withSpring } from 'react-native-reanimated';
-import { Colors } from '@/theme/colors';
+import Colors from '@/theme/colors';
 
 const { width } = Dimensions.get('window');
 

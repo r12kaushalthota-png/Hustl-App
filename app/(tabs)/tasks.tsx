@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Clock, MapPin, Store, MessageCircle, Map as MapIcon, List as ListIcon, ChevronRight } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { Colors, ColorUtils } from '@/theme/colors';
+import Colors, { ColorUtils } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { ChatService } from '@/lib/chat';

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Colors } from '@/theme/colors';
+import Colors from '@/theme/colors';
 import GlobalHeader from '@/components/GlobalHeader';
 import ChatsList from '@/components/ChatsList';
 import ProfileSheet from '@/components/ProfileSheet';

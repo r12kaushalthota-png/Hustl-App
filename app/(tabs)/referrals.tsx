@@ -7,7 +7,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Copy, Share2, Gift, Users, DollarSign, Award, ExternalLink } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/theme/colors';
+import Colors from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { GamificationRepo } from '@/lib/gamificationRepo';
 import GlobalHeader from '@/components/GlobalHeader';

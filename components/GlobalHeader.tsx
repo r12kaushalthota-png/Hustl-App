@@ -14,7 +14,7 @@ import Animated, {
   interpolate
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/theme/colors';
+import Colors from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/features/notifications/useNotifications';
 import NotificationBell from './NotificationBell';

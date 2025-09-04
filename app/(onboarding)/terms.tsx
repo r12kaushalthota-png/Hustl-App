@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, FileText, Mail, TriangleAlert as AlertTriangle } from 'lucide-react-native';
-import { Colors } from '@/theme/colors';
+import Colors from '@/theme/colors';
 
 export default function TermsOfServiceScreen() {
   const router = useRouter();

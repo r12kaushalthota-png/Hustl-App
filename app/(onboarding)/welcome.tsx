@@ -15,7 +15,7 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/theme/colors';
+import Colors from '@/theme/colors';
 
 const { width, height } = Dimensions.get('window');
 

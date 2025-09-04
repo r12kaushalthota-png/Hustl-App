@@ -18,7 +18,7 @@ import { X, MapPin, Clock, Store, Package, Zap, CircleAlert as AlertCircle } fro
 import * as Haptics from 'expo-haptics';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/theme/colors';
+import Colors from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { FoodOrderProvider, useFoodOrder } from '@/contexts/FoodOrderContext';
