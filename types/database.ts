@@ -1,4 +1,4 @@
-export type TaskStatus = 'open' | 'accepted' | 'completed' | 'cancelled';
+export type TaskStatus = 'open' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
 export type TaskCurrentStatus = 'accepted' | 'picked_up' | 'on_the_way' | 'delivered' | 'completed';
 export type TaskCategory = 'food' | 'grocery' | 'coffee';
 export type TaskUrgency = 'low' | 'medium' | 'high';

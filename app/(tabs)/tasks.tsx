@@ -138,6 +138,61 @@ export default function TasksScreen() {
   // Load tasks when tab changes or component mounts
   useEffect(() => {
     loadTasks();
+    
+    // Set up real-time subscription for task updates
+    if (!isGuest && user) {
+      const channel = supabase
+        .channel('tasks_updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'tasks',
+            filter: `status=eq.accepted`
+          },
+          (payload) => {
+            console.log('Task updated via realtime:', payload);
+            const updatedTask = payload.new as Task;
+            
+            // Remove from available tasks if it was accepted
+            if (updatedTask.status === 'accepted' && updatedTask.accepted_by !== user.id) {
+              setAvailableTasks(prev => prev.filter(t => t.id !== updatedTask.id));
+            }
+            
+            // Add to doing tasks if user accepted it
+            if (updatedTask.status === 'accepted' && updatedTask.accepted_by === user.id) {
+              setDoingTasks(prev => {
+                const exists = prev.some(t => t.id === updatedTask.id);
+                return exists ? prev : [updatedTask, ...prev];
+              });
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'tasks',
+            filter: `status=eq.open`
+          },
+          (payload) => {
+            console.log('New task posted via realtime:', payload);
+            const newTask = payload.new as Task;
+            
+            // Add to available tasks if not created by current user
+            if (newTask.created_by !== user.id && activeTab === 'available') {
+              setAvailableTasks(prev => [newTask, ...prev]);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }
   }, [loadTasks]);
 
   // Handle view mode change
@@ -191,17 +246,24 @@ export default function TasksScreen() {
 
       if (result.error) {
         console.log('Task acceptance error:', result.error); // Debug logging
-        setToast({
-          visible: true,
-          message: result.error,
-          type: 'error'
-        });
         
-        // Remove task from available list if it's no longer available or already accepted
-        if (result.error.includes('no longer available') || 
-            result.error.includes('already accepted') || 
-            result.error.includes('not found')) {
+        // Handle specific error cases
+        if (result.error.includes('already accepted')) {
+          setToast({
+            visible: true,
+            message: 'Task was accepted by someone else',
+            type: 'error'
+          });
+          
+          // Remove from available list and refresh
           setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
+          setTimeout(() => loadTasks(), 500);
+        } else {
+          setToast({
+            visible: true,
+            message: result.error,
+            type: 'error'
+          });
         }
         
         return;
@@ -223,13 +285,6 @@ export default function TasksScreen() {
         
         // Switch to "You're Doing" tab to show the accepted task
         setActiveTab('doing');
-        
-        // Refresh available tasks to remove accepted task from other users' views
-        if (activeTab === 'available') {
-          setTimeout(() => {
-            loadTasks();
-          }, 500);
-        }
       }
     } catch (error) {
       console.error('Task acceptance exception:', error); // Debug logging

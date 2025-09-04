@@ -137,11 +137,11 @@ export class TaskRepo {
 
   /**
    * Accept a task using atomic RPC function
-   * Uses atomic RPC function to prevent race conditions
+   * Uses atomic RPC function with proper enum casting to prevent race conditions
    */
   static async acceptTask(taskId: string, userId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
-      console.log('Calling accept_task RPC with:', { taskId, userId });
+      console.log('Calling accept_task RPC with:', { p_task_id: taskId, p_user_id: userId });
       
       const { data, error } = await supabase.rpc('accept_task', { 
         p_task_id: taskId,
@@ -152,24 +152,23 @@ export class TaskRepo {
         console.error('accept_task RPC error:', error);
         
         // Handle specific error cases
-        if (error.message.includes('TASK_ALREADY_ACCEPTED')) {
-          return { data: null, error: 'Task was already accepted by another user' };
-        } else if (error.message.includes('TASK_NOT_FOUND')) {
+        if (error.message.includes('TASK_NOT_FOUND')) {
           return { data: null, error: 'Task not found' };
         } else if (error.message.includes('CANNOT_ACCEPT_OWN_TASK')) {
           return { data: null, error: 'You cannot accept your own task' };
-        } else if (error.message.includes('TASK_NOT_OPEN')) {
-          return { data: null, error: 'Task is no longer available' };
+        } else if (error.message.includes('TASK_ALREADY_ACCEPTED')) {
+          return { data: null, error: 'Task was already accepted by another user' };
         } else {
-          return { data: null, error: 'Unable to accept task. Please try again.' };
+          return { data: null, error: error.message || 'Unable to accept task. Please try again.' };
         }
       }
 
-      const acceptedTask = data?.[0] ?? null;
-      if (!acceptedTask) {
+      // RPC returns array of rows, get first one
+      if (!data || data.length === 0) {
         return { data: null, error: 'Task acceptance failed. Please try again.' };
       }
 
+      const acceptedTask = data[0];
       console.log('Task accepted successfully:', acceptedTask);
       return { data: acceptedTask, error: null };
     } catch (error) {
