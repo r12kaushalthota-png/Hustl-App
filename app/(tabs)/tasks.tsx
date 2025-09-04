@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Colors, ColorUtils } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { TaskRepo } from '@/lib/taskRepo';
 import { ChatService } from '@/lib/chat';
 import { openGoogleMapsNavigation } from '@/lib/navigation';
