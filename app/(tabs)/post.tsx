@@ -198,6 +198,9 @@ function PostScreenContent() {
     type: 'success'
   });
 
+  // Calculate footer height for ScrollView padding
+  const FOOTER_HEIGHT = 80; // Approximate height of footer + padding
+
   // Handle category prefilling from navigation params
   useEffect(() => {
     const categoryParam = params.category as string;
@@ -607,39 +610,6 @@ function PostScreenContent() {
     );
   };
 
-  const Footer = () => (
-    <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
-      <TouchableOpacity
-        style={[
-          styles.submitButton,
-          (!isFormValid() || isLoading) && styles.submitButtonDisabled
-        ]}
-        onPress={handleSubmit}
-        disabled={!isFormValid() || isLoading}
-        accessibilityLabel="Post Task"
-        accessibilityRole="button"
-      >
-        {isFormValid() && !isLoading ? (
-          <LinearGradient
-            colors={['#0047FF', '#0021A5']}
-            style={styles.submitButtonGradient}
-          >
-            <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
-            <Text style={styles.submitButtonText}>Post Task</Text>
-          </LinearGradient>
-        ) : (
-          <View style={styles.disabledButtonContent}>
-            {isLoading ? (
-              <ActivityIndicator size="small" color={Colors.white} />
-            ) : (
-              <Text style={styles.disabledButtonText}>Post Task</Text>
-            )}
-          </View>
-        )}
-      </TouchableOpacity>
-    </View>
-  );
-
   return (
     <>
       <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -655,14 +625,14 @@ function PostScreenContent() {
         <KeyboardAvoidingView 
           style={styles.keyboardView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={0}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
           <ScrollView 
             style={styles.content} 
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[
               styles.scrollContent,
-              { paddingBottom: 24 }
+              { paddingBottom: FOOTER_HEIGHT + insets.bottom + 24 }
             ]}
             keyboardShouldPersistTaps="handled"
             automaticallyAdjustKeyboardInsets={false}
@@ -971,39 +941,39 @@ function PostScreenContent() {
               <FoodOrderSection />
             </View>
           </ScrollView>
-          
-          {/* Non-sticky Footer */}
-          <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
-            <TouchableOpacity
-              style={[
-                styles.submitButton,
-                (!isFormValid() || isLoading) && styles.submitButtonDisabled
-              ]}
-              onPress={handleSubmit}
-              disabled={!isFormValid() || isLoading}
-              accessibilityLabel="Post Task"
-              accessibilityRole="button"
-            >
-              {isFormValid() && !isLoading ? (
-                <LinearGradient
-                  colors={['#0047FF', '#0021A5']}
-                  style={styles.submitButtonGradient}
-                >
-                  <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
-                  <Text style={styles.submitButtonText}>Post Task</Text>
-                </LinearGradient>
-              ) : (
-                <View style={styles.disabledButtonContent}>
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color={Colors.white} />
-                  ) : (
-                    <Text style={styles.disabledButtonText}>Post Task</Text>
-                  )}
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
         </KeyboardAvoidingView>
+        
+        {/* Sticky Footer */}
+        <View style={[styles.stickyFooter, { paddingBottom: insets.bottom + 16 }]}>
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              (!isFormValid() || isLoading) && styles.submitButtonDisabled
+            ]}
+            onPress={handleSubmit}
+            disabled={!isFormValid() || isLoading}
+            accessibilityLabel="Post Task"
+            accessibilityRole="button"
+          >
+            {isFormValid() && !isLoading ? (
+              <LinearGradient
+                colors={['#0047FF', '#0021A5']}
+                style={styles.submitButtonGradient}
+              >
+                <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
+                <Text style={styles.submitButtonText}>Post Task</Text>
+              </LinearGradient>
+            ) : (
+              <View style={styles.disabledButtonContent}>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color={Colors.white} />
+                ) : (
+                  <Text style={styles.disabledButtonText}>Post Task</Text>
+                )}
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Auth Prompt Modal */}
@@ -1349,13 +1319,22 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
 
-  // Footer
-  footer: {
+  // Sticky Footer
+  stickyFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: Colors.semantic.screen,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(229, 231, 235, 0.5)',
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(229, 231, 235, 0.6)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   submitButton: {
     borderRadius: 16,
