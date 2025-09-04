@@ -280,7 +280,7 @@ const CampusMenuModal = ({
       title: 'Wallet',
       subtitle: user?.profile ? `$${((user.profile.credits || 0) / 100).toFixed(2)} available` : '$0.00 available',
       icon: Wallet,
-      route: '/(tabs)/referrals'
+      route: '/profile/settings'
     },
     {
       id: 'credits',
