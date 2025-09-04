@@ -6,16 +6,12 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Colors, ColorUtils } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { fetchOpenTasks, fetchDoingTasks, fetchMyPostedTasks } from '@/services/tasks';
+import { useAcceptTask } from '@/hooks/useAcceptTask';
+import type { Task } from '@/services/tasks';
 import { TaskRepo } from '@/lib/taskRepo';
-import { ChatService } from '@/lib/chat';
-import { openGoogleMapsNavigation } from '@/lib/navigation';
-import { ReviewRepo } from '@/lib/reviewRepo';
-import { Task, TaskCurrentStatus } from '@/types/database';
-import GlobalHeader from '@/components/GlobalHeader';
 import Toast from '@/components/Toast';
 import TasksMap, { TaskPin } from '@/components/TasksMap';
-import ReviewSheet from '@/components/ReviewSheet';
 
 type TabType = 'available' | 'doing' | 'posts';
 type ViewMode = 'map' | 'list';
@@ -38,7 +34,6 @@ export default function TasksScreen() {
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [acceptingTaskId, setAcceptingTaskId] = useState<string | null>(null);
   
   // Error states
   const [error, setError] = useState<string>('');
@@ -50,9 +45,32 @@ export default function TasksScreen() {
     type: 'success'
   });
 
-  // Review state
-  const [showReviewSheet, setShowReviewSheet] = useState(false);
-  const [taskToReview, setTaskToReview] = useState<Task | null>(null);
+  // Accept task hook
+  const { run: acceptTaskAction, isPending: isAcceptingAny, isAccepting, error: acceptError } = useAcceptTask({
+    onSuccess: (task) => {
+      // Remove from available tasks
+      setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
+      
+      // Add to doing tasks
+      setDoingTasks(prev => [task, ...prev]);
+      
+      setToast({
+        visible: true,
+        message: 'Task accepted! Chat is now available.',
+        type: 'success'
+      });
+      
+      // Switch to "You're Doing" tab
+      setActiveTab('doing');
+    },
+    onError: (message) => {
+      setToast({
+        visible: true,
+        message,
+        type: 'error'
+      });
+    }
+  });
 
   // Request location permission on mount (only in Dev Client)
   useEffect(() => {
@@ -104,32 +122,22 @@ export default function TasksScreen() {
       
       switch (activeTab) {
         case 'available':
-          result = await TaskRepo.listOpenTasks(user.id);
-          if (result.data) setAvailableTasks(result.data);
+          const openTasks = await fetchOpenTasks();
+          setAvailableTasks(openTasks);
           break;
         case 'doing':
-          result = await TaskRepo.listUserDoingTasks(user.id);
-          if (result.data) setDoingTasks(result.data);
+          const doingTasks = await fetchDoingTasks();
+          setDoingTasks(doingTasks);
           break;
         case 'posts':
-          result = await TaskRepo.listUserPostedTasks(user.id);
-          if (result.data) setPostedTasks(result.data);
+          const postedTasks = await fetchMyPostedTasks();
+          setPostedTasks(postedTasks);
           break;
       }
 
-      if (result?.error) {
-        if (result.error.includes('not found') || result.error.includes('no longer available')) {
-          setToast({
-            visible: true,
-            message: result.error,
-            type: 'error'
-          });
-        } else {
-          setError(result.error);
-        }
-      }
     } catch (error) {
-      setError('Failed to load tasks. Please try again.');
+      console.error('Failed to load tasks:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load tasks. Please try again.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -139,6 +147,18 @@ export default function TasksScreen() {
   // Load tasks when tab changes or component mounts
   useEffect(() => {
     loadTasks();
+  }, [loadTasks]);
+
+  // Handle accept task error from hook
+  useEffect(() => {
+    if (acceptError) {
+      setToast({
+        visible: true,
+        message: acceptError,
+        type: 'error'
+      });
+    }
+  }, [acceptError]);
     
     // Set up real-time subscription for task updates
     if (!isGuest && user) {
@@ -194,7 +214,6 @@ export default function TasksScreen() {
         channel.unsubscribe();
       };
     }
-  }, [loadTasks]);
 
   // Handle view mode change
   const handleViewModeChange = (mode: ViewMode) => {
@@ -228,7 +247,6 @@ export default function TasksScreen() {
   // Handle task acceptance
   const handleAcceptTask = async (task: Task) => {
     if (isGuest || !user) return;
-    if (acceptingTaskId) return;
 
     if (Platform.OS !== 'web') {
       try {
@@ -238,74 +256,10 @@ export default function TasksScreen() {
       }
     }
 
-    setAcceptingTaskId(task.id);
-    setError('');
-
     try {
-      console.log('Attempting to accept task:', task.id, 'by user:', user.id);
-      const result = await TaskRepo.acceptTask(task.id, user.id);
-
-      if (result.error) {
-        console.log('Task acceptance error:', result.error); // Debug logging
-        
-        // Handle specific error cases
-        if (result.error.includes('already accepted')) {
-          setToast({
-            visible: true,
-            message: 'Task was accepted by someone else',
-            type: 'error'
-          });
-          
-          // Remove from available list and refresh
-          setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
-          setTimeout(() => loadTasks(), 500);
-        } else if (result.error.includes('task_not_posted')) {
-          setToast({
-            visible: true,
-            message: 'Task is no longer available or has been removed.',
-            type: 'error'
-          });
-          
-          // Remove from available list and refresh
-          setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
-          setTimeout(() => loadTasks(), 500);
-        } else {
-          setToast({
-            visible: true,
-            message: result.error,
-            type: 'error'
-          });
-        }
-        
-        return;
-      }
-
-      if (result.data) {
-        console.log('Task accepted successfully:', result.data); // Debug logging
-        // Remove from available tasks
-        setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
-        
-        // Add to doing tasks
-        setDoingTasks(prev => [result.data!, ...prev]);
-        
-        setToast({
-          visible: true,
-          message: 'Task accepted! Chat is now available.',
-          type: 'success'
-        });
-        
-        // Switch to "You're Doing" tab to show the accepted task
-        setActiveTab('doing');
-      }
+      await acceptTaskAction(task.id);
     } catch (error) {
-      console.error('Task acceptance exception:', error); // Debug logging
-      setToast({
-        visible: true,
-        message: 'Failed to accept task. Please try again.',
-        type: 'error'
-      });
-    } finally {
-      setAcceptingTaskId(null);
+      // Error is handled by the hook
     }
   };
 
@@ -372,14 +326,12 @@ export default function TasksScreen() {
 
   const renderTaskCard = (task: Task) => {
     const isOwnTask = user && task.created_by === user.id;
-    const isAccepting = acceptingTaskId === task.id;
+    const isAccepting = isAccepting(task.id);
     const canAccept = activeTab === 'available' && !isOwnTask && !isGuest && user;
     const canChat = task.status === 'accepted' && user && 
       (task.created_by === user.id || task.accepted_by === user.id);
-    const canUpdateStatus = activeTab === 'doing' && user && task.accepted_by === user.id && 
-      task.status === 'accepted' && task.task_current_status !== 'completed';
+    const canUpdateStatus = activeTab === 'doing' && user && task.accepted_by === user.id && task.status === 'accepted';
     const showStatusUpdate = canUpdateStatus;
-    const canReview = activeTab === 'posts' && user && task.created_by === user.id && task.status === 'completed';
 
     return (
       <View key={task.id} style={styles.taskCard}>
@@ -404,21 +356,21 @@ export default function TasksScreen() {
         ) : null}
         
         {/* Current Status Display */}
-        {task.task_current_status && task.task_current_status !== 'posted' && (
+        {task.task_current_status && task.task_current_status !== 'posted' && task.task_current_status !== 'open' && (
           <View style={styles.statusContainer}>
             <View style={[
               styles.statusBadge,
-              { backgroundColor: TaskRepo.getCurrentStatusColor(task.task_current_status) + '20' }
+              { backgroundColor: getStatusColor(task.task_current_status) + '20' }
             ]}>
               <View style={[
                 styles.statusDot,
-                { backgroundColor: TaskRepo.getCurrentStatusColor(task.task_current_status) }
+                { backgroundColor: getStatusColor(task.task_current_status) }
               ]} />
               <Text style={[
                 styles.statusText,
-                { color: TaskRepo.getCurrentStatusColor(task.task_current_status) }
+                { color: getStatusColor(task.task_current_status) }
               ]}>
-                {TaskRepo.formatCurrentStatus(task.task_current_status)}
+                {formatStatus(task.task_current_status)}
               </Text>
             </View>
             {task.last_status_update && (
@@ -441,7 +393,7 @@ export default function TasksScreen() {
           <View style={styles.detailRow}>
             <MapPin size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
             <Text style={styles.detailText} numberOfLines={1}>
-              {task.dropoff_address}
+              {formatEstimatedTime(task.estimated_minutes)}
             </Text>
           </View>
         </View>
@@ -458,10 +410,10 @@ export default function TasksScreen() {
             <View style={styles.urgencyContainer}>
               <View style={[
                 styles.urgencyDot, 
-                { backgroundColor: TaskRepo.getUrgencyColor(task.urgency) }
+                { backgroundColor: getUrgencyColor(task.urgency) }
               ]} />
               <Text style={styles.metaText}>
-                {TaskRepo.formatUrgency(task.urgency)}
+                {formatUrgency(task.urgency)}
               </Text>
             </View>
           </View>
@@ -502,17 +454,6 @@ export default function TasksScreen() {
               </TouchableOpacity>
             )}
 
-            {canReview && (
-              <TouchableOpacity 
-                style={styles.reviewButton}
-                onPress={() => {
-                  setTaskToReview(task);
-                  setShowReviewSheet(true);
-                }}
-              >
-                <Text style={styles.reviewButtonText}>Review</Text>
-              </TouchableOpacity>
-            )}
           </View>
           
           {isOwnTask && activeTab === 'available' && (
@@ -525,19 +466,83 @@ export default function TasksScreen() {
     );
   };
 
+  // Utility functions for formatting
+  const formatReward = (cents: number): string => {
+    return `$${(cents / 100).toFixed(0)}`;
+  };
+
+  const formatEstimatedTime = (minutes: number): string => {
+    if (minutes < 60) {
+      return `${minutes} min`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    if (remainingMinutes === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}h ${remainingMinutes}m`;
+  };
+
+  const formatCategory = (category: string): string => {
+    switch (category) {
+      case 'food':
+        return 'Food Pickup';
+      case 'grocery':
+        return 'Grocery Run';
+      case 'coffee':
+        return 'Coffee Run';
+      default:
+        return category;
+    }
+  };
+
+  const formatUrgency = (urgency: string): string => {
+    return urgency.charAt(0).toUpperCase() + urgency.slice(1);
+  };
+
+  const getUrgencyColor = (urgency: string): string => {
+    switch (urgency) {
+      case 'low':
+        return '#10B981';
+      case 'medium':
+        return '#F59E0B';
+      case 'high':
+        return '#EF4444';
+      default:
+        return '#6B7280';
+    }
+  };
+
+  const formatStatus = (status: string): string => {
+    return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
+  };
+
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case 'accepted':
+        return '#3B82F6';
+      case 'in_progress':
+        return '#F59E0B';
+      case 'completed':
+        return '#10B981';
+      default:
+        return '#6B7280';
+    }
+  };
+
   const renderMapView = () => {
     const currentTasks = getCurrentTasks();
     
     // Convert tasks to map pins with demo coordinates around UF campus
     const pins: TaskPin[] = currentTasks.map((task) => {
-      // For demo, place tasks around UF campus with slight offsets
+          {formatReward(task.reward_cents)}
       const latitude = 29.6436 + (Math.random() - 0.5) * 0.02;
       const longitude = -82.3549 + (Math.random() - 0.5) * 0.02;
       
       return {
         id: task.id,
         title: task.title,
-        reward: TaskRepo.formatReward(task.reward_cents),
+        reward: formatReward(task.reward_cents),
         store: task.store,
         urgency: task.urgency,
         latitude,
@@ -549,9 +554,9 @@ export default function TasksScreen() {
       <TasksMap
         pins={pins}
         onPressPin={(taskId) => console.log('Task details:', taskId)}
-       showsUserLocation={locationPermission === 'granted'}
-       locationPermission={locationPermission}
-       onRequestLocation={requestLocationPermission}
+        showsUserLocation={locationPermission === 'granted'}
+        locationPermission={locationPermission}
+        onRequestLocation={requestLocationPermission}
       />
     );
   };
@@ -701,16 +706,6 @@ export default function TasksScreen() {
         onHide={hideToast}
       />
 
-      {/* Review Sheet */}
-      <ReviewSheet
-        visible={showReviewSheet}
-        onClose={() => {
-          setShowReviewSheet(false);
-          setTaskToReview(null);
-        }}
-        task={taskToReview}
-        onReviewSubmitted={handleReviewSubmitted}
-      />
     </>
   );
 }
@@ -992,19 +987,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.primary,
-  },
-  reviewButton: {
-    backgroundColor: Colors.semantic.successAlert,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    minHeight: 36,
-    justifyContent: 'center',
-  },
-  reviewButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.white,
   },
   ownTaskIndicator: {
     backgroundColor: Colors.muted,
