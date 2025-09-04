@@ -194,6 +194,12 @@ export default function TasksScreen() {
           message: result.error,
           type: 'error'
         });
+        
+        // Remove task from available list if it's no longer available
+        if (result.error.includes('no longer available')) {
+          setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
+        }
+        
         return;
       }
 

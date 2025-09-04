@@ -148,6 +148,12 @@ export class TaskRepo {
 
       if (error) {
         console.error('accept_task RPC error:', error);
+        
+        // Handle specific RPC errors with user-friendly messages
+        if (error.message === 'task_not_posted') {
+          return { data: null, error: 'This task is no longer available. It may have been accepted by another user.' };
+        }
+        
         return { data: null, error: error.message };
       }
 
