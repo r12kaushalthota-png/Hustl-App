@@ -57,6 +57,84 @@ const urgencyOptions: { value: string; label: string; price: number }[] = [
   { value: 'high', label: 'High', price: 250 }, // $2.50 in cents
 ];
 
+// Common campus locations
+const campusLocations = [
+  // Food & Restaurants
+  'Chick-fil-A (Reitz Union)',
+  'Panda Express (Reitz Union)',
+  'Subway (Reitz Union)',
+  'Starbucks (Library West)',
+  'Starbucks (Reitz Union)',
+  'Dunkin\' (Turlington)',
+  'Chipotle (Midtown)',
+  'Taco Bell (Archer Road)',
+  'McDonald\'s (Archer Road)',
+  'Publix (Butler Plaza)',
+  'Target (Butler Plaza)',
+  'Walmart (Archer Road)',
+  'CVS Pharmacy (13th Street)',
+  'Walgreens (University Avenue)',
+  // Campus Buildings
+  'Reitz Union',
+  'Library West',
+  'Marston Science Library',
+  'Student Recreation Center',
+  'Plaza of the Americas',
+  'Turlington Hall',
+  'Little Hall',
+  'Gator Corner Dining Center',
+  'Fresh Food Company',
+  'Broward Dining',
+  // Off-Campus Popular
+  'Midtown Gainesville',
+  'Butler Plaza',
+  'Oaks Mall',
+  'Archer Road',
+  'University Avenue',
+];
+
+const dropoffLocations = [
+  // Residence Halls
+  'Broward Hall',
+  'Rawlings Hall',
+  'Jennings Hall',
+  'Yulee Hall',
+  'Reid Hall',
+  'Murphree Hall',
+  'Fletcher Hall',
+  'Sledd Hall',
+  'Thomas Hall',
+  'Buckman Hall',
+  'East Hall',
+  'Tolbert Hall',
+  'Weaver Hall',
+  'Keys Complex',
+  'Lakeside Complex',
+  'Springs Complex',
+  'Infinity Hall',
+  'Cypress Hall',
+  'Poplar Hall',
+  'Magnolia Hall',
+  'Palmetto Hall',
+  // Campus Buildings
+  'Reitz Union',
+  'Library West',
+  'Marston Science Library',
+  'Student Recreation Center',
+  'Plaza of the Americas',
+  'Turlington Hall',
+  'Little Hall',
+  'Gator Corner Dining Center',
+  'Fresh Food Company',
+  // Off-Campus Areas
+  'Midtown Gainesville',
+  'Butler Plaza',
+  'Archer Road Apartments',
+  'University Avenue',
+  'SW 20th Avenue',
+  'SW 34th Street',
+];
+
 const BASE_PRICE_CENTS = 150; // $1.50 base price
 const MIN_PRICE_CENTS = 200; // $2.00 minimum
 const MAX_PRICE_CENTS = 2500; // $25.00 maximum
@@ -78,13 +156,13 @@ const validateField = (field: string, value: string | PlaceData | null): string 
     case 'category':
       return !value ? 'Please select a category' : '';
     case 'store':
-      if (!value || typeof value !== 'object' || !value.place_id) {
-        return 'Please choose a location from the list';
+      if (!value || typeof value !== 'string' || !value.trim()) {
+        return 'Please select a store';
       }
       return '';
     case 'dropoffAddress':
-      if (!value || typeof value !== 'object' || !value.place_id) {
-        return 'Please choose a location from the list';
+      if (!value || typeof value !== 'string' || !value.trim()) {
+        return 'Please select a dropoff location';
       }
       return '';
     case 'estimatedMinutes':
@@ -176,6 +254,8 @@ function PostScreenContent() {
   const [urgency, setUrgency] = useState<string>('medium');
   const [estimatedMinutes, setEstimatedMinutes] = useState('');
   const [prefilledCategory, setPrefilledCategory] = useState<string | null>(null);
+  const [showStoreDropdown, setShowStoreDropdown] = useState(false);
+  const [showDropoffDropdown, setShowDropoffDropdown] = useState(false);
   
   // Computed pricing
   const [computedPriceCents, setComputedPriceCents] = useState(BASE_PRICE_CENTS + 100); // Base + medium urgency
@@ -220,11 +300,13 @@ function PostScreenContent() {
       setPrefilledCategory(categoryParam);
       
       // Clear other fields
-      setStore(null);
-      setDropoffAddress(null);
+      setStore('');
+      setDropoffAddress('');
       setDropoffInstructions('');
       setFieldErrors({});
       setSubmitError('');
+      setShowStoreDropdown(false);
+      setShowDropoffDropdown(false);
       
       // Show toast
       const categoryLabel = categories.find(cat => cat.value === categoryParam)?.label || 'Category';
@@ -280,18 +362,16 @@ function PostScreenContent() {
   };
 
   const isFormValid = (): boolean => {
-    const requiredFields = {
-      title,
-      category,
-      estimatedMinutes,
-      urgency,
-    };
-
     // Check basic required fields
     const hasBasicFields = title.trim().length >= 3 &&
       category &&
       estimatedMinutes.trim() &&
       urgency;
+    
+    // Check location fields for location-based categories
+    const locationCategories = ['food', 'coffee', 'grocery'];
+    const needsLocation = locationCategories.includes(category);
+    const hasLocationFields = !needsLocation || (store && dropoffAddress);
     
     // Check if any field has validation errors
     const hasErrors = Object.values(fieldErrors).some(error => error);
@@ -299,28 +379,19 @@ function PostScreenContent() {
     // Check for moderation errors
     const hasModerationError = moderationError.length > 0;
     
-    return hasBasicFields && !hasErrors && !hasModerationError && !isLoading;
+    return hasBasicFields && hasLocationFields && !hasErrors && !hasModerationError && !isLoading;
   };
 
-  const handlePlaceSelect = async (
-    data: any, 
-    details: any, 
-    type: 'store' | 'dropoff'
-  ) => {
-    const placeData: PlaceData = {
-      place_id: data.place_id,
-      description: data.description,
-      latitude: details?.geometry?.location?.lat,
-      longitude: details?.geometry?.location?.lng,
-    };
+  const handleStoreSelect = (storeName: string) => {
+    setStore(storeName);
+    updateFieldError('store', storeName);
+    setShowStoreDropdown(false);
+  };
 
-    if (type === 'store') {
-      setStore(placeData);
-      updateFieldError('store', placeData);
-    } else {
-      setDropoffAddress(placeData);
-      updateFieldError('dropoffAddress', placeData);
-    }
+  const handleDropoffSelect = (location: string) => {
+    setDropoffAddress(location);
+    updateFieldError('dropoffAddress', location);
+    setShowDropoffDropdown(false);
   };
 
   const handleSubmit = async () => {
@@ -347,11 +418,11 @@ function PostScreenContent() {
     // Only validate store and dropoff for location-based categories
     const locationCategories = ['food', 'coffee', 'grocery'];
     if (locationCategories.includes(category)) {
-      if (!store?.description?.trim()) {
-        errors.store = 'Store name is required for this category';
+      if (!store || typeof store !== 'string' || !store.trim()) {
+        errors.store = 'Please select a store';
       }
-      if (!dropoffAddress?.description?.trim()) {
-        errors.dropoffAddress = 'Drop-off address is required for this category';
+      if (!dropoffAddress || typeof dropoffAddress !== 'string' || !dropoffAddress.trim()) {
+        errors.dropoffAddress = 'Please select a dropoff location';
       }
     }
 
@@ -383,8 +454,8 @@ function PostScreenContent() {
         title: title.trim(),
         description: description.trim(),
         category: mapCategoryToDatabase(category),
-        store: store!.description,
-        dropoff_address: dropoffAddress!.description,
+        store: store || '',
+        dropoff_address: dropoffAddress || '',
         dropoff_instructions: dropoffInstructions.trim(),
         urgency: urgency as TaskUrgency,
         estimated_minutes: Number(estimatedMinutes),
@@ -431,14 +502,16 @@ function PostScreenContent() {
     setTitle('');
     setDescription('');
     setCategory('');
-    setStore(null);
-    setDropoffAddress(null);
+    setStore('');
+    setDropoffAddress('');
     setDropoffInstructions('');
     setUrgency('medium');
     setEstimatedMinutes('');
     setFieldErrors({});
     setSubmitError('');
     setModerationError('');
+    setShowStoreDropdown(false);
+    setShowDropoffDropdown(false);
     clearCart();
   };
 
@@ -710,94 +783,40 @@ function PostScreenContent() {
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Store *</Text>
-                  <View style={styles.autocompleteContainer}>
-                    <GooglePlacesAutocomplete
-                      placeholder="Search for a store or restaurant..."
-                      onPress={(data, details = null) => {
-                        handlePlaceSelect(data, details, 'store');
-                      }}
-                      query={{
-                        key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'demo-key',
-                        language: 'en',
-                        location: '29.6436,-82.3549', // UF campus
-                        radius: 10000, // 10km radius
-                        types: 'establishment',
-                      }}
-                      fetchDetails={true}
-                      enablePoweredByContainer={false}
-                     predefinedPlaces={[]}
-                     predefinedPlacesAlwaysVisible={false}
-                     nearbyPlacesAPI="GooglePlacesSearch"
-                     GooglePlacesSearchQuery={{
-                       rankby: 'distance',
-                       type: 'establishment'
-                     }}
-                     listEmptyComponent={() => (
-                       <View style={styles.placesEmpty}>
-                         <Text style={styles.placesEmptyText}>
-                           {process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY === 'demo-key' || !process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
-                             ? 'Google Places API key not configured'
-                             : 'No places found'
-                           }
-                         </Text>
-                       </View>
-                     )}
-                      styles={{
-                        container: styles.placesContainer,
-                        textInputContainer: [
-                          styles.placesInputContainer,
-                          fieldErrors.store && styles.inputError
-                        ],
-                        textInput: styles.placesInput,
-                        listView: styles.placesList,
-                        row: styles.placesRow,
-                        description: styles.placesDescription,
-                        loader: styles.placesLoader,
-                      }}
-                      textInputProps={{
-                        placeholderTextColor: Colors.semantic.tabInactive,
-                        returnKeyType: 'done',
-                        editable: !isLoading,
-                      }}
-                      renderLeftButton={() => (
-                        <View style={styles.inputIcon}>
-                          <Store size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-                        </View>
-                      )}
-                      renderRightButton={() => (
-                        isLoadingStore ? (
-                          <View style={styles.inputIcon}>
-                            <ActivityIndicator size="small" color={Colors.semantic.tabInactive} />
-                          </View>
-                        ) : null
-                      )}
-                      onFail={(error) => {
-                        console.error('Places API error:', error);
-                        setFieldErrors(prev => ({
-                          ...prev,
-                          store: 'Failed to load places. Please try again.'
-                        }));
-                      }}
-                     suppressDefaultStyles={false}
-                     keepResultsAfterBlur={false}
-                     debounce={200}
-                    />
-                  </View>
                   <TouchableOpacity
-                    style={styles.manualStoreButton}
-                    onPress={() => {
-                      const manualStore = {
-                        place_id: 'manual_store',
-                        description: 'Manual Store Entry',
-                      };
-                      setStore(manualStore);
-                      updateFieldError('store', manualStore);
-                    }}
+                    style={[
+                      styles.dropdownButton,
+                      fieldErrors.store && styles.inputError
+                    ]}
+                    onPress={() => setShowStoreDropdown(!showStoreDropdown)}
+                    disabled={isLoading}
                   >
-                    <Text style={styles.manualStoreText}>
-                      {store ? `Selected: ${store.description}` : 'Or tap to enter store manually'}
+                    <Store size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                    <Text style={[
+                      styles.dropdownButtonText,
+                      !store && styles.placeholderText
+                    ]}>
+                      {store || 'Select a store or restaurant'}
                     </Text>
+                    <Text style={styles.dropdownArrow}>▼</Text>
                   </TouchableOpacity>
+                  
+                  {showStoreDropdown && (
+                    <View style={styles.dropdown}>
+                      <ScrollView style={styles.dropdownScroll} showsVerticalScrollIndicator={false}>
+                        {campusLocations.map((location) => (
+                          <TouchableOpacity
+                            key={location}
+                            style={styles.dropdownItem}
+                            onPress={() => handleStoreSelect(location)}
+                          >
+                            <Text style={styles.dropdownItemText}>{location}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                  
                   {fieldErrors.store && (
                     <Text style={styles.fieldError}>{fieldErrors.store}</Text>
                   )}
@@ -810,92 +829,40 @@ function PostScreenContent() {
                 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Drop-off Address *</Text>
-                  <View style={styles.autocompleteContainer}>
-                    <GooglePlacesAutocomplete
-                      placeholder="Where should this be delivered?"
-                      onPress={(data, details = null) => {
-                        handlePlaceSelect(data, details, 'dropoff');
-                      }}
-                      query={{
-                        key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'demo-key',
-                        language: 'en',
-                        location: '29.6436,-82.3549', // UF campus
-                        radius: 10000, // 10km radius
-                      }}
-                      fetchDetails={true}
-                      enablePoweredByContainer={false}
-                     predefinedPlaces={[]}
-                     predefinedPlacesAlwaysVisible={false}
-                     nearbyPlacesAPI="GooglePlacesSearch"
-                     GooglePlacesSearchQuery={{
-                       rankby: 'distance'
-                     }}
-                     listEmptyComponent={() => (
-                       <View style={styles.placesEmpty}>
-                         <Text style={styles.placesEmptyText}>
-                           {process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY === 'demo-key' || !process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
-                             ? 'Google Places API key not configured'
-                             : 'No places found'
-                           }
-                         </Text>
-                       </View>
-                     )}
-                      styles={{
-                        container: styles.placesContainer,
-                        textInputContainer: [
-                          styles.placesInputContainer,
-                          fieldErrors.dropoffAddress && styles.inputError
-                        ],
-                        textInput: styles.placesInput,
-                        listView: styles.placesList,
-                        row: styles.placesRow,
-                        description: styles.placesDescription,
-                        loader: styles.placesLoader,
-                      }}
-                      textInputProps={{
-                        placeholderTextColor: Colors.semantic.tabInactive,
-                        returnKeyType: 'done',
-                        editable: !isLoading,
-                      }}
-                      renderLeftButton={() => (
-                        <View style={styles.inputIcon}>
-                          <MapPin size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-                        </View>
-                      )}
-                      renderRightButton={() => (
-                        isLoadingDropoff ? (
-                          <View style={styles.inputIcon}>
-                            <ActivityIndicator size="small" color={Colors.semantic.tabInactive} />
-                          </View>
-                        ) : null
-                      )}
-                      onFail={(error) => {
-                        console.error('Places API error:', error);
-                        setFieldErrors(prev => ({
-                          ...prev,
-                          dropoffAddress: 'Failed to load places. Please try again.'
-                        }));
-                      }}
-                     suppressDefaultStyles={false}
-                     keepResultsAfterBlur={false}
-                     debounce={200}
-                    />
-                  </View>
                   <TouchableOpacity
-                    style={styles.manualDropoffButton}
-                    onPress={() => {
-                      const manualDropoff = {
-                        place_id: 'manual_dropoff',
-                        description: 'Manual Dropoff Entry',
-                      };
-                      setDropoffAddress(manualDropoff);
-                      updateFieldError('dropoffAddress', manualDropoff);
-                    }}
+                    style={[
+                      styles.dropdownButton,
+                      fieldErrors.dropoffAddress && styles.inputError
+                    ]}
+                    onPress={() => setShowDropoffDropdown(!showDropoffDropdown)}
+                    disabled={isLoading}
                   >
-                    <Text style={styles.manualDropoffText}>
-                      {dropoffAddress ? `Selected: ${dropoffAddress.description}` : 'Or tap to enter address manually'}
+                    <MapPin size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                    <Text style={[
+                      styles.dropdownButtonText,
+                      !dropoffAddress && styles.placeholderText
+                    ]}>
+                      {dropoffAddress || 'Select dropoff location'}
                     </Text>
+                    <Text style={styles.dropdownArrow}>▼</Text>
                   </TouchableOpacity>
+                  
+                  {showDropoffDropdown && (
+                    <View style={styles.dropdown}>
+                      <ScrollView style={styles.dropdownScroll} showsVerticalScrollIndicator={false}>
+                        {dropoffLocations.map((location) => (
+                          <TouchableOpacity
+                            key={location}
+                            style={styles.dropdownItem}
+                            onPress={() => handleDropoffSelect(location)}
+                          >
+                            <Text style={styles.dropdownItemText}>{location}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                  
                   {fieldErrors.dropoffAddress && (
                     <Text style={styles.fieldError}>{fieldErrors.dropoffAddress}</Text>
                   )}
@@ -1494,5 +1461,61 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.semantic.tabInactive,
     textAlign: 'center',
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 12,
+    minHeight: 44,
+    backgroundColor: Colors.white,
+  },
+  dropdownButtonText: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.semantic.inputText,
+  },
+  placeholderText: {
+    color: Colors.semantic.tabInactive,
+  },
+  dropdownArrow: {
+    fontSize: 12,
+    color: Colors.semantic.tabInactive,
+  },
+  dropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    maxHeight: 200,
+    zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  dropdownScroll: {
+    maxHeight: 200,
+  },
+  dropdownItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: Colors.semantic.bodyText,
   },
 });
