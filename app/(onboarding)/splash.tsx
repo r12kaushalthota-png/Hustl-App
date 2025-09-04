@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withDelay, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Colors from '@/theme/colors';
+import { Colors } from '@/theme/colors';
 
 const { width, height } = Dimensions.get('window');
 
@@ -55,7 +55,7 @@ export default function SplashScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Animated.View style={[styles.logoContainer, animatedStyle]}>
         <Image
-          source={require('@/assets/images/image.png')}
+          source={require('../../src/assets/images/image.png')}
           style={styles.logo}
           resizeMode="contain"
         />

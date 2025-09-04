@@ -700,11 +700,13 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
     gap: 16,
   },
   loadingText: {
@@ -712,10 +714,10 @@ const styles = StyleSheet.create({
     color: Colors.semantic.tabInactive,
   },
   errorContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 16,
+    padding: 40,
   },
   errorText: {
     fontSize: 18,
@@ -725,9 +727,8 @@ const styles = StyleSheet.create({
   taskCard: {
     backgroundColor: Colors.semantic.card,
     borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 12,
+    padding: 20,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: Colors.semantic.cardBorder,
     shadowColor: '#000',
@@ -874,9 +875,8 @@ const styles = StyleSheet.create({
   historyCard: {
     backgroundColor: Colors.semantic.card,
     borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 12,
+    padding: 20,
+    marginBottom: 24,
     borderWidth: 1,
     borderColor: Colors.semantic.cardBorder,
     shadowColor: '#000',
@@ -1017,9 +1017,8 @@ const styles = StyleSheet.create({
   reviewCard: {
     backgroundColor: Colors.semantic.card,
     borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 12,
+    padding: 20,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: Colors.semantic.cardBorder,
     shadowColor: '#000',

@@ -38,7 +38,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Colors from '@/theme/colors';
+import { Colors } from '@/theme/colors';
 import GlobalHeader from '@components/GlobalHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import XPProgressBar from '@/components/XPProgressBar';
@@ -927,13 +927,14 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   scrollContent: {
-    paddingBottom: 100, // Space for tab bar
+    paddingBottom: 120,
   },
+
   // Greeting Section
   greetingSection: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 12,
+    paddingBottom: 8,
   },
   greeting: {
     fontSize: 24,
@@ -945,8 +946,8 @@ const styles = StyleSheet.create({
 
   // Referral Banner
   referralBanner: {
-    marginHorizontal: 16,
-    marginBottom: 16,
+    marginHorizontal: 20,
+    marginBottom: 32,
     borderRadius: 20,
     overflow: 'hidden',
     shadowColor: '#0047FF',
@@ -999,8 +1000,8 @@ const styles = StyleSheet.create({
 
   // Categories Section
   categoriesSection: {
-    marginHorizontal: 16,
-    marginBottom: 16,
+    marginHorizontal: 20,
+    marginBottom: 40,
   },
   categoriesGrid: {
     flexDirection: 'row',

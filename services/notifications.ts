@@ -81,7 +81,7 @@ export class NotificationService {
       const tokenData = await Notifications.getExpoPushTokenAsync({
         projectId: Constants.expoConfig?.slug || undefined,
       });
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.expoConfig?.slug;
+
       return tokenData.data;
     } catch (error) {
       console.error('Error registering for push notifications:', error);

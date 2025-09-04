@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   form: {
-    padding: 16,
+    padding: 24,
     gap: 24,
   },
   inputGroup: {

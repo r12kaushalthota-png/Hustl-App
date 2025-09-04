@@ -18,7 +18,7 @@ import { X, MapPin, Clock, Store, Package, Zap, CircleAlert as AlertCircle } fro
 import * as Haptics from 'expo-haptics';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { LinearGradient } from 'expo-linear-gradient';
-import Colors from '@/theme/colors';
+import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { FoodOrderProvider, useFoodOrder } from '@/contexts/FoodOrderContext';
@@ -411,8 +411,12 @@ function PostScreenContent() {
       
       // Clear form for next use
       clearForm();
+      
+      // Clear food cart
+      if (category === 'food') {
+        clearCart();
+      }
     } catch (error) {
-      console.error('Error creating task:', error);
       setSubmitError("Couldn't post your task. Try again.");
     } finally {
       setIsLoading(false);
@@ -434,563 +438,1032 @@ function PostScreenContent() {
     clearCart();
   };
 
-  const mapCategoryToDatabase = (category: string): TaskCategory => {
+  // Map UI categories to database categories
+  const mapCategoryToDatabase = (uiCategory: string): TaskCategory => {
     const mapping: Record<string, TaskCategory> = {
-      'food': 'food',
-      'coffee': 'coffee',
-      'grocery': 'grocery',
+      food: 'food',
+      coffee: 'coffee',
+      grocery: 'grocery',
+      study: 'food', // Map to existing category for now
+      workout: 'food', // Map to existing category for now
+      transport: 'food', // Map to existing category for now
+      gaming: 'food', // Map to existing category for now
+      tutoring: 'food', // Map to existing category for now
+      events: 'food', // Map to existing category for now
+      photography: 'food', // Map to existing category for now
+      repair: 'food', // Map to existing category for now
+      laundry: 'food', // Map to existing category for now
     };
-    return mapping[category] || 'food';
+    return mapping[uiCategory] || 'food';
   };
 
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ visible: true, message, type });
-    setTimeout(() => {
-      setToast(prev => ({ ...prev, visible: false }));
-    }, 3000);
+  // Hide toast
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, visible: false }));
   };
 
-  return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top }]}>
-          <TouchableOpacity 
-            style={styles.closeButton} 
-            onPress={() => router.back()}
+  const formatPrice = (cents: number): string => {
+    return `$${(cents / 100).toFixed(2)}`;
+  };
+
+  const CategorySelector = () => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Category *</Text>
+      <View style={styles.categoryGrid}>
+        {categories.map((cat) => (
+          <TouchableOpacity
+            key={cat.value}
+            style={[
+              styles.categoryPill,
+              category === cat.value && styles.activeCategoryPill
+            ]}
+            onPress={() => {
+              triggerHaptics();
+              setCategory(cat.value);
+              updateFieldError('category', cat.value);
+            }}
+            disabled={isLoading}
+            accessibilityLabel={`Select ${cat.label} category`}
             accessibilityRole="button"
-            accessibilityLabel="Close"
           >
-            <X size={24} color={Colors.text.primary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Post a Task</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-
-        {/* Form Content */}
-        <View style={styles.formContainer}>
-          {/* Title Input */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>What do you need?</Text>
-            <TextInput
-              style={[styles.input, fieldErrors.title && styles.inputError]}
-              value={title}
-              onChangeText={(text) => {
-                setTitle(text);
-                updateFieldError('title', text);
-              }}
-              placeholder="e.g., Pick up my Chipotle order"
-              placeholderTextColor={Colors.text.secondary}
-              maxLength={100}
-            />
-            {fieldErrors.title && (
-              <Text style={styles.errorText}>{fieldErrors.title}</Text>
-            )}
-          </View>
-
-          {/* Category Selection */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Category</Text>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoryScroll}
-            >
-              {categories.map((cat) => (
-                <TouchableOpacity
-                  key={cat.value}
-                  style={[
-                    styles.categoryChip,
-                    category === cat.value && styles.categoryChipSelected
-                  ]}
-                  onPress={() => {
-                    setCategory(cat.value);
-                    updateFieldError('category', cat.value);
-                    triggerHaptics();
-                  }}
-                >
-                  <Text style={[
-                    styles.categoryChipText,
-                    category === cat.value && styles.categoryChipTextSelected
-                  ]}>
-                    {cat.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            {fieldErrors.category && (
-              <Text style={styles.errorText}>{fieldErrors.category}</Text>
-            )}
-          </View>
-
-          {/* Store Location */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              <Store size={16} color={Colors.text.primary} /> Store/Location
+            <Text style={[
+              styles.categoryPillText,
+              category === cat.value && styles.activeCategoryPillText
+            ]} numberOfLines={1}>
+              {cat.label}
             </Text>
-            <GooglePlacesAutocomplete
-              placeholder="Search for a store or restaurant..."
-              onPress={(data, details) => handlePlaceSelect(data, details, 'store')}
-              query={{
-                key: 'YOUR_GOOGLE_PLACES_API_KEY',
-                language: 'en',
-                types: 'establishment',
-              }}
-              styles={{
-                container: styles.autocompleteContainer,
-                textInput: [styles.input, fieldErrors.store && styles.inputError],
-                listView: styles.autocompleteList,
-                row: styles.autocompleteRow,
-                description: styles.autocompleteText,
-              }}
-              enablePoweredByContainer={false}
-              fetchDetails={true}
-              debounce={300}
-            />
-            {fieldErrors.store && (
-              <Text style={styles.errorText}>{fieldErrors.store}</Text>
-            )}
-          </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+      {fieldErrors.category && (
+        <Text style={styles.fieldError}>{fieldErrors.category}</Text>
+      )}
+    </View>
+  );
 
-          {/* Menu Browser for Food Category */}
-          {category === 'food' && store && (
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                <Package size={16} color={Colors.text.primary} /> Order Details
+  const UrgencySelector = () => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Urgency *</Text>
+      <View style={styles.segmentedControl}>
+        {urgencyOptions.map((option) => (
+          <TouchableOpacity
+            key={option.value}
+            style={[
+              styles.segment,
+              urgency === option.value && styles.activeSegment
+            ]}
+            onPress={() => {
+              triggerHaptics();
+              setUrgency(option.value);
+              updateFieldError('urgency', option.value);
+            }}
+            disabled={isLoading}
+            accessibilityLabel={`Select ${option.label} urgency`}
+            accessibilityRole="button"
+          >
+            <Text style={[
+              styles.segmentText,
+              urgency === option.value && styles.activeSegmentText
+            ]}>
+              {option.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      {fieldErrors.urgency && (
+        <Text style={styles.fieldError}>{fieldErrors.urgency}</Text>
+      )}
+    </View>
+  );
+
+  const PricingBreakdown = () => {
+    const urgencyPrice = urgencyOptions.find(opt => opt.value === urgency)?.price || 100;
+    const foodOrder = getFinalOrder();
+    const foodTotal = foodOrder && category === 'food' ? foodOrder.total : 0;
+    
+    return (
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Computed Total</Text>
+        <View style={styles.pricingCard}>
+          <View style={styles.pricingRow}>
+            <Text style={styles.pricingLabel}>Base</Text>
+            <Text style={styles.pricingValue}>{formatPrice(BASE_PRICE_CENTS)}</Text>
+          </View>
+          <View style={styles.pricingRow}>
+            <Text style={styles.pricingLabel}>Urgency ({urgency})</Text>
+            <Text style={styles.pricingValue}>+{formatPrice(urgencyPrice)}</Text>
+          </View>
+          {foodTotal > 0 && (
+            <View style={styles.pricingRow}>
+              <Text style={styles.pricingLabel}>Food Order</Text>
+              <Text style={styles.pricingValue}>+{formatPrice(foodTotal)}</Text>
+            </View>
+          )}
+          <View style={[styles.pricingRow, styles.pricingTotal]}>
+            <Text style={styles.pricingTotalLabel}>Total</Text>
+            <Text style={styles.pricingTotalValue}>{formatPrice(computedPriceCents)}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // Food Order Section (only for food category)
+  const FoodOrderSection = () => {
+    const cartSummary = getCartSummary();
+    
+    if (category !== 'food') return null;
+    
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Food Order</Text>
+        
+        {cartSummary.itemCount > 0 ? (
+          <View style={styles.foodOrderCard}>
+            <View style={styles.foodOrderHeader}>
+              <Text style={styles.foodOrderSummary}>
+                {cartSummary.itemCount} item{cartSummary.itemCount !== 1 ? 's' : ''} • {formatPrice(cartSummary.total)}
               </Text>
               <TouchableOpacity
-                style={styles.menuButton}
+                style={styles.editOrderButton}
                 onPress={() => setShowMenuBrowser(true)}
               >
-                <Text style={styles.menuButtonText}>Browse Menu & Add Items</Text>
+                <Text style={styles.editOrderButtonText}>Edit</Text>
               </TouchableOpacity>
-              <CartSummary />
             </View>
-          )}
+            
+            <CartSummary onEditItems={() => setShowMenuBrowser(true)} />
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.addItemsCard}
+            onPress={() => setShowMenuBrowser(true)}
+          >
+            <Text style={styles.addItemsText}>Add Items</Text>
+            <Text style={styles.addItemsSubtext}>Choose from Chick-fil-A, Chipotle, or Taco Bell</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
 
-          {/* Dropoff Address */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              <MapPin size={16} color={Colors.text.primary} /> Dropoff Location
-            </Text>
-            <GooglePlacesAutocomplete
-              placeholder="Where should we deliver?"
-              onPress={(data, details) => handlePlaceSelect(data, details, 'dropoff')}
-              query={{
-                key: 'YOUR_GOOGLE_PLACES_API_KEY',
-                language: 'en',
-              }}
-              styles={{
-                container: styles.autocompleteContainer,
-                textInput: [styles.input, fieldErrors.dropoffAddress && styles.inputError],
-                listView: styles.autocompleteList,
-                row: styles.autocompleteRow,
-                description: styles.autocompleteText,
-              }}
-              enablePoweredByContainer={false}
-              fetchDetails={true}
-              debounce={300}
-            />
-            {fieldErrors.dropoffAddress && (
-              <Text style={styles.errorText}>{fieldErrors.dropoffAddress}</Text>
+  const Footer = () => (
+    <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+      <TouchableOpacity
+        style={[
+          styles.submitButton,
+          (!isFormValid() || isLoading) && styles.submitButtonDisabled
+        ]}
+        onPress={handleSubmit}
+        disabled={!isFormValid() || isLoading}
+        accessibilityLabel="Post Task"
+        accessibilityRole="button"
+      >
+        {isFormValid() && !isLoading ? (
+          <LinearGradient
+            colors={['#0047FF', '#0021A5']}
+            style={styles.submitButtonGradient}
+          >
+            <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
+            <Text style={styles.submitButtonText}>Post Task</Text>
+          </LinearGradient>
+        ) : (
+          <View style={styles.disabledButtonContent}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color={Colors.white} />
+            ) : (
+              <Text style={styles.disabledButtonText}>Post Task</Text>
             )}
           </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
 
-          {/* Dropoff Instructions */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Delivery Instructions (Optional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={dropoffInstructions}
-              onChangeText={setDropoffInstructions}
-              placeholder="e.g., Leave at front desk, Ring doorbell..."
-              placeholderTextColor={Colors.text.secondary}
-              multiline
-              numberOfLines={3}
-              maxLength={200}
-            />
-          </View>
+  return (
+    <>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        {/* Single Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <X size={24} color={Colors.white} strokeWidth={2} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Create Task</Text>
+          <View style={styles.placeholder} />
+        </View>
 
-          {/* Description */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Additional Details (Optional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={description}
-              onChangeText={(text) => {
-                setDescription(text);
-                updateFieldError('description', text);
-              }}
-              placeholder="Any special instructions or preferences..."
-              placeholderTextColor={Colors.text.secondary}
-              multiline
-              numberOfLines={3}
-              maxLength={300}
-            />
-          </View>
-
-          {/* Time Estimate */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              <Clock size={16} color={Colors.text.primary} /> Estimated Time (minutes)
-            </Text>
-            <TextInput
-              style={[styles.input, fieldErrors.estimatedMinutes && styles.inputError]}
-              value={estimatedMinutes}
-              onChangeText={(text) => {
-                setEstimatedMinutes(text);
-                updateFieldError('estimatedMinutes', text);
-              }}
-              placeholder="20"
-              placeholderTextColor={Colors.text.secondary}
-              keyboardType="numeric"
-              maxLength={3}
-            />
-            {fieldErrors.estimatedMinutes && (
-              <Text style={styles.errorText}>{fieldErrors.estimatedMinutes}</Text>
-            )}
-          </View>
-
-          {/* Urgency Selection */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              <Zap size={16} color={Colors.text.primary} /> Urgency Level
-            </Text>
-            <View style={styles.urgencyContainer}>
-              {urgencyOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  style={[
-                    styles.urgencyOption,
-                    urgency === option.value && styles.urgencyOptionSelected
-                  ]}
-                  onPress={() => {
-                    setUrgency(option.value);
-                    updateFieldError('urgency', option.value);
-                    triggerHaptics();
-                  }}
-                >
-                  <Text style={[
-                    styles.urgencyOptionText,
-                    urgency === option.value && styles.urgencyOptionTextSelected
-                  ]}>
-                    {option.label}
+        <KeyboardAvoidingView 
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
+        >
+          <ScrollView 
+            style={styles.content} 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: 24 }
+            ]}
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets={false}
+          >
+            <View style={styles.form}>
+              {/* Prefilled Category Chip */}
+              {prefilledCategory && (
+                <View style={styles.prefilledChip}>
+                  <Text style={styles.prefilledChipText}>
+                    Prefilled from {categories.find(c => c.value === prefilledCategory)?.label}
                   </Text>
-                  {option.price > 0 && (
-                    <Text style={[
-                      styles.urgencyPrice,
-                      urgency === option.value && styles.urgencyPriceSelected
-                    ]}>
-                      +${(option.price / 100).toFixed(2)}
+                </View>
+              )}
+
+              {/* Submit Error */}
+              {submitError ? (
+                <View style={styles.submitErrorContainer}>
+                  <AlertCircle size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
+                  <Text style={styles.submitErrorText}>{submitError}</Text>
+                </View>
+              ) : null}
+
+              {/* Moderation Error */}
+              {moderationError ? (
+                <View style={styles.moderationErrorContainer}>
+                  <AlertCircle size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
+                  <Text style={styles.moderationErrorText}>{moderationError}</Text>
+                </View>
+              ) : null}
+
+              {/* Task Details Section */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Task Details</Text>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Task Title *</Text>
+                  <TextInput
+                    style={[styles.input, fieldErrors.title && styles.inputError]}
+                    value={title}
+                    onChangeText={(value) => {
+                      setTitle(value);
+                      updateFieldError('title', value);
+                    }}
+                    onBlur={() => updateFieldError('title', title)}
+                    placeholder="What do you need help with?"
+                    placeholderTextColor={Colors.semantic.tabInactive}
+                    editable={!isLoading}
+                    returnKeyType="done"
+                    accessibilityLabel="Task title"
+                  />
+                  {fieldErrors.title && (
+                    <Text style={styles.fieldError}>{fieldErrors.title}</Text>
+                  )}
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Description</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    value={description}
+                    onChangeText={setDescription}
+                    placeholder="Provide more details about the task..."
+                    placeholderTextColor={Colors.semantic.tabInactive}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                    editable={!isLoading}
+                    returnKeyType="done"
+                    accessibilityLabel="Task description"
+                  />
+                </View>
+
+                <CategorySelector />
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Store *</Text>
+                  <View style={styles.autocompleteContainer}>
+                    <GooglePlacesAutocomplete
+                      placeholder="Search for a store or restaurant..."
+                      onPress={(data, details = null) => {
+                        handlePlaceSelect(data, details, 'store');
+                      }}
+                      query={{
+                        key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY',
+                        language: 'en',
+                        location: '29.6436,-82.3549', // UF campus
+                        radius: 10000, // 10km radius
+                        types: 'establishment',
+                      }}
+                      fetchDetails={true}
+                      enablePoweredByContainer={false}
+                     predefinedPlaces={[]}
+                     predefinedPlacesAlwaysVisible={false}
+                     nearbyPlacesAPI="GooglePlacesSearch"
+                     GooglePlacesSearchQuery={{
+                       rankby: 'distance',
+                       type: 'establishment'
+                     }}
+                     listEmptyComponent={() => (
+                       <View style={styles.placesEmpty}>
+                         <Text style={styles.placesEmptyText}>
+                           {process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY' || !process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+                             ? 'Google Places API key not configured'
+                             : 'No places found'
+                           }
+                         </Text>
+                       </View>
+                     )}
+                      styles={{
+                        container: styles.placesContainer,
+                        textInputContainer: [
+                          styles.placesInputContainer,
+                          fieldErrors.store && styles.inputError
+                        ],
+                        textInput: styles.placesInput,
+                        listView: styles.placesList,
+                        row: styles.placesRow,
+                        description: styles.placesDescription,
+                        loader: styles.placesLoader,
+                      }}
+                      textInputProps={{
+                        placeholderTextColor: Colors.semantic.tabInactive,
+                        returnKeyType: 'done',
+                        editable: !isLoading,
+                      }}
+                      renderLeftButton={() => (
+                        <View style={styles.inputIcon}>
+                          <Store size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                        </View>
+                      )}
+                      renderRightButton={() => (
+                        isLoadingStore ? (
+                          <View style={styles.inputIcon}>
+                            <ActivityIndicator size="small" color={Colors.semantic.tabInactive} />
+                          </View>
+                        ) : null
+                      )}
+                      onFail={(error) => {
+                        console.error('Places API error:', error);
+                        setFieldErrors(prev => ({
+                          ...prev,
+                          store: 'Failed to load places. Please try again.'
+                        }));
+                      }}
+                     suppressDefaultStyles={false}
+                     keepResultsAfterBlur={false}
+                     debounce={200}
+                    />
+                  </View>
+                  {store && (
+                    <Text style={styles.selectedPlace}>
+                      Selected: {store.description}
                     </Text>
                   )}
-                </TouchableOpacity>
-              ))}
+                  {fieldErrors.store && (
+                    <Text style={styles.fieldError}>{fieldErrors.store}</Text>
+                  )}
+                </View>
+              </View>
+
+              {/* Drop-off Section */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Drop-off</Text>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Drop-off Address *</Text>
+                  <View style={styles.autocompleteContainer}>
+                    <GooglePlacesAutocomplete
+                      placeholder="Where should this be delivered?"
+                      onPress={(data, details = null) => {
+                        handlePlaceSelect(data, details, 'dropoff');
+                      }}
+                      query={{
+                        key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY',
+                        language: 'en',
+                        location: '29.6436,-82.3549', // UF campus
+                        radius: 10000, // 10km radius
+                      }}
+                      fetchDetails={true}
+                      enablePoweredByContainer={false}
+                     predefinedPlaces={[]}
+                     predefinedPlacesAlwaysVisible={false}
+                     nearbyPlacesAPI="GooglePlacesSearch"
+                     GooglePlacesSearchQuery={{
+                       rankby: 'distance'
+                     }}
+                     listEmptyComponent={() => (
+                       <View style={styles.placesEmpty}>
+                         <Text style={styles.placesEmptyText}>
+                           {process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY' || !process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+                             ? 'Google Places API key not configured'
+                             : 'No places found'
+                           }
+                         </Text>
+                       </View>
+                     )}
+                      styles={{
+                        container: styles.placesContainer,
+                        textInputContainer: [
+                          styles.placesInputContainer,
+                          fieldErrors.dropoffAddress && styles.inputError
+                        ],
+                        textInput: styles.placesInput,
+                        listView: styles.placesList,
+                        row: styles.placesRow,
+                        description: styles.placesDescription,
+                        loader: styles.placesLoader,
+                      }}
+                      textInputProps={{
+                        placeholderTextColor: Colors.semantic.tabInactive,
+                        returnKeyType: 'done',
+                        editable: !isLoading,
+                      }}
+                      renderLeftButton={() => (
+                        <View style={styles.inputIcon}>
+                          <MapPin size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                        </View>
+                      )}
+                      renderRightButton={() => (
+                        isLoadingDropoff ? (
+                          <View style={styles.inputIcon}>
+                            <ActivityIndicator size="small" color={Colors.semantic.tabInactive} />
+                          </View>
+                        ) : null
+                      )}
+                      onFail={(error) => {
+                        console.error('Places API error:', error);
+                        setFieldErrors(prev => ({
+                          ...prev,
+                          dropoffAddress: 'Failed to load places. Please try again.'
+                        }));
+                      }}
+                     suppressDefaultStyles={false}
+                     keepResultsAfterBlur={false}
+                     debounce={200}
+                    />
+                  </View>
+                  {dropoffAddress && (
+                    <Text style={styles.selectedPlace}>
+                      Selected: {dropoffAddress.description}
+                    </Text>
+                  )}
+                  {fieldErrors.dropoffAddress && (
+                    <Text style={styles.fieldError}>{fieldErrors.dropoffAddress}</Text>
+                  )}
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Drop-off Instructions</Text>
+                  <View style={styles.inputWithIcon}>
+                    <Package size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                    <TextInput
+                      style={styles.inputText}
+                      value={dropoffInstructions}
+                      onChangeText={setDropoffInstructions}
+                      placeholder="Any special delivery instructions?"
+                      placeholderTextColor={Colors.semantic.tabInactive}
+                      editable={!isLoading}
+                      returnKeyType="done"
+                      accessibilityLabel="Drop-off instructions"
+                    />
+                  </View>
+                </View>
+              </View>
+
+              {/* Timing & Urgency Section */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Timing & Urgency</Text>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Estimated Time *</Text>
+                  <View style={[styles.inputWithIcon, fieldErrors.estimatedMinutes && styles.inputError]}>
+                    <Clock size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                    <TextInput
+                      style={styles.inputText}
+                      value={estimatedMinutes}
+                      onChangeText={(value) => {
+                        setEstimatedMinutes(value);
+                        updateFieldError('estimatedMinutes', value);
+                      }}
+                      onBlur={() => updateFieldError('estimatedMinutes', estimatedMinutes)}
+                      placeholder="30"
+                      placeholderTextColor={Colors.semantic.tabInactive}
+                      keyboardType="number-pad"
+                      editable={!isLoading}
+                      returnKeyType="done"
+                      accessibilityLabel="Estimated time in minutes"
+                    />
+                  </View>
+                  <Text style={styles.helperText}>in minutes</Text>
+                  {fieldErrors.estimatedMinutes && (
+                    <Text style={styles.fieldError}>{fieldErrors.estimatedMinutes}</Text>
+                  )}
+                </View>
+
+                <UrgencySelector />
+              </View>
+
+              {/* Pricing Section */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Pricing</Text>
+                <PricingBreakdown />
+              </View>
+              
+              {/* Food Order Section */}
+              <FoodOrderSection />
             </View>
-            {fieldErrors.urgency && (
-              <Text style={styles.errorText}>{fieldErrors.urgency}</Text>
-            )}
+          </ScrollView>
+          
+          {/* Non-sticky Footer */}
+          <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                (!isFormValid() || isLoading) && styles.submitButtonDisabled
+              ]}
+              onPress={handleSubmit}
+              disabled={!isFormValid() || isLoading}
+              accessibilityLabel="Post Task"
+              accessibilityRole="button"
+            >
+              {isFormValid() && !isLoading ? (
+                <LinearGradient
+                  colors={['#0047FF', '#0021A5']}
+                  style={styles.submitButtonGradient}
+                >
+                  <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
+                  <Text style={styles.submitButtonText}>Post Task</Text>
+                </LinearGradient>
+              ) : (
+                <View style={styles.disabledButtonContent}>
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color={Colors.white} />
+                  ) : (
+                    <Text style={styles.disabledButtonText}>Post Task</Text>
+                  )}
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
-
-          {/* Price Display */}
-          <View style={styles.priceContainer}>
-            <Text style={styles.priceLabel}>Total Reward</Text>
-            <Text style={styles.priceValue}>
-              ${(computedPriceCents / 100).toFixed(2)}
-            </Text>
-          </View>
-
-          {/* Error Messages */}
-          {moderationError && (
-            <View style={styles.errorContainer}>
-              <AlertCircle size={16} color={Colors.error} />
-              <Text style={styles.errorMessage}>{moderationError}</Text>
-            </View>
-          )}
-
-          {submitError && (
-            <View style={styles.errorContainer}>
-              <AlertCircle size={16} color={Colors.error} />
-              <Text style={styles.errorMessage}>{submitError}</Text>
-            </View>
-          )}
-        </View>
-      </ScrollView>
-
-      {/* Submit Button */}
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
-        <TouchableOpacity
-          style={[
-            styles.submitButton,
-            !isFormValid() && styles.submitButtonDisabled
-          ]}
-          onPress={handleSubmit}
-          disabled={!isFormValid()}
-          accessibilityRole="button"
-          accessibilityLabel="Post task"
-        >
-          {isLoading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text style={styles.submitButtonText}>
-              Post Task • ${(computedPriceCents / 100).toFixed(2)}
-            </Text>
-          )}
-        </TouchableOpacity>
+        </KeyboardAvoidingView>
       </View>
 
-      {/* Modals */}
-      {showAuthPrompt && (
-        <AuthPrompt
-          visible={showAuthPrompt}
-          onClose={() => setShowAuthPrompt(false)}
-          message="Sign up to post tasks and start earning!"
-        />
-      )}
+      {/* Auth Prompt Modal */}
+      <AuthPrompt
+        visible={showAuthPrompt}
+        onClose={() => setShowAuthPrompt(false)}
+        title="Sign in to post tasks"
+        message="Create an account or sign in to post tasks and connect with other students."
+      />
 
-      {showSuccessSheet && lastCreatedTaskId && (
-        <TaskSuccessSheet
-          visible={showSuccessSheet}
-          onClose={() => {
-            setShowSuccessSheet(false);
-            router.back();
-          }}
-          taskId={lastCreatedTaskId}
-        />
-      )}
-
-      {showMenuBrowser && store && (
-        <MenuBrowser
-          visible={showMenuBrowser}
-          onClose={() => setShowMenuBrowser(false)}
-          storeName={store.description}
-        />
-      )}
+      {/* Success Sheet */}
+      <TaskSuccessSheet
+        visible={showSuccessSheet}
+        onClose={() => setShowSuccessSheet(false)}
+        taskId={lastCreatedTaskId}
+      />
+      
+      {/* Menu Browser Modal */}
+      <MenuBrowser
+        visible={showMenuBrowser}
+        onClose={() => setShowMenuBrowser(false)}
+      />
 
       {/* Toast */}
       <Toast
         visible={toast.visible}
         message={toast.message}
         type={toast.type}
-        onHide={() => setToast(prev => ({ ...prev, visible: false }))}
+        onHide={hideToast}
       />
-    </KeyboardAvoidingView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.primary,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 100,
+    backgroundColor: Colors.semantic.screen,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 16,
-    backgroundColor: Colors.background.primary,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border.light,
+    paddingVertical: 12,
+    backgroundColor: Colors.primary,
   },
-  closeButton: {
-    padding: 8,
-    marginLeft: -8,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.white + '33',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    flex: 1,
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.text.primary,
-    textAlign: 'center',
+    color: Colors.white,
   },
-  headerSpacer: {
+  placeholder: {
     width: 40,
   },
-  formContainer: {
-    padding: 16,
+  keyboardView: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  form: {
+    gap: 24,
+  },
+  section: {
+    gap: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.semantic.headingText,
+    marginBottom: 4,
   },
   inputGroup: {
-    marginBottom: 20,
+    gap: 8,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: 8,
+    color: Colors.semantic.bodyText,
   },
   input: {
     borderWidth: 1,
-    borderColor: Colors.border.light,
-    borderRadius: 12,
-    padding: 16,
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     fontSize: 16,
-    color: Colors.text.primary,
-    backgroundColor: Colors.background.secondary,
+    color: Colors.semantic.inputText,
+    backgroundColor: Colors.white,
+    minHeight: 44,
   },
   inputError: {
-    borderColor: Colors.error,
+    borderColor: Colors.semantic.errorAlert,
   },
   textArea: {
     height: 80,
-    textAlignVertical: 'top',
+    paddingTop: 16,
   },
-  errorText: {
-    color: Colors.error,
+  inputWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 12,
+    minHeight: 44,
+    backgroundColor: Colors.white,
+  },
+  inputText: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.semantic.inputText,
+  },
+  inputIcon: {
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  helperText: {
     fontSize: 14,
+    color: Colors.semantic.tabInactive,
     marginTop: 4,
   },
-  categoryScroll: {
-    marginHorizontal: -16,
-    paddingHorizontal: 16,
-  },
-  categoryChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.background.secondary,
-    borderWidth: 1,
-    borderColor: Colors.border.light,
-    marginRight: 8,
-  },
-  categoryChipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  categoryChipText: {
+  fieldError: {
     fontSize: 14,
-    color: Colors.text.primary,
+    color: Colors.semantic.errorAlert,
+    marginTop: 4,
+  },
+  
+  // Category Pills Grid
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  categoryPill: {
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: (width - 64) / 3 - 8, // 3 columns with gaps
+    maxWidth: (width - 64) / 2 - 6, // 2 columns fallback
+  },
+  activeCategoryPill: {
+    backgroundColor: '#0021A5',
+    borderColor: '#0021A5',
+  },
+  categoryPillText: {
+    fontSize: 14,
     fontWeight: '500',
+    color: Colors.semantic.bodyText,
+    textAlign: 'center',
   },
-  categoryChipTextSelected: {
-    color: 'white',
+  activeCategoryPillText: {
+    color: Colors.white,
+    fontWeight: '600',
   },
+
+  // Google Places Autocomplete
   autocompleteContainer: {
+    position: 'relative',
+    zIndex: 1,
+  },
+  placesContainer: {
     flex: 0,
   },
-  autocompleteList: {
-    backgroundColor: Colors.background.secondary,
-    borderRadius: 12,
-    marginTop: 4,
+  placesInputContainer: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    backgroundColor: Colors.white,
+    paddingHorizontal: 0,
   },
-  autocompleteRow: {
-    backgroundColor: Colors.background.secondary,
+  placesInput: {
+    fontSize: 16,
+    color: Colors.semantic.inputText,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    minHeight: 44,
+  },
+  placesList: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    backgroundColor: Colors.white,
+    maxHeight: 200,
+  },
+  placesRow: {
+    backgroundColor: Colors.white,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
-  autocompleteText: {
-    fontSize: 16,
-    color: Colors.text.primary,
-  },
-  menuButton: {
-    backgroundColor: Colors.primary,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  menuButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  urgencyContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  urgencyOption: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: Colors.background.secondary,
-    borderWidth: 1,
-    borderColor: Colors.border.light,
-    alignItems: 'center',
-  },
-  urgencyOptionSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  urgencyOptionText: {
+  placesDescription: {
     fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text.primary,
+    color: Colors.semantic.bodyText,
   },
-  urgencyOptionTextSelected: {
-    color: 'white',
+  placesLoader: {
+    backgroundColor: Colors.white,
+    paddingVertical: 16,
   },
-  urgencyPrice: {
+  placesEmpty: {
+    backgroundColor: Colors.white,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  placesEmptyText: {
+    fontSize: 14,
+    color: Colors.semantic.tabInactive,
+    textAlign: 'center',
+  },
+  selectedPlace: {
     fontSize: 12,
-    color: Colors.text.secondary,
-    marginTop: 2,
+    color: Colors.semantic.successAlert,
+    fontWeight: '500',
+    marginTop: 4,
   },
-  urgencyPriceSelected: {
-    color: 'rgba(255, 255, 255, 0.8)',
+
+  segmentedControl: {
+    flexDirection: 'row',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  priceContainer: {
-    backgroundColor: Colors.background.secondary,
-    padding: 16,
+  segment: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
     borderRadius: 12,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  activeSegment: {
+    backgroundColor: Colors.white,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  segmentText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.semantic.tabInactive,
+  },
+  activeSegmentText: {
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  pricingCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 16,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  pricingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
   },
-  priceLabel: {
+  pricingLabel: {
+    fontSize: 14,
+    color: Colors.semantic.tabInactive,
+  },
+  pricingValue: {
+    fontSize: 14,
+    color: Colors.semantic.bodyText,
+    fontWeight: '500',
+  },
+  pricingTotal: {
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingTop: 8,
+    marginTop: 4,
+  },
+  pricingTotalLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text.primary,
+    color: Colors.semantic.bodyText,
   },
-  priceValue: {
-    fontSize: 20,
+  pricingTotalValue: {
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.primary,
   },
-  errorContainer: {
+  submitErrorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background.error,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    gap: 8,
-  },
-  errorMessage: {
-    flex: 1,
-    color: Colors.error,
-    fontSize: 14,
-  },
-  footer: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 16,
     padding: 16,
-    backgroundColor: Colors.background.primary,
+    gap: 12,
+  },
+  submitErrorText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.semantic.errorAlert,
+    lineHeight: 20,
+  },
+  prefilledChip: {
+    backgroundColor: Colors.primary + '15',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  prefilledChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+
+  // Footer
+  footer: {
+    backgroundColor: Colors.semantic.screen,
+    paddingHorizontal: 16,
+    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: Colors.border.light,
+    borderTopColor: 'rgba(229, 231, 235, 0.5)',
   },
   submitButton: {
-    backgroundColor: Colors.primary,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+    borderRadius: 16,
+    overflow: 'hidden',
+    minHeight: 56,
+    shadowColor: '#0021A5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  submitButtonDisabled: {
-    backgroundColor: Colors.text.disabled,
+  submitButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    gap: 10,
+    minHeight: 56,
   },
   submitButtonText: {
-    color: 'white',
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.white,
+    letterSpacing: 0.5,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#E5E7EB',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  disabledButtonContent: {
+    paddingVertical: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 56,
+  },
+  disabledButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#9CA3AF',
+  },
+  moderationErrorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+    marginBottom: 16,
+  },
+  moderationErrorText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.semantic.errorAlert,
+    lineHeight: 20,
+  },
+  foodOrderCard: {
+    backgroundColor: Colors.semantic.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.semantic.cardBorder,
+  },
+  foodOrderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  foodOrderSummary: {
     fontSize: 16,
     fontWeight: '600',
+    color: Colors.semantic.bodyText,
+  },
+  editOrderButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  editOrderButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  addItemsCard: {
+    backgroundColor: Colors.primary + '10',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    gap: 8,
+  },
+  addItemsText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  addItemsSubtext: {
+    fontSize: 14,
+    color: Colors.semantic.tabInactive,
+    textAlign: 'center',
   },
 });

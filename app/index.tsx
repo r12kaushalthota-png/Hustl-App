@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Colors from '@/theme/colors';
+import { Colors } from '@/theme/colors';
 
 export default function IndexScreen() {
   const router = useRouter();

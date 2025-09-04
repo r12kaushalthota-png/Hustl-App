@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Clock, MapPin, Store, MessageCircle, Map as MapIcon, List as ListIcon, ChevronRight } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import Colors, { ColorUtils } from '@/theme/colors';
+import { Colors, ColorUtils } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { ChatService } from '@/lib/chat';
@@ -725,13 +725,18 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  loadingState: {
+    paddingHorizontal: 16,
+    paddingVertical: 40,
+    alignItems: 'center',
+  },
   loadingText: {
     fontSize: 16,
     color: Colors.semantic.tabInactive,
   },
   tasksList: {
     paddingHorizontal: 16,
-    paddingBottom: 100,
+    paddingBottom: 80 + 24,
   },
   taskCard: {
     backgroundColor: Colors.semantic.card,
@@ -936,10 +941,12 @@ const styles = StyleSheet.create({
     color: Colors.semantic.tabInactive,
   },
   emptyState: {
-    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 40,
+    paddingHorizontal: 40,
+    paddingVertical: 60,
+    paddingBottom: 80 + 24,
+    minHeight: 300,
     gap: 16,
   },
   emptyStateLogo: {

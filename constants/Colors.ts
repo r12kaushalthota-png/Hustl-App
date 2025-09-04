@@ -1,4 +1,3 @@
 // Re-export the new color system for backward compatibility
-import Colors, { ColorUtils } from '@/theme/colors';
-export { Colors, ColorUtils };
-export default Colors;
+export { Colors as default, ColorUtils } from '@/theme/colors';
+export * from '@/theme/colors';

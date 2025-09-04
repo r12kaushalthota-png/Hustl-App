@@ -14,7 +14,7 @@ import Animated, {
   interpolate
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import Colors from '@/theme/colors';
+import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/features/notifications/useNotifications';
 import NotificationBell from './NotificationBell';
@@ -425,7 +425,7 @@ export default function GlobalHeader({
               >
                 <View style={styles.logoContainer}>
                   <Image
-                    source={require('../assets/images/image.png')}
+                    source={require('../src/assets/images/image.png')}
                     style={styles.logo}
                     resizeMode="contain"
                   />
@@ -449,7 +449,7 @@ export default function GlobalHeader({
           </View>
         </View>
 
-          source={require('@/assets/images/image.png')}
+        <SearchModal
           visible={showSearchModal}
           onClose={() => setShowSearchModal(false)}
         />
@@ -477,7 +477,7 @@ export default function GlobalHeader({
             >
               <View style={styles.logoContainer}>
                 <Image
-                  source={require('../assets/images/image.png')}
+                  source={require('../src/assets/images/image.png')}
                   style={styles.logo}
                   resizeMode="contain"
                 />

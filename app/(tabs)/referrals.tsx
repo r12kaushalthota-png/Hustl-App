@@ -7,7 +7,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Copy, Share2, Gift, Users, DollarSign, Award, ExternalLink } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import Colors from '@/theme/colors';
+import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { GamificationRepo } from '@/lib/gamificationRepo';
 import GlobalHeader from '@/components/GlobalHeader';
@@ -114,9 +114,12 @@ export default function ReferralsScreen() {
           style={styles.content} 
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.scrollContent}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + (tabBarHeight || 24) + 16
+          }}
         >
-          <View style={styles.pageHeader}>
+          <View style={styles.header}>
             <Text style={styles.headerTitle}>Referrals</Text>
             <Text style={styles.headerSubtitle}>
               Earn credits by inviting friends to Hustl
@@ -248,17 +251,14 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  scrollContent: {
-    paddingBottom: 100, // Space for tab bar
-  },
-  pageHeader: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+  header: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
     alignItems: 'center',
     gap: 8,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
     color: Colors.semantic.headingText,
   },
@@ -270,9 +270,9 @@ const styles = StyleSheet.create({
   balanceCard: {
     backgroundColor: Colors.semantic.card,
     borderRadius: 24,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 16,
+    padding: 24,
+    marginHorizontal: 24,
+    marginBottom: 24,
     alignItems: 'center',
     gap: 12,
     shadowColor: '#000',
@@ -304,8 +304,8 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    paddingHorizontal: 24,
+    marginBottom: 32,
     gap: 12,
   },
   statCard: {
@@ -334,14 +334,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   section: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    paddingHorizontal: 24,
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: Colors.semantic.headingText,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   linkContainer: {
     flexDirection: 'row',
@@ -381,8 +381,8 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   inviteButtonContainer: {
-    marginHorizontal: 16,
-    marginBottom: 16,
+    marginHorizontal: 24,
+    marginBottom: 32,
   },
   inviteButtonGradient: {
     flexDirection: 'row',
@@ -436,8 +436,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    marginHorizontal: 16,
+    paddingVertical: 16,
+    marginHorizontal: 24,
     gap: 6,
   },
   termsText: {
