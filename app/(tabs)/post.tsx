@@ -380,6 +380,121 @@ function PostScreenContent() {
     return hasBasicFields && hasLocationFields && !hasErrors && !hasModerationError && !isLoading;
   };
 
+  const handleStoreSelect = (location: string) => {
+    setStore(location);
+    updateFieldError('store', location);
+    setShowStoreDropdown(false);
+  };
+
+  const handleDropoffSelect = (location: string) => {
+    setDropoffAddress(location);
+    updateFieldError('dropoffAddress', location);
+    setShowDropoffDropdown(false);
+  };
+
+  // Store Selection Modal Component
+  const StoreSelectionModal = () => (
+    <Modal
+      visible={showStoreDropdown}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowStoreDropdown(false)}
+    >
+      <TouchableOpacity 
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={() => setShowStoreDropdown(false)}
+      >
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Store</Text>
+            <TouchableOpacity 
+              style={styles.modalCloseButton}
+              onPress={() => setShowStoreDropdown(false)}
+            >
+              <X size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.modalList} showsVerticalScrollIndicator={false}>
+            {campusLocations.map((location) => (
+              <TouchableOpacity
+                key={location}
+                style={[
+                  styles.modalItem,
+                  (store && typeof store === 'string' && store === location) && styles.selectedModalItem
+                ]}
+                onPress={() => handleStoreSelect(location)}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  styles.modalItemText,
+                  (store && typeof store === 'string' && store === location) && styles.selectedModalItemText
+                ]}>
+                  {location}
+                </Text>
+                {(store && typeof store === 'string' && store === location) && (
+                  <Check size={16} color={Colors.primary} strokeWidth={2} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+
+  // Dropoff Selection Modal Component
+  const DropoffSelectionModal = () => (
+    <Modal
+      visible={showDropoffDropdown}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowDropoffDropdown(false)}
+    >
+      <TouchableOpacity 
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={() => setShowDropoffDropdown(false)}
+      >
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Drop-off Location</Text>
+            <TouchableOpacity 
+              style={styles.modalCloseButton}
+              onPress={() => setShowDropoffDropdown(false)}
+            >
+              <X size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.modalList} showsVerticalScrollIndicator={false}>
+            {dropoffLocations.map((location) => (
+              <TouchableOpacity
+                key={location}
+                style={[
+                  styles.modalItem,
+                  (dropoffAddress && typeof dropoffAddress === 'string' && dropoffAddress === location) && styles.selectedModalItem
+                ]}
+                onPress={() => handleDropoffSelect(location)}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  styles.modalItemText,
+                  (dropoffAddress && typeof dropoffAddress === 'string' && dropoffAddress === location) && styles.selectedModalItemText
+                ]}>
+                  {location}
+                </Text>
+                {(dropoffAddress && typeof dropoffAddress === 'string' && dropoffAddress === location) && (
+                  <Check size={16} color={Colors.primary} strokeWidth={2} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
 
   const handleSubmit = async () => {
     triggerHaptics();
@@ -922,6 +1037,12 @@ function PostScreenContent() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Store Selection Modal */}
+      <StoreSelectionModal />
+
+      {/* Dropoff Selection Modal */}
+      <DropoffSelectionModal />
 
       {/* Auth Prompt Modal */}
       <AuthPrompt
