@@ -12,6 +12,7 @@ import type { Task } from '@/services/tasks';
 import { TaskRepo } from '@/lib/taskRepo';
 import Toast from '@/components/Toast';
 import TasksMap, { TaskPin } from '@/components/TasksMap';
+import { supabase } from '@/lib/supabase';
 
 type TabType = 'available' | 'doing' | 'posts';
 type ViewMode = 'map' | 'list';
