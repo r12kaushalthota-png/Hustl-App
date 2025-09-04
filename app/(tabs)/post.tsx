@@ -148,26 +148,26 @@ interface PlaceData {
 }
 
 // Validation schema
-const validateField = (field: string, value: string | PlaceData | null): string => {
+const validateField = (field: string, value: string): string => {
   switch (field) {
     case 'title':
-      if (!value || typeof value !== 'string') return 'Task title is required';
+      if (!value) return 'Task title is required';
       if (value.trim().length < 3) return 'Title must be at least 3 characters';
       return '';
     case 'category':
       return !value ? 'Please select a category' : '';
     case 'store':
-      if (!value || typeof value !== 'string' || !value.trim()) {
+      if (!value || !value.trim()) {
         return 'Please select a store';
       }
       return '';
     case 'dropoffAddress':
-      if (!value || typeof value !== 'string' || !value.trim()) {
+      if (!value || !value.trim()) {
         return 'Please select a dropoff location';
       }
       return '';
     case 'estimatedMinutes':
-      if (!value || typeof value !== 'string') return 'Estimated time is required';
+      if (!value) return 'Estimated time is required';
       const minutes = Number(value);
       if (isNaN(minutes)) return 'Please enter a valid number';
       if (minutes < 5) return 'Minimum 5 minutes';
@@ -249,14 +249,12 @@ function PostScreenContent() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<string>('');
-  const [store, setStore] = useState<PlaceData | null>(null);
-  const [dropoffAddress, setDropoffAddress] = useState<PlaceData | null>(null);
+  const [store, setStore] = useState('');
+  const [dropoffAddress, setDropoffAddress] = useState('');
   const [dropoffInstructions, setDropoffInstructions] = useState('');
   const [urgency, setUrgency] = useState<string>('medium');
   const [estimatedMinutes, setEstimatedMinutes] = useState('');
   const [prefilledCategory, setPrefilledCategory] = useState<string | null>(null);
-  const [showStoreDropdown, setShowStoreDropdown] = useState(false);
-  const [showDropoffDropdown, setShowDropoffDropdown] = useState(false);
   
   // Computed pricing
   const [computedPriceCents, setComputedPriceCents] = useState(BASE_PRICE_CENTS + 100); // Base + medium urgency
@@ -306,11 +304,7 @@ function PostScreenContent() {
       setDropoffInstructions('');
       setFieldErrors({});
       setSubmitError('');
-      setShowStoreDropdown(false);
-      setShowDropoffDropdown(false);
       
-      // Show toast
-      const categoryLabel = categories.find(cat => cat.value === categoryParam)?.label || 'Category';
       setToast({
         visible: true,
         message: `Prefilled from ${categoryLabel}`,
@@ -349,7 +343,7 @@ function PostScreenContent() {
     }
   };
 
-  const updateFieldError = (field: string, value: string | PlaceData | null) => {
+  const updateFieldError = (field: string, value: string) => {
     const error = validateField(field, value);
     setFieldErrors(prev => ({
       ...prev,
@@ -372,10 +366,7 @@ function PostScreenContent() {
     // Check location fields for location-based categories
     const locationCategories = ['food', 'coffee', 'grocery'];
     const needsLocation = locationCategories.includes(category);
-    const hasLocationFields = !needsLocation || (
-      store && typeof store === 'string' && store.trim() &&
-      dropoffAddress && typeof dropoffAddress === 'string' && dropoffAddress.trim()
-    );
+    const hasLocationFields = !needsLocation || (store.trim() && dropoffAddress.trim());
     
     // Check if any field has validation errors
     const hasErrors = Object.values(fieldErrors).some(error => error);
@@ -386,123 +377,7 @@ function PostScreenContent() {
     return hasBasicFields && hasLocationFields && !hasErrors && !hasModerationError && !isLoading;
   };
 
-  const handleStoreSelect = (storeName: string) => {
-    setStore(storeName);
-    updateFieldError('store', storeName);
-    setShowStoreDropdown(false);
-    triggerHaptics();
-  };
 
-  const handleDropoffSelect = (location: string) => {
-    setDropoffAddress(location);
-    updateFieldError('dropoffAddress', location);
-    setShowDropoffDropdown(false);
-    triggerHaptics();
-  };
-
-  // Store Selection Modal Component
-  const StoreSelectionModal = () => (
-    <Modal
-      visible={showStoreDropdown}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setShowStoreDropdown(false)}
-    >
-      <TouchableOpacity 
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setShowStoreDropdown(false)}
-      >
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Store</Text>
-            <TouchableOpacity 
-              style={styles.modalCloseButton}
-              onPress={() => setShowStoreDropdown(false)}
-            >
-              <X size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView style={styles.modalList} showsVerticalScrollIndicator={false}>
-            {campusLocations.map((location) => (
-              <TouchableOpacity
-                key={location}
-                style={[
-                  styles.modalItem,
-                  (store && typeof store === 'string' && store === location) && styles.selectedModalItem
-                ]}
-                onPress={() => handleStoreSelect(location)}
-                activeOpacity={0.7}
-              >
-                <Text style={[
-                  styles.modalItemText,
-                  (store && typeof store === 'string' && store === location) && styles.selectedModalItemText
-                ]}>
-                  {location}
-                </Text>
-                {(store && typeof store === 'string' && store === location) && (
-                  <Check size={16} color={Colors.primary} strokeWidth={2} />
-                )}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-
-  // Dropoff Selection Modal Component
-  const DropoffSelectionModal = () => (
-    <Modal
-      visible={showDropoffDropdown}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setShowDropoffDropdown(false)}
-    >
-      <TouchableOpacity 
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setShowDropoffDropdown(false)}
-      >
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Drop-off Location</Text>
-            <TouchableOpacity 
-              style={styles.modalCloseButton}
-              onPress={() => setShowDropoffDropdown(false)}
-            >
-              <X size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView style={styles.modalList} showsVerticalScrollIndicator={false}>
-            {dropoffLocations.map((location) => (
-              <TouchableOpacity
-                key={location}
-                style={[
-                  styles.modalItem,
-                  (dropoffAddress && typeof dropoffAddress === 'string' && dropoffAddress === location) && styles.selectedModalItem
-                ]}
-                onPress={() => handleDropoffSelect(location)}
-                activeOpacity={0.7}
-              >
-                <Text style={[
-                  styles.modalItemText,
-                  (dropoffAddress && typeof dropoffAddress === 'string' && dropoffAddress === location) && styles.selectedModalItemText
-                ]}>
-                  {location}
-                </Text>
-                {(dropoffAddress && typeof dropoffAddress === 'string' && dropoffAddress === location) && (
-                  <Check size={16} color={Colors.primary} strokeWidth={2} />
-                )}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
   const handleSubmit = async () => {
     triggerHaptics();
     Keyboard.dismiss();
@@ -527,12 +402,8 @@ function PostScreenContent() {
     // Only validate store and dropoff for location-based categories
     const locationCategories = ['food', 'coffee', 'grocery'];
     if (locationCategories.includes(category)) {
-      if (!store || typeof store !== 'string' || !store.trim()) {
-        errors.store = 'Please select a store';
-      }
-      if (!dropoffAddress || typeof dropoffAddress !== 'string' || !dropoffAddress.trim()) {
-        errors.dropoffAddress = 'Please select a dropoff location';
-      }
+      errors.store = validateField('store', store);
+      errors.dropoffAddress = validateField('dropoffAddress', dropoffAddress);
     }
 
     // Remove empty errors
@@ -563,8 +434,8 @@ function PostScreenContent() {
         title: title.trim(),
         description: description.trim(),
         category: mapCategoryToDatabase(category),
-        store: store || '',
-        dropoff_address: dropoffAddress || '',
+        store: store.trim(),
+        dropoff_address: dropoffAddress.trim(),
         dropoff_instructions: dropoffInstructions.trim(),
         urgency: urgency as TaskUrgency,
         estimated_minutes: Number(estimatedMinutes),
@@ -894,25 +765,23 @@ function PostScreenContent() {
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Store *</Text>
-                  <TouchableOpacity
-                    style={[
-                      styles.dropdownButton,
-                      fieldErrors.store && styles.inputError,
-                      !isLoading && styles.dropdownButtonActive
-                    ]}
-                    onPress={() => setShowStoreDropdown(!showStoreDropdown)}
-                    disabled={isLoading}
-                    activeOpacity={0.7}
-                  >
+                  <View style={[styles.inputWithIcon, fieldErrors.store && styles.inputError]}>
                     <Store size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-                    <Text style={[
-                      styles.dropdownButtonText,
-                      (!store || typeof store !== 'string') && styles.placeholderText
-                    ]}>
-                      {(store && typeof store === 'string') ? store : 'Select a store or restaurant'}
-                    </Text>
-                    <Text style={styles.dropdownArrow}>▼</Text>
-                  </TouchableOpacity>
+                    <TextInput
+                      style={styles.inputText}
+                      value={store}
+                      onChangeText={(value) => {
+                        setStore(value);
+                        updateFieldError('store', value);
+                      }}
+                      onBlur={() => updateFieldError('store', store)}
+                      placeholder="e.g. Chick-fil-A, Starbucks, Chipotle"
+                      placeholderTextColor={Colors.semantic.tabInactive}
+                      editable={!isLoading}
+                      returnKeyType="done"
+                      accessibilityLabel="Store name"
+                    />
+                  </View>
                   
                   {fieldErrors.store && (
                     <Text style={styles.fieldError}>{fieldErrors.store}</Text>
@@ -926,25 +795,23 @@ function PostScreenContent() {
                 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Drop-off Address *</Text>
-                  <TouchableOpacity
-                    style={[
-                      styles.dropdownButton,
-                      fieldErrors.dropoffAddress && styles.inputError,
-                      !isLoading && styles.dropdownButtonActive
-                    ]}
-                    onPress={() => setShowDropoffDropdown(!showDropoffDropdown)}
-                    disabled={isLoading}
-                    activeOpacity={0.7}
-                  >
+                  <View style={[styles.inputWithIcon, fieldErrors.dropoffAddress && styles.inputError]}>
                     <MapPin size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-                    <Text style={[
-                      styles.dropdownButtonText,
-                      (!dropoffAddress || typeof dropoffAddress !== 'string') && styles.placeholderText
-                    ]}>
-                      {(dropoffAddress && typeof dropoffAddress === 'string') ? dropoffAddress : 'Select dropoff location'}
-                    </Text>
-                    <Text style={styles.dropdownArrow}>▼</Text>
-                  </TouchableOpacity>
+                    <TextInput
+                      style={styles.inputText}
+                      value={dropoffAddress}
+                      onChangeText={(value) => {
+                        setDropoffAddress(value);
+                        updateFieldError('dropoffAddress', value);
+                      }}
+                      onBlur={() => updateFieldError('dropoffAddress', dropoffAddress)}
+                      placeholder="e.g. Broward Hall, Library West, Reitz Union"
+                      placeholderTextColor={Colors.semantic.tabInactive}
+                      editable={!isLoading}
+                      returnKeyType="done"
+                      accessibilityLabel="Drop-off address"
+                    />
+                  </View>
                   
                   {fieldErrors.dropoffAddress && (
                     <Text style={styles.fieldError}>{fieldErrors.dropoffAddress}</Text>
@@ -1009,12 +876,6 @@ function PostScreenContent() {
               </View>
               
               {/* Food Order Section */}
-              <FoodOrderSection />
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
-      
       {/* Fixed Footer - Always Visible Above Tab Bar */}
       <View style={[
         styles.stickyFooter,
@@ -1571,70 +1432,5 @@ const styles = StyleSheet.create({
   dropdownArrow: {
     fontSize: 12,
     color: Colors.semantic.tabInactive,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  modalContent: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 400,
-    maxHeight: '70%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.semantic.divider,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.semantic.headingText,
-  },
-  modalCloseButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.muted,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalList: {
-    maxHeight: 400,
-  },
-  modalItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.semantic.divider,
-  },
-  selectedModalItem: {
-    backgroundColor: Colors.primary + '10',
-  },
-  modalItemText: {
-    fontSize: 16,
-    color: Colors.semantic.bodyText,
-    flex: 1,
-  },
-  selectedModalItemText: {
-    color: Colors.primary,
-    fontWeight: '600',
   },
 });
