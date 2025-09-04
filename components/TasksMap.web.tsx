@@ -29,24 +29,26 @@ export default function TasksMap({
   onRequestLocation
 }: TasksMapProps) {
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <MapPin size={48} color={Colors.semantic.tabInactive} strokeWidth={1.5} />
-        </View>
-        
-        <Text style={styles.title}>Map View</Text>
-        <Text style={styles.subtitle}>
-          Interactive maps are available on mobile devices. Switch to List view to browse all available tasks.
-        </Text>
-        
-        {pins.length > 0 && (
-          <Text style={styles.taskCount}>
-            {pins.length} task{pins.length !== 1 ? 's' : ''} available
+    <React.Fragment>
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.iconContainer}>
+            <MapPin size={48} color={Colors.semantic.tabInactive} strokeWidth={1.5} />
+          </View>
+          
+          <Text style={styles.title}>Map View</Text>
+          <Text style={styles.subtitle}>
+            Interactive maps are available on mobile devices. Switch to List view to browse all available tasks.
           </Text>
-        )}
+          
+          {pins.length > 0 && (
+            <Text style={styles.taskCount}>
+              {pins.length} task{pins.length !== 1 ? 's' : ''} available
+            </Text>
+          )}
+        </View>
       </View>
-    </View>
+    </React.Fragment>
   );
 }
 
