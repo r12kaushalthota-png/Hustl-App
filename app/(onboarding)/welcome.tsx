@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronRight, MapPin } from 'lucide-react-native';
@@ -222,7 +222,7 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Clean gradient background */}
       <LinearGradient
         colors={['#0021A5', '#FA4616']}
@@ -288,7 +288,7 @@ export default function WelcomeScreen() {
           </TouchableOpacity>
         </View>
       </Animated.View>
-    </SafeAreaView>
+    </View>
   );
 }
 
