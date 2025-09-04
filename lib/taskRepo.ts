@@ -148,7 +148,6 @@ export class TaskRepo {
           status: 'accepted',
           task_current_status: 'accepted',
           accepted_by: userId,
-          assignee_id: userId,
           accepted_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
