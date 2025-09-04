@@ -785,7 +785,8 @@ function PostScreenContent() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <>
+      <SafeAreaView style={styles.container}>
       <View style={[styles.innerContainer, { paddingTop: insets.top }]}>
         {/* Header */}
         <View style={styles.header}>
@@ -1072,7 +1073,8 @@ function PostScreenContent() {
         type={toast.type}
         onHide={hideToast}
       />
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   );
 }
 
