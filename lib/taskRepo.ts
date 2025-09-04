@@ -141,29 +141,7 @@ export class TaskRepo {
    */
   static async acceptTask(taskId: string, userId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
-      // First check if task is still available
-      const { data: task, error: fetchError } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('id', taskId)
-        .eq('status', 'open')
-        .limit(1);
-
-      if (fetchError) {
-        return { data: null, error: fetchError.message };
-      }
-
-      const availableTask = task?.[0] ?? null;
-      if (!availableTask) {
-        return { data: null, error: 'Task is no longer available or cannot be accepted' };
-      }
-
-      // Prevent self-acceptance
-      if (availableTask.created_by === userId) {
-        return { data: null, error: 'You cannot accept your own task' };
-      }
-
-      // Update task to accepted status
+      // Use atomic update with proper conditions to prevent race conditions
       const { data: updatedTask, error: updateError } = await supabase
         .from('tasks')
         .update({
@@ -175,7 +153,9 @@ export class TaskRepo {
           updated_at: new Date().toISOString(),
         })
         .eq('id', taskId)
-        .eq('status', 'open') // Only update if still open
+        .eq('status', 'open')
+        .neq('created_by', userId) // Prevent self-acceptance
+        .is('accepted_by', null) // Only if not already accepted
         .select()
         .limit(1);
 
@@ -185,7 +165,31 @@ export class TaskRepo {
 
       const acceptedTask = updatedTask?.[0] ?? null;
       if (!acceptedTask) {
-        return { data: null, error: 'Task was already accepted by another user' };
+        // Check why the update failed
+        const { data: checkTask } = await supabase
+          .from('tasks')
+          .select('status, created_by, accepted_by')
+          .eq('id', taskId)
+          .limit(1);
+        
+        const currentTask = checkTask?.[0];
+        if (!currentTask) {
+          return { data: null, error: 'Task not found' };
+        }
+        
+        if (currentTask.created_by === userId) {
+          return { data: null, error: 'You cannot accept your own task' };
+        }
+        
+        if (currentTask.status !== 'open') {
+          return { data: null, error: 'Task is no longer available' };
+        }
+        
+        if (currentTask.accepted_by) {
+          return { data: null, error: 'Task was already accepted by another user' };
+        }
+        
+        return { data: null, error: 'Unable to accept task. Please try again.' };
       }
 
       return { data: acceptedTask, error: null };

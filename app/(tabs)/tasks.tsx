@@ -186,6 +186,7 @@ export default function TasksScreen() {
     setError('');
 
     try {
+      console.log('Attempting to accept task:', task.id, 'by user:', user.id);
       const result = await TaskRepo.acceptTask(task.id, user.id);
 
       if (result.error) {
@@ -197,7 +198,9 @@ export default function TasksScreen() {
         });
         
         // Remove task from available list if it's no longer available
-        if (result.error.includes('no longer available') || result.error.includes('already accepted')) {
+        if (result.error.includes('no longer available') || 
+            result.error.includes('already accepted') || 
+            result.error.includes('Task not found')) {
           setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
         }
         
@@ -220,6 +223,11 @@ export default function TasksScreen() {
         
         // Switch to "You're Doing" tab to show the accepted task
         setActiveTab('doing');
+        
+        // Reload tasks to ensure fresh data
+        setTimeout(() => {
+          loadTasks();
+        }, 1000);
       }
     } catch (error) {
       console.error('Task acceptance exception:', error); // Debug logging
