@@ -289,13 +289,19 @@ function PostScreenContent() {
       urgency,
     };
 
-    // Check if all required fields have values
-    const hasAllValues = title.trim().length >= 3 &&
+    // Check basic required fields
+    const hasBasicFields = title.trim().length >= 3 &&
       category &&
-      store?.place_id &&
-      dropoffAddress?.place_id &&
       estimatedMinutes.trim() &&
       urgency;
+    
+    // For location-based categories, require store and dropoff
+    const locationCategories = ['food', 'coffee', 'grocery'];
+    if (locationCategories.includes(category)) {
+      if (!store?.place_id || !dropoffAddress?.place_id) {
+        return false;
+      }
+    }
     
     // For food category, require at least one item in cart
     if (category === 'food') {
@@ -311,7 +317,7 @@ function PostScreenContent() {
     // Check for moderation errors
     const hasModerationError = moderationError.length > 0;
     
-    return hasAllValues && !hasErrors && !hasModerationError && !isLoading;
+    return hasBasicFields && !hasErrors && !hasModerationError && !isLoading;
   };
 
   const handlePlaceSelect = async (
@@ -720,7 +726,7 @@ function PostScreenContent() {
                         handlePlaceSelect(data, details, 'store');
                       }}
                       query={{
-                        key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY',
+                        key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'demo-key',
                         language: 'en',
                         location: '29.6436,-82.3549', // UF campus
                         radius: 10000, // 10km radius
@@ -738,7 +744,7 @@ function PostScreenContent() {
                      listEmptyComponent={() => (
                        <View style={styles.placesEmpty}>
                          <Text style={styles.placesEmptyText}>
-                           {process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY' || !process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+                           {process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY === 'demo-key' || !process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
                              ? 'Google Places API key not configured'
                              : 'No places found'
                            }
@@ -786,11 +792,21 @@ function PostScreenContent() {
                      debounce={200}
                     />
                   </View>
-                  {store && (
-                    <Text style={styles.selectedPlace}>
-                      Selected: {store.description}
+                  <TouchableOpacity
+                    style={styles.manualStoreButton}
+                    onPress={() => {
+                      const manualStore = {
+                        place_id: 'manual_store',
+                        description: 'Manual Store Entry',
+                      };
+                      setStore(manualStore);
+                      updateFieldError('store', manualStore);
+                    }}
+                  >
+                    <Text style={styles.manualStoreText}>
+                      {store ? `Selected: ${store.description}` : 'Or tap to enter store manually'}
                     </Text>
-                  )}
+                  </TouchableOpacity>
                   {fieldErrors.store && (
                     <Text style={styles.fieldError}>{fieldErrors.store}</Text>
                   )}
@@ -810,7 +826,7 @@ function PostScreenContent() {
                         handlePlaceSelect(data, details, 'dropoff');
                       }}
                       query={{
-                        key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY',
+                        key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'demo-key',
                         language: 'en',
                         location: '29.6436,-82.3549', // UF campus
                         radius: 10000, // 10km radius
@@ -826,7 +842,7 @@ function PostScreenContent() {
                      listEmptyComponent={() => (
                        <View style={styles.placesEmpty}>
                          <Text style={styles.placesEmptyText}>
-                           {process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY' || !process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+                           {process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY === 'demo-key' || !process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
                              ? 'Google Places API key not configured'
                              : 'No places found'
                            }
@@ -874,11 +890,21 @@ function PostScreenContent() {
                      debounce={200}
                     />
                   </View>
-                  {dropoffAddress && (
-                    <Text style={styles.selectedPlace}>
-                      Selected: {dropoffAddress.description}
+                  <TouchableOpacity
+                    style={styles.manualDropoffButton}
+                    onPress={() => {
+                      const manualDropoff = {
+                        place_id: 'manual_dropoff',
+                        description: 'Manual Dropoff Entry',
+                      };
+                      setDropoffAddress(manualDropoff);
+                      updateFieldError('dropoffAddress', manualDropoff);
+                    }}
+                  >
+                    <Text style={styles.manualDropoffText}>
+                      {dropoffAddress ? `Selected: ${dropoffAddress.description}` : 'Or tap to enter address manually'}
                     </Text>
-                  )}
+                  </TouchableOpacity>
                   {fieldErrors.dropoffAddress && (
                     <Text style={styles.fieldError}>{fieldErrors.dropoffAddress}</Text>
                   )}
@@ -1223,11 +1249,31 @@ const styles = StyleSheet.create({
     color: Colors.semantic.tabInactive,
     textAlign: 'center',
   },
-  selectedPlace: {
+  manualStoreButton: {
+    backgroundColor: Colors.muted,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 8,
+  },
+  manualStoreText: {
     fontSize: 12,
-    color: Colors.semantic.successAlert,
+    color: Colors.primary,
     fontWeight: '500',
-    marginTop: 4,
+    textAlign: 'center',
+  },
+  manualDropoffButton: {
+    backgroundColor: Colors.muted,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 8,
+  },
+  manualDropoffText: {
+    fontSize: 12,
+    color: Colors.primary,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 
   segmentedControl: {
