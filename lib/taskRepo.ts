@@ -361,44 +361,8 @@ export class TaskRepo {
         return '#10B981'; // Green
       case 'completed':
         return '#059669'; // Dark green
-    // First check if task is still available
-    const { data: task, error: fetchError } = await supabase
-      .from('tasks')
-      .select('status, task_current_status')
-      .eq('id', taskId)
-      .single();
-
-    if (fetchError) {
-      console.error('Error fetching task:', fetchError);
-      return { success: false, error: 'Failed to fetch task details' };
-    }
-
-    if (!task || task.status !== 'open' || task.task_current_status !== 'posted') {
-      return { success: false, error: 'This task is no longer available. It may have been accepted by another user.' };
-    }
-
-    // Update task to accepted status
-    const { error } = await supabase
-      .from('tasks')
-      .update({
-        status: 'accepted',
-        task_current_status: 'accepted',
-        accepted_by: (await supabase.auth.getUser()).data.user?.id,
-        assignee_id: (await supabase.auth.getUser()).data.user?.id,
-        accepted_at: new Date().toISOString()
-      })
-      .eq('id', taskId)
-      .eq('status', 'open') // Only update if still open
-      .eq('task_current_status', 'posted'); // Only update if still posted
+      default:
         return '#6B7280'; // Gray
     }
-      console.error('Error updating task:', error);
-      return { success: false, error: 'Failed to accept task. It may have been accepted by another user.' };
-    
-    if (currentIndex === -1 || currentIndex === statusFlow.length - 1) {
-      return null; // Invalid status or already at final status
-    }
-    
-    return statusFlow[currentIndex + 1];
   }
 }
