@@ -556,7 +556,7 @@ export default function TasksScreen() {
     return (
       <View style={styles.emptyState}>
         <Image
-          source={require('@/assets/images/image.png')}
+          source={require('@assets/images/image.png')}
           style={styles.emptyStateLogo}
           resizeMode="contain"
         />

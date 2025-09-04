@@ -23,7 +23,7 @@ export default function UniversityScreen() {
         <View style={styles.headerRow}>
           <View style={styles.placeholder} />
           <Image
-            source={require('@/assets/images/image.png')}
+            source={require('@assets/images/image.png')}
             style={styles.logo}
             resizeMode="contain"
           />
