@@ -411,6 +411,27 @@ function PostScreenContent() {
       
       // Clear form for next use
       clearForm();
+    } catch (error) {
+      console.error('Error creating task:', error);
+      setSubmitError("Couldn't post your task. Try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const clearForm = () => {
+    setTitle('');
+    setDescription('');
+    setCategory('');
+    setStore(null);
+    setDropoffAddress(null);
+    setDropoffInstructions('');
+    setUrgency('medium');
+    setEstimatedMinutes('');
+    setFieldErrors({});
+    setSubmitError('');
+    setModerationError('');
+    clearCart();
     }
   }
 }
