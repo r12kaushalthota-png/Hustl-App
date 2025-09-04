@@ -84,7 +84,7 @@ export function FoodOrderProvider({ children }: { children: ReactNode }) {
 
     return {
       restaurant: selectedRestaurant,
-      id: `${item.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // Unique cart item ID
+      items: cartItems,
       subtotal: totals.subtotal,
       fees,
       tax: totals.tax,

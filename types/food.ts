@@ -56,6 +56,7 @@ export interface CartItem {
 export interface FoodOrder {
   restaurant: string;
   items: CartItem[];
+  items: CartItem[];
   subtotal: number;
   fees: number;
   tax: number;
