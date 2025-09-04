@@ -272,6 +272,8 @@ function PostScreenContent() {
   const [isLoadingStore, setIsLoadingStore] = useState(false);
   const [isLoadingDropoff, setIsLoadingDropoff] = useState(false);
   const [moderationError, setModerationError] = useState('');
+  const [showStoreDropdown, setShowStoreDropdown] = useState(false);
+  const [showDropoffDropdown, setShowDropoffDropdown] = useState(false);
 
   // Toast state
   const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>({
@@ -289,6 +291,7 @@ function PostScreenContent() {
     const categoryParam = params.category as string;
     if (categoryParam && categoryParam !== prefilledCategory) {
       const defaults = getCategoryDefaults(categoryParam);
+      const categoryLabel = categories.find(c => c.value === categoryParam)?.label || categoryParam;
       
       // Prefill form with category defaults
       setTitle(defaults.title);
@@ -876,6 +879,12 @@ function PostScreenContent() {
               </View>
               
               {/* Food Order Section */}
+              <FoodOrderSection />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
+      
       {/* Fixed Footer - Always Visible Above Tab Bar */}
       <View style={[
         styles.stickyFooter,
