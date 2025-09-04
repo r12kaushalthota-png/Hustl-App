@@ -22,28 +22,28 @@ const universities: UniversityCard[] = [
     name: 'University of Florida', 
     shortName: 'UF', 
     enabled: true,
-    logo: require('@/assets/images/Florida_Gators_gator_logo.png')
+    logo: require('@assets/images/Florida_Gators_gator_logo.png')
   },
   { 
     id: 'ucf', 
     name: 'University of Central Florida', 
     shortName: 'UCF', 
     enabled: false,
-    logo: require('@/assets/images/141-1415685_ucf-university-of-central-florida-logo.jpg')
+    logo: require('@assets/images/141-1415685_ucf-university-of-central-florida-logo.jpg')
   },
   { 
     id: 'usf', 
     name: 'University of South Florida', 
     shortName: 'USF', 
     enabled: false,
-    logo: require('@/assets/images/UniversityOfSouthFlorida-logo-350x350.jpg')
+    logo: require('@assets/images/UniversityOfSouthFlorida-logo-350x350.jpg')
   },
   { 
     id: 'fsu', 
     name: 'Florida State University', 
     shortName: 'FSU', 
     enabled: false,
-    logo: require('@/assets/images/Florida_State_Seminoles_logo.png')
+    logo: require('@assets/images/Florida_State_Seminoles_logo.png')
   },
 ];
 
@@ -148,7 +148,7 @@ export default function UniversitySelection() {
         >
           <Animated.View style={[styles.logoContainer, animatedLogoStyle]}>
             <Image
-              source={require('@assets/images/Florida_Gators_gator_logo.png')}
+              source={university.logo}
               style={styles.universityLogo}
               resizeMode="contain"
             />
