@@ -141,11 +141,10 @@ export class TaskRepo {
    */
   static async acceptTask(taskId: string, userId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
-      console.log('Calling accept_task RPC with:', { p_task_id: taskId, p_user_id: userId });
+      console.log('Calling accept_task RPC with:', { task_id: taskId });
       
       const { data, error } = await supabase.rpc('accept_task', { 
-        p_task_id: taskId,
-        p_user_id: userId
+        task_id: taskId
       });
 
       if (error) {
