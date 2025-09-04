@@ -197,10 +197,10 @@ export default function TasksScreen() {
           type: 'error'
         });
         
-        // Remove task from available list if it's no longer available
+        // Remove task from available list if it's no longer available or already accepted
         if (result.error.includes('no longer available') || 
             result.error.includes('already accepted') || 
-            result.error.includes('Task not found')) {
+            result.error.includes('not found')) {
           setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
         }
         
@@ -224,10 +224,12 @@ export default function TasksScreen() {
         // Switch to "You're Doing" tab to show the accepted task
         setActiveTab('doing');
         
-        // Reload tasks to ensure fresh data
-        setTimeout(() => {
-          loadTasks();
-        }, 1000);
+        // Refresh available tasks to remove accepted task from other users' views
+        if (activeTab === 'available') {
+          setTimeout(() => {
+            loadTasks();
+          }, 500);
+        }
       }
     } catch (error) {
       console.error('Task acceptance exception:', error); // Debug logging

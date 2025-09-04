@@ -137,63 +137,43 @@ export class TaskRepo {
 
   /**
    * Accept a task using atomic RPC function
-   * Safe pattern: uses RPC for atomic operation, no race conditions
+   * Uses atomic RPC function to prevent race conditions
    */
   static async acceptTask(taskId: string, userId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
-      // Use atomic update with proper conditions to prevent race conditions
-      const { data: updatedTask, error: updateError } = await supabase
-        .from('tasks')
-        .update({
-          status: 'accepted',
-          task_current_status: 'accepted',
-          accepted_by: userId,
-          accepted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', taskId)
-        .eq('status', 'open')
-        .neq('created_by', userId) // Prevent self-acceptance
-        .is('accepted_by', null) // Only if not already accepted
-        .select()
-        .limit(1);
+      console.log('Calling accept_task RPC with:', { taskId, userId });
+      
+      const { data, error } = await supabase.rpc('accept_task', { 
+        p_task_id: taskId,
+        p_user_id: userId
+      });
 
-      if (updateError) {
-        return { data: null, error: updateError.message };
-      }
-
-      const acceptedTask = updatedTask?.[0] ?? null;
-      if (!acceptedTask) {
-        // Check why the update failed
-        const { data: checkTask } = await supabase
-          .from('tasks')
-          .select('status, created_by, accepted_by')
-          .eq('id', taskId)
-          .limit(1);
+      if (error) {
+        console.error('accept_task RPC error:', error);
         
-        const currentTask = checkTask?.[0];
-        if (!currentTask) {
-          return { data: null, error: 'Task not found' };
-        }
-        
-        if (currentTask.created_by === userId) {
-          return { data: null, error: 'You cannot accept your own task' };
-        }
-        
-        if (currentTask.status !== 'open') {
-          return { data: null, error: 'Task is no longer available' };
-        }
-        
-        if (currentTask.accepted_by) {
+        // Handle specific error cases
+        if (error.message.includes('TASK_ALREADY_ACCEPTED')) {
           return { data: null, error: 'Task was already accepted by another user' };
+        } else if (error.message.includes('TASK_NOT_FOUND')) {
+          return { data: null, error: 'Task not found' };
+        } else if (error.message.includes('CANNOT_ACCEPT_OWN_TASK')) {
+          return { data: null, error: 'You cannot accept your own task' };
+        } else if (error.message.includes('TASK_NOT_OPEN')) {
+          return { data: null, error: 'Task is no longer available' };
+        } else {
+          return { data: null, error: 'Unable to accept task. Please try again.' };
         }
-        
-        return { data: null, error: 'Unable to accept task. Please try again.' };
       }
 
+      const acceptedTask = data?.[0] ?? null;
+      if (!acceptedTask) {
+        return { data: null, error: 'Task acceptance failed. Please try again.' };
+      }
+
+      console.log('Task accepted successfully:', acceptedTask);
       return { data: acceptedTask, error: null };
     } catch (error) {
-      console.error('accept_task network error:', error);
+      console.error('accept_task exception:', error);
       return { data: null, error: 'Network error. Please check your connection.' };
     }
   }
