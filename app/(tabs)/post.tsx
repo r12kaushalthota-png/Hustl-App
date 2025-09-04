@@ -10,10 +10,12 @@ import {
   KeyboardAvoidingView, 
   ActivityIndicator,
   Keyboard,
-  Dimensions
+  Dimensions,
+  SafeAreaView
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { X, MapPin, Clock, Store, Package, Zap, CircleAlert as AlertCircle } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -160,6 +162,7 @@ function PostScreenContent() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const { user, isGuest } = useAuth();
   const { getCartSummary, getFinalOrder, clearCart } = useFoodOrder();
   
@@ -199,7 +202,8 @@ function PostScreenContent() {
   });
 
   // Calculate footer height for ScrollView padding
-  const FOOTER_HEIGHT = 80; // Approximate height of footer + padding
+  const FOOTER_HEIGHT = 80; // Height of sticky footer
+  const TOTAL_BOTTOM_SPACE = FOOTER_HEIGHT + tabBarHeight + insets.bottom + 24;
 
   // Handle category prefilling from navigation params
   useEffect(() => {
@@ -611,9 +615,9 @@ function PostScreenContent() {
   };
 
   return (
-    <>
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        {/* Single Header */}
+    <SafeAreaView style={styles.container}>
+      <View style={[styles.innerContainer, { paddingTop: insets.top }]}>
+        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <X size={24} color={Colors.white} strokeWidth={2} />
@@ -625,14 +629,14 @@ function PostScreenContent() {
         <KeyboardAvoidingView 
           style={styles.keyboardView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 20}
         >
           <ScrollView 
             style={styles.content} 
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[
               styles.scrollContent,
-              { paddingBottom: FOOTER_HEIGHT + insets.bottom + 24 }
+              { paddingBottom: TOTAL_BOTTOM_SPACE }
             ]}
             keyboardShouldPersistTaps="handled"
             automaticallyAdjustKeyboardInsets={false}
@@ -942,38 +946,44 @@ function PostScreenContent() {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-        
-        {/* Sticky Footer */}
-        <View style={[styles.stickyFooter, { paddingBottom: insets.bottom + 16 }]}>
-          <TouchableOpacity
-            style={[
-              styles.submitButton,
-              (!isFormValid() || isLoading) && styles.submitButtonDisabled
-            ]}
-            onPress={handleSubmit}
-            disabled={!isFormValid() || isLoading}
-            accessibilityLabel="Post Task"
-            accessibilityRole="button"
-          >
-            {isFormValid() && !isLoading ? (
-              <LinearGradient
-                colors={['#0047FF', '#0021A5']}
-                style={styles.submitButtonGradient}
-              >
-                <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
-                <Text style={styles.submitButtonText}>Post Task</Text>
-              </LinearGradient>
-            ) : (
-              <View style={styles.disabledButtonContent}>
-                {isLoading ? (
-                  <ActivityIndicator size="small" color={Colors.white} />
-                ) : (
-                  <Text style={styles.disabledButtonText}>Post Task</Text>
-                )}
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
+      </View>
+      
+      {/* Fixed Footer - Always Visible Above Tab Bar */}
+      <View style={[
+        styles.stickyFooter,
+        {
+          bottom: tabBarHeight + insets.bottom + 8,
+          paddingBottom: 16,
+        }
+      ]}>
+        <TouchableOpacity
+          style={[
+            styles.submitButton,
+            (!isFormValid() || isLoading) && styles.submitButtonDisabled
+          ]}
+          onPress={handleSubmit}
+          disabled={!isFormValid() || isLoading}
+          accessibilityLabel="Post Task"
+          accessibilityRole="button"
+        >
+          {isFormValid() && !isLoading ? (
+            <LinearGradient
+              colors={['#0047FF', '#0021A5']}
+              style={styles.submitButtonGradient}
+            >
+              <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
+              <Text style={styles.submitButtonText}>Post Task</Text>
+            </LinearGradient>
+          ) : (
+            <View style={styles.disabledButtonContent}>
+              {isLoading ? (
+                <ActivityIndicator size="small" color={Colors.white} />
+              ) : (
+                <Text style={styles.disabledButtonText}>Post Task</Text>
+              )}
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       {/* Auth Prompt Modal */}
@@ -1004,12 +1014,15 @@ function PostScreenContent() {
         type={toast.type}
         onHide={hideToast}
       />
-    </>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  innerContainer: {
     flex: 1,
     backgroundColor: Colors.semantic.screen,
   },
@@ -1319,22 +1332,22 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
 
-  // Sticky Footer
+  // Fixed Footer - Always Above Tab Bar
   stickyFooter: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: Colors.semantic.screen,
+    backgroundColor: Colors.white,
     paddingHorizontal: 20,
     paddingTop: 16,
-    borderTopWidth: 0.5,
-    borderTopColor: 'rgba(229, 231, 235, 0.6)',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(229, 231, 235, 0.3)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 1000,
+    zIndex: 1000,
   },
   submitButton: {
     borderRadius: 16,
