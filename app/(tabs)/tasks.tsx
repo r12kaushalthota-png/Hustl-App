@@ -259,6 +259,16 @@ export default function TasksScreen() {
           // Remove from available list and refresh
           setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
           setTimeout(() => loadTasks(), 500);
+        } else if (result.error.includes('task_not_posted')) {
+          setToast({
+            visible: true,
+            message: 'Task is no longer available or has been removed.',
+            type: 'error'
+          });
+          
+          // Remove from available list and refresh
+          setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
+          setTimeout(() => loadTasks(), 500);
         } else {
           setToast({
             visible: true,
