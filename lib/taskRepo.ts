@@ -231,13 +231,6 @@ export class TaskRepo {
    */
   static async updateTaskStatus(data: UpdateTaskStatusData): Promise<{ data: any | null; error: string | null }> {
     try {
-      console.log('Updating task status with:', {
-        taskId: data.taskId,
-        newStatus: data.newStatus,
-        note: data.note,
-        photoUrl: data.photoUrl
-      });
-      
       const { data: result, error } = await supabase.rpc('update_task_status', {
         p_task_id: data.taskId,
         p_new_status: data.newStatus,
@@ -246,7 +239,6 @@ export class TaskRepo {
       });
 
       if (error) {
-        console.error('RPC error:', error);
         return { data: null, error: error.message };
       }
 
@@ -265,19 +257,29 @@ export class TaskRepo {
    */
   static async getTaskStatusHistory(taskId: string): Promise<{ data: TaskStatusHistory[] | null; error: string | null }> {
     try {
-      const { data: result, error } = await supabase.rpc('get_task_status_history', {
-        p_task_id: taskId
-      });
+      const { data, error } = await supabase
+        .from('task_status_history')
+        .select(`
+          id,
+          task_id,
+          status,
+          note,
+          photo_url,
+          created_at,
+          changed_by:profiles!task_status_history_changed_by_fkey(
+            id,
+            full_name,
+            username
+          )
+        `)
+        .eq('task_id', taskId)
+        .order('created_at', { ascending: true });
 
       if (error) {
         return { data: null, error: error.message };
       }
 
-      if (result?.error) {
-        return { data: null, error: result.error };
-      }
-
-      return { data: result?.data || [], error: null };
+      return { data: data || [], error: null };
     } catch (error) {
       return { data: null, error: 'Network error. Please check your connection.' };
     }

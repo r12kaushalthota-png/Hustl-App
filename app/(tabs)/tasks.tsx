@@ -204,7 +204,10 @@ export default function TasksScreen() {
       }
 
       if (result.data) {
+        // Remove from available tasks
         setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
+        
+        // Add to doing tasks
         setDoingTasks(prev => [result.data!, ...prev]);
         
         setToast({
@@ -212,22 +215,9 @@ export default function TasksScreen() {
           message: 'Task accepted! Chat is now available.',
           type: 'success'
         });
-
-        // Open Google Maps navigation if location is available
-        if (userLocation && task.dropoff_address) {
-          try {
-            const storeLocation = { lat: 29.6436, lng: -82.3549 };
-            const dropoffLocation = { lat: 29.6436 + (Math.random() - 0.5) * 0.02, lng: -82.3549 + (Math.random() - 0.5) * 0.02 };
-            
-            await openGoogleMapsNavigation({
-              start: { lat: userLocation.coords.latitude, lng: userLocation.coords.longitude },
-              dest: dropoffLocation,
-              waypoint: storeLocation,
-            });
-          } catch (error) {
-            console.warn('Failed to open navigation:', error);
-          }
-        }
+        
+        // Switch to "You're Doing" tab to show the accepted task
+        setActiveTab('doing');
       }
     } catch (error) {
       setToast({
@@ -307,8 +297,9 @@ export default function TasksScreen() {
     const canAccept = activeTab === 'available' && !isOwnTask && !isGuest && user;
     const canChat = task.status === 'accepted' && user && 
       (task.created_by === user.id || task.accepted_by === user.id);
-    const canUpdateStatus = activeTab === 'doing' && user && task.accepted_by === user.id && task.status === 'accepted';
-    const showStatusUpdate = canUpdateStatus && task.current_status && task.current_status !== 'completed';
+    const canUpdateStatus = activeTab === 'doing' && user && task.accepted_by === user.id && 
+      task.status === 'accepted' && task.task_current_status !== 'completed';
+    const showStatusUpdate = canUpdateStatus;
     const canReview = activeTab === 'posts' && user && task.created_by === user.id && task.status === 'completed';
 
     return (
@@ -334,21 +325,21 @@ export default function TasksScreen() {
         ) : null}
         
         {/* Current Status Display */}
-        {task.current_status && task.current_status !== 'accepted' && (
+        {task.task_current_status && task.task_current_status !== 'posted' && (
           <View style={styles.statusContainer}>
             <View style={[
               styles.statusBadge,
-              { backgroundColor: TaskRepo.getCurrentStatusColor(task.current_status) + '20' }
+              { backgroundColor: TaskRepo.getCurrentStatusColor(task.task_current_status) + '20' }
             ]}>
               <View style={[
                 styles.statusDot,
-                { backgroundColor: TaskRepo.getCurrentStatusColor(task.current_status) }
+                { backgroundColor: TaskRepo.getCurrentStatusColor(task.task_current_status) }
               ]} />
               <Text style={[
                 styles.statusText,
-                { color: TaskRepo.getCurrentStatusColor(task.current_status) }
+                { color: TaskRepo.getCurrentStatusColor(task.task_current_status) }
               ]}>
-                {TaskRepo.formatCurrentStatus(task.current_status)}
+                {TaskRepo.formatCurrentStatus(task.task_current_status)}
               </Text>
             </View>
             {task.last_status_update && (

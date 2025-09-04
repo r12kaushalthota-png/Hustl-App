@@ -167,7 +167,7 @@ export default function TaskDetailScreen() {
       // Update local task state optimistically
       setTask(prev => prev ? {
         ...prev,
-        current_status: newStatus,
+        task_current_status: newStatus,
         last_status_update: new Date().toISOString(),
         status: newStatus === 'completed' ? 'completed' : prev.status
       } : null);
@@ -355,7 +355,7 @@ export default function TaskDetailScreen() {
   }
 
   const canUpdateStatus = user && task.accepted_by === user.id && task.status === 'accepted';
-  const nextStatus = task.current_status ? TaskRepo.getNextStatus(task.current_status) : null;
+  const nextStatus = task.task_current_status ? TaskRepo.getNextStatus(task.task_current_status) : null;
   const showStatusUpdate = canUpdateStatus && nextStatus;
   const isTaskPoster = user && task.created_by === user.id;
   const showReviewButton = canReview && isTaskPoster && task.status === 'completed' && !taskReview;
@@ -392,22 +392,22 @@ export default function TaskDetailScreen() {
             )}
             
             {/* Current Status */}
-            {task.current_status && (
+            {task.task_current_status && (
               <View style={styles.currentStatusContainer}>
                 <Text style={styles.sectionTitle}>Current Status</Text>
                 <View style={[
                   styles.currentStatusBadge,
-                  { backgroundColor: TaskRepo.getCurrentStatusColor(task.current_status) + '20' }
+                  { backgroundColor: TaskRepo.getCurrentStatusColor(task.task_current_status) + '20' }
                 ]}>
                   <View style={[
                     styles.currentStatusDot,
-                    { backgroundColor: TaskRepo.getCurrentStatusColor(task.current_status) }
+                    { backgroundColor: TaskRepo.getCurrentStatusColor(task.task_current_status) }
                   ]} />
                   <Text style={[
                     styles.currentStatusText,
-                    { color: TaskRepo.getCurrentStatusColor(task.current_status) }
+                    { color: TaskRepo.getCurrentStatusColor(task.task_current_status) }
                   ]}>
-                    {TaskRepo.formatCurrentStatus(task.current_status)}
+                    {TaskRepo.formatCurrentStatus(task.task_current_status)}
                   </Text>
                 </View>
                 {task.last_status_update && (
@@ -446,7 +446,7 @@ export default function TaskDetailScreen() {
                   <View style={styles.statusDropdown}>
                     {STATUS_FLOW
                       .filter(status => {
-                        const currentIndex = STATUS_FLOW.findIndex(s => s.value === task.current_status);
+                        const currentIndex = STATUS_FLOW.findIndex(s => s.value === task.task_current_status);
                         const statusIndex = STATUS_FLOW.findIndex(s => s.value === status.value);
                         return statusIndex === currentIndex + 1; // Only show next status
                       })

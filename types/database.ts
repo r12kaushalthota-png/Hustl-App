@@ -15,7 +15,7 @@ export interface Task {
   reward_cents: number;
   estimated_minutes: number;
   status: TaskStatus;
-  current_status: TaskCurrentStatus;
+  task_current_status: TaskCurrentStatus;
   last_status_update: string;
   created_by: string;
   accepted_by: string | null;
