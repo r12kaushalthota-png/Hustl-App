@@ -156,6 +156,7 @@ export default function TaskDetailScreen() {
       });
       
       if (error) {
+        console.log('Status update error:', error); // Debug logging
         setToast({
           visible: true,
           message: error,
@@ -163,6 +164,8 @@ export default function TaskDetailScreen() {
         });
         return;
       }
+      
+      console.log('Status updated successfully:', data); // Debug logging
       
       // Update local task state optimistically
       setTask(prev => prev ? {
@@ -213,6 +216,7 @@ export default function TaskDetailScreen() {
       }, 1000);
       
     } catch (error) {
+      console.error('Status update exception:', error); // Debug logging
       setToast({
         visible: true,
         message: 'Failed to update status. Please try again.',

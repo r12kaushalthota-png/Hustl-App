@@ -141,28 +141,51 @@ export class TaskRepo {
    */
   static async acceptTask(taskId: string, userId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
-      // Use atomic RPC function for race-safe acceptance with correct parameter name
-      const { data, error } = await supabase.rpc('accept_task', { 
-        task_id: taskId 
-      });
+      // First check if task is still available
+      const { data: task, error: fetchError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('id', taskId)
+        .eq('status', 'open')
+        .limit(1);
 
-      if (error) {
-        // Only log unexpected errors, not the expected 'task_not_posted' error
-        if (error.message !== 'task_not_posted') {
-          console.error('accept_task RPC error:', error);
-        }
-        
-        // Handle specific RPC errors with user-friendly messages
-        if (error.message === 'task_not_posted') {
-          return { data: null, error: 'This task is no longer available. It may have been accepted by another user.' };
-        }
-        
-        return { data: null, error: error.message };
+      if (fetchError) {
+        return { data: null, error: fetchError.message };
       }
 
-      const acceptedTask = data?.[0] ?? null;
-      if (!acceptedTask) {
+      const availableTask = task?.[0] ?? null;
+      if (!availableTask) {
         return { data: null, error: 'Task is no longer available or cannot be accepted' };
+      }
+
+      // Prevent self-acceptance
+      if (availableTask.created_by === userId) {
+        return { data: null, error: 'You cannot accept your own task' };
+      }
+
+      // Update task to accepted status
+      const { data: updatedTask, error: updateError } = await supabase
+        .from('tasks')
+        .update({
+          status: 'accepted',
+          task_current_status: 'accepted',
+          accepted_by: userId,
+          assignee_id: userId,
+          accepted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', taskId)
+        .eq('status', 'open') // Only update if still open
+        .select()
+        .limit(1);
+
+      if (updateError) {
+        return { data: null, error: updateError.message };
+      }
+
+      const acceptedTask = updatedTask?.[0] ?? null;
+      if (!acceptedTask) {
+        return { data: null, error: 'Task was already accepted by another user' };
       }
 
       return { data: acceptedTask, error: null };
@@ -231,22 +254,61 @@ export class TaskRepo {
    */
   static async updateTaskStatus(data: UpdateTaskStatusData): Promise<{ data: any | null; error: string | null }> {
     try {
-      const { data: result, error } = await supabase.rpc('update_task_status', {
-        p_task_id: data.taskId,
-        p_new_status: data.newStatus,
-        p_note: data.note || '',
-        p_photo_url: data.photoUrl || ''
-      });
+      // First verify the task exists and user has permission
+      const { data: task, error: fetchError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('id', data.taskId)
+        .limit(1);
 
-      if (error) {
-        return { data: null, error: error.message };
+      if (fetchError) {
+        return { data: null, error: fetchError.message };
       }
 
-      if (result?.error) {
-        return { data: null, error: result.error };
+      const currentTask = task?.[0] ?? null;
+      if (!currentTask) {
+        return { data: null, error: 'Task not found' };
       }
 
-      return { data: result, error: null };
+      // Update task status
+      const updateData: any = {
+        task_current_status: data.newStatus,
+        last_status_update: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // If marking as completed, also update main status
+      if (data.newStatus === 'completed') {
+        updateData.status = 'completed';
+      }
+
+      const { data: updatedTask, error: updateError } = await supabase
+        .from('tasks')
+        .update(updateData)
+        .eq('id', data.taskId)
+        .select()
+        .limit(1);
+
+      if (updateError) {
+        return { data: null, error: updateError.message };
+      }
+
+      // Add status history entry
+      const { error: historyError } = await supabase
+        .from('task_status_history')
+        .insert({
+          task_id: data.taskId,
+          status: data.newStatus,
+          changed_by: currentTask.accepted_by || currentTask.created_by,
+          note: data.note || '',
+          photo_url: data.photoUrl || '',
+        });
+
+      if (historyError) {
+        console.warn('Failed to create status history:', historyError);
+      }
+
+      return { data: updatedTask?.[0] || null, error: null };
     } catch (error) {
       return { data: null, error: 'Network error. Please check your connection.' };
     }
