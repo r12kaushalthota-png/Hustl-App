@@ -341,10 +341,19 @@ function PostScreenContent() {
     const errors: Record<string, string> = {};
     errors.title = validateField('title', title);
     errors.category = validateField('category', category);
-    errors.store = validateField('store', store);
-    errors.dropoffAddress = validateField('dropoffAddress', dropoffAddress);
     errors.estimatedMinutes = validateField('estimatedMinutes', estimatedMinutes);
     errors.urgency = validateField('urgency', urgency);
+
+    // Only validate store and dropoff for location-based categories
+    const locationCategories = ['food', 'coffee', 'grocery'];
+    if (locationCategories.includes(category)) {
+      if (!store?.description?.trim()) {
+        errors.store = 'Store name is required for this category';
+      }
+      if (!dropoffAddress?.description?.trim()) {
+        errors.dropoffAddress = 'Drop-off address is required for this category';
+      }
+    }
 
     // Remove empty errors
     Object.keys(errors).forEach(key => {
