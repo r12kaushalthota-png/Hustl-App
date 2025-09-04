@@ -1,6 +1,6 @@
 export type TaskStatus = 'open' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
 export type TaskCurrentStatus = 'accepted' | 'picked_up' | 'on_the_way' | 'delivered' | 'completed';
-export type TaskCategory = 'food' | 'grocery' | 'coffee';
+export type TaskCategory = string; // Plain text, not enum
 export type TaskUrgency = 'low' | 'medium' | 'high';
 
 export interface Task {
