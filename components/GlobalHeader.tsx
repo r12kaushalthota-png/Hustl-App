@@ -449,7 +449,7 @@ export default function GlobalHeader({
           </View>
         </View>
 
-        <SearchModal
+          source={require('@/assets/images/image.png')}
           visible={showSearchModal}
           onClose={() => setShowSearchModal(false)}
         />

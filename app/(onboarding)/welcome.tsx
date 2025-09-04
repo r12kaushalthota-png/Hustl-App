@@ -58,7 +58,7 @@ const GlowingLogo = () => {
     <Animated.View style={[styles.logoContainer, animatedGlowStyle]}>
       <View style={styles.logoWrapper}>
         <Image
-          source={require('../../src/assets/images/image.png')}
+          source={require('@/assets/images/image.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -72,10 +72,10 @@ const GlowingLogo = () => {
 const UniversityCarousel = () => {
   const scrollX = useSharedValue(0);
   const universities = [
-    { id: 'uf', name: 'UF', logo: require('../../src/assets/images/Florida_Gators_gator_logo.png') },
-    { id: 'ucf', name: 'UCF', logo: require('../../src/assets/images/141-1415685_ucf-university-of-central-florida-logo.jpg') },
-    { id: 'usf', name: 'USF', logo: require('../../src/assets/images/UniversityOfSouthFlorida-logo-350x350.jpg') },
-    { id: 'fsu', name: 'FSU', logo: require('../../src/assets/images/Florida_State_Seminoles_logo.png') },
+    { id: 'uf', name: 'UF', logo: require('@/assets/images/Florida_Gators_gator_logo.png') },
+    { id: 'ucf', name: 'UCF', logo: require('@/assets/images/141-1415685_ucf-university-of-central-florida-logo.jpg') },
+    { id: 'usf', name: 'USF', logo: require('@/assets/images/UniversityOfSouthFlorida-logo-350x350.jpg') },
+    { id: 'fsu', name: 'FSU', logo: require('@/assets/images/Florida_State_Seminoles_logo.png') },
   ];
 
   useEffect(() => {

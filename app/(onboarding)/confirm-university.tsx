@@ -30,7 +30,7 @@ export default function ConfirmUniversity() {
             <ArrowLeft size={24} color={Colors.semantic.bodyText} strokeWidth={2} />
           </TouchableOpacity>
           <Image
-            source={require('@src/assets/images/image.png')}
+            source={require('@/assets/images/image.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -41,7 +41,7 @@ export default function ConfirmUniversity() {
       <View style={styles.content}>
         <View style={styles.logoContainer}>
           <Image
-            source={require('../../src/assets/images/Florida_Gators_gator_logo.png')}
+            source={require('@/assets/images/Florida_Gators_gator_logo.png')}
             style={styles.universityLogo}
             resizeMode="contain"
           />
