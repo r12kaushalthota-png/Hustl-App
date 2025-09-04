@@ -68,5 +68,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     EXPO_PUBLIC_GOOGLE_MAPS_API_KEY:
       process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
+    easProjectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID,
   },
 });

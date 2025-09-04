@@ -79,7 +79,7 @@ export class NotificationService {
 
       // Get Expo push token
       const tokenData = await Notifications.getExpoPushTokenAsync({
-        projectId: Constants.expoConfig?.slug || undefined,
+        projectId: Constants.expoConfig?.extra?.easProjectId || undefined,
       });
 
       return tokenData.data;

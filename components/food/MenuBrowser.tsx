@@ -11,7 +11,7 @@ import {
   Dimensions
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, ShoppingCart, Plus } from 'lucide-react-native';
+import { X, ShoppingCart, Plus, ArrowLeft } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/theme/colors';
 import { useFoodOrder } from '@/contexts/FoodOrderContext';
