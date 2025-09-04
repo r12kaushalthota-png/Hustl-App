@@ -184,7 +184,7 @@ export default function UniversitySelection() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -200,7 +200,12 @@ export default function UniversitySelection() {
         <Text style={styles.title}>Select Your University</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="never"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+      >
         <View style={styles.cardsList}>
           {universities.map((university) => (
             <UniversityCardComponent key={university.id} university={university} />
@@ -213,7 +218,7 @@ export default function UniversitySelection() {
           <Text style={styles.requestButtonText}>Request your campus here</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -132,7 +132,7 @@ export default function ReviewsScreen() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -206,6 +206,8 @@ export default function ReviewsScreen() {
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="never"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -227,7 +229,7 @@ export default function ReviewsScreen() {
           renderEmptyState()
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

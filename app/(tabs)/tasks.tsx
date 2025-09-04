@@ -581,11 +581,11 @@ export default function TasksScreen() {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <GlobalHeader showSearch={true} showNotifications={true} />
 
         {/* View Mode Toggle */}
-        <View style={[styles.viewModeToggle, { marginTop: 8 }]}>
+        <View style={styles.viewModeToggle}>
           <TouchableOpacity
             style={[styles.viewModeButton, viewMode === 'map' && styles.activeViewMode]}
             onPress={() => handleViewModeChange('map')}
@@ -616,7 +616,7 @@ export default function TasksScreen() {
 
         {/* Content based on view mode */}
         {viewMode === 'map' ? renderMapView() : renderListView()}
-      </SafeAreaView>
+      </View>
 
       <Toast
         visible={toast.visible}
@@ -647,7 +647,8 @@ const styles = StyleSheet.create({
   viewModeToggle: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    marginBottom: 8,
+    marginTop: 8,
+    marginBottom: 12,
     backgroundColor: Colors.muted,
     borderRadius: 12,
     padding: 4,

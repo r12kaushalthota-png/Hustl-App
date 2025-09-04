@@ -362,7 +362,7 @@ export default function TaskDetailScreen() {
 
   return (
     <>
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <SafeAreaView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -372,7 +372,12 @@ export default function TaskDetailScreen() {
           <View style={styles.placeholder} />
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="never"
+          contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+        >
           {/* Task Info */}
           <View style={styles.taskCard}>
             <View style={styles.taskHeader}>
@@ -578,7 +583,7 @@ export default function TaskDetailScreen() {
             </View>
           )}
         </ScrollView>
-      </View>
+      </SafeAreaView>
 
       {/* Delivery Form Modal */}
       {showDeliveryForm && (

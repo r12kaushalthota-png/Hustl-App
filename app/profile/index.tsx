@@ -252,7 +252,7 @@ export default function ProfileScreen() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -303,7 +303,12 @@ export default function ProfileScreen() {
         </Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="never"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+      >
         <View style={styles.menuSection}>
           {getMenuItems().slice(0, 4).map(renderMenuItem)}
         </View>
@@ -329,7 +334,7 @@ export default function ProfileScreen() {
         type={toast.type}
         onHide={hideToast}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -365,7 +370,7 @@ const styles = StyleSheet.create({
   profileHeader: {
     backgroundColor: Colors.primary,
     paddingHorizontal: 24,
-    paddingBottom: 24,
+    paddingBottom: 20,
     alignItems: 'center',
   },
   avatarContainer: {

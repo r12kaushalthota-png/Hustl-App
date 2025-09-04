@@ -213,13 +213,13 @@ export default function AuthScreen() {
   const isFormValid = email.trim() && password.trim() && (isLogin || displayName.trim());
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <AnimatedBackground />
       
       {/* Premium Header */}
       <LinearGradient
         colors={['rgba(0, 33, 165, 0.95)', 'rgba(250, 70, 22, 0.85)']}
-        style={[styles.headerGradient, { paddingTop: insets.top + 20 }]}
+        style={styles.headerGradient}
       >
         <View style={styles.headerContent}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -234,6 +234,7 @@ export default function AuthScreen() {
         style={styles.content} 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        contentInsetAdjustmentBehavior="never"
       >
         {/* Premium Auth Header */}
         <Animated.View style={[styles.authHeader, animatedHeaderStyle]}>
@@ -366,7 +367,7 @@ export default function AuthScreen() {
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -411,7 +412,8 @@ const styles = StyleSheet.create({
     transform: [{ skewX: '-20deg' }],
   },
   headerGradient: {
-    paddingBottom: 24,
+    paddingTop: 16,
+    paddingBottom: 16,
     zIndex: 2,
   },
   headerContent: {
@@ -448,10 +450,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: 24,
   },
   authHeader: {
-    paddingVertical: 40,
+    paddingVertical: 24,
     alignItems: 'center',
     gap: 32,
   },

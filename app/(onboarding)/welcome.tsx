@@ -222,7 +222,7 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={styles.container}>
       {/* Clean gradient background */}
       <LinearGradient
         colors={['#0021A5', '#FA4616']}
@@ -235,6 +235,7 @@ export default function WelcomeScreen() {
         style={styles.content} 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="never"
       >
         {/* Logo Section */}
         <Animated.View style={[styles.logoSection, animatedLogoStyle]}>
@@ -287,7 +288,7 @@ export default function WelcomeScreen() {
           </TouchableOpacity>
         </View>
       </Animated.View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -314,8 +315,8 @@ const styles = StyleSheet.create({
   },
   logoSection: {
     alignItems: 'center',
-    paddingTop: height * 0.08,
-    paddingBottom: 40,
+    paddingTop: 20,
+    paddingBottom: 24,
   },
   logoContainer: {
     shadowColor: '#FA4616',

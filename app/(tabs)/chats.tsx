@@ -24,7 +24,7 @@ export default function ChatsScreen() {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <GlobalHeader showSearch={true} showNotifications={true} />
         
         <View style={styles.content}>
@@ -33,7 +33,7 @@ export default function ChatsScreen() {
             onProfilePress={handleProfilePress}
           />
         </View>
-      </SafeAreaView>
+      </View>
 
       <ProfileSheet
         visible={showProfileSheet}

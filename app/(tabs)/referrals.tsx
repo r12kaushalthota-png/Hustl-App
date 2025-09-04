@@ -107,16 +107,16 @@ export default function ReferralsScreen() {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <GlobalHeader showSearch={true} showNotifications={true} />
         
         <ScrollView 
           style={styles.content} 
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentInsetAdjustmentBehavior="automatic"
+          contentInsetAdjustmentBehavior="never"
           contentContainerStyle={{
-            paddingBottom: insets.bottom + (tabBarHeight || 24) + 16
+            paddingBottom: insets.bottom + tabBarHeight + 16
           }}
         >
           <View style={styles.header}>
@@ -231,7 +231,7 @@ export default function ReferralsScreen() {
             <ExternalLink size={14} color={Colors.semantic.tabInactive} strokeWidth={2} />
           </TouchableOpacity>
         </ScrollView>
-      </SafeAreaView>
+      </View>
 
       <Toast
         visible={toast.visible}
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingVertical: 16,
     alignItems: 'center',
     gap: 8,
   },

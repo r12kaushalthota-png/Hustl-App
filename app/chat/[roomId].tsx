@@ -27,7 +27,7 @@ export default function ChatScreen() {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -42,7 +42,7 @@ export default function ChatScreen() {
           roomId={roomId} 
           onProfilePress={handleProfilePress}
         />
-      </SafeAreaView>
+      </View>
 
       {/* Profile Sheet */}
       <ProfileSheet
