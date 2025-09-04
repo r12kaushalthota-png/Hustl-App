@@ -148,7 +148,7 @@ export default function UniversitySelection() {
         >
           <Animated.View style={[styles.logoContainer, animatedLogoStyle]}>
             <Image
-              source={university.logo}
+              source={require('@assets/images/Florida_Gators_gator_logo.png')}
               style={styles.universityLogo}
               resizeMode="contain"
             />
@@ -191,7 +191,7 @@ export default function UniversitySelection() {
             <ArrowLeft size={24} color={Colors.semantic.bodyText} strokeWidth={2} />
           </TouchableOpacity>
           <Image
-            source={require('@/assets/images/image.png')}
+            source={require('@assets/images/image.png')}
             style={styles.logo}
             resizeMode="contain"
           />
