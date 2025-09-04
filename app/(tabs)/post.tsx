@@ -432,6 +432,5 @@ function PostScreenContent() {
     setSubmitError('');
     setModerationError('');
     clearCart();
-    }
-  }
+  };
 }
