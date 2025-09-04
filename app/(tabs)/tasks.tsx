@@ -536,7 +536,6 @@ export default function TasksScreen() {
     
     // Convert tasks to map pins with demo coordinates around UF campus
     const pins: TaskPin[] = currentTasks.map((task) => {
-          {formatReward(task.reward_cents)}
       const latitude = 29.6436 + (Math.random() - 0.5) * 0.02;
       const longitude = -82.3549 + (Math.random() - 0.5) * 0.02;
       
