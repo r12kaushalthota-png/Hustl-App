@@ -717,7 +717,9 @@ function PostScreenContent() {
         ))}
       </View>
       {fieldErrors.urgency && (
-        <Text style={styles.fieldError}>{fieldErrors.urgency}</Text>
+        <View>
+          <Text style={styles.fieldError}>{fieldErrors.urgency}</Text>
+        </View>
       )}
     </View>
   );
