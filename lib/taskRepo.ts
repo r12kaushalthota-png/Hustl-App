@@ -147,7 +147,10 @@ export class TaskRepo {
       });
 
       if (error) {
-        console.error('accept_task RPC error:', error);
+        // Only log unexpected errors, not the expected 'task_not_posted' error
+        if (error.message !== 'task_not_posted') {
+          console.error('accept_task RPC error:', error);
+        }
         
         // Handle specific RPC errors with user-friendly messages
         if (error.message === 'task_not_posted') {
