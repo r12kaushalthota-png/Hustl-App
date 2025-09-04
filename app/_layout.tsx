@@ -2,12 +2,12 @@ import 'react-native-get-random-values';
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SupabaseProvider } from '@/contexts/SupabaseContext';
 import { FoodOrderProvider } from '@/contexts/FoodOrderContext';
-import { NotificationService } from '@/services/notifications';
 import { useRouter } from 'expo-router';
 
 export default function RootLayout() {

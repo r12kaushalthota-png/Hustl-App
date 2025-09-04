@@ -16,9 +16,6 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNotifications } from '@/features/notifications/useNotifications';
-import NotificationBell from './NotificationBell';
-import NotificationCenterModal from './NotificationCenterModal';
 import ProfileSidebar from './ProfileSidebar';
 
 const { width } = Dimensions.get('window');
@@ -354,16 +351,14 @@ interface GlobalHeaderProps {
 
 export default function GlobalHeader({ 
   showSearch = true, 
-  showNotifications = true,
+  showNotifications = false, // Disabled for Expo Go
   title,
 }: GlobalHeaderProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, isGuest } = useAuth();
-  const { unreadCount } = useNotifications();
 
   const [showProfileSidebar, setShowProfileSidebar] = React.useState(false);
-  const [showNotificationCenter, setShowNotificationCenter] = React.useState(false);
   const [showSearchModal, setShowSearchModal] = React.useState(false);
   const [showCampusMenu, setShowCampusMenu] = React.useState(false);
 
@@ -392,11 +387,6 @@ export default function GlobalHeader({
   const handleSearchPress = () => {
     triggerHaptics();
     setShowSearchModal(true);
-  };
-
-  const handleNotificationsPress = () => {
-    triggerHaptics();
-    setShowNotificationCenter(true);
   };
 
   const handleLogoPress = () => {
@@ -494,12 +484,7 @@ export default function GlobalHeader({
               />
             )}
             
-            {showNotifications && (
-              <NotificationBell
-                unreadCount={unreadCount}
-                onPress={handleNotificationsPress}
-              />
-            )}
+            {/* Notifications disabled in Expo Go */}
           </View>
         </View>
       </View>
@@ -508,12 +493,6 @@ export default function GlobalHeader({
       <ProfileSidebar
         visible={showProfileSidebar}
         onClose={() => setShowProfileSidebar(false)}
-      />
-
-      {/* Notification Center Modal */}
-      <NotificationCenterModal
-        visible={showNotificationCenter}
-        onClose={() => setShowNotificationCenter(false)}
       />
 
       {/* Search Modal */}
