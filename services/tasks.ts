@@ -44,7 +44,8 @@ export async function acceptTask(taskId: string): Promise<Task> {
   }
 
   const { data, error } = await supabase.rpc('accept_task', {
-    p_task_id: taskId
+    p_task_id: taskId,
+    p_user_id: user.id
   });
 
   if (error) {
