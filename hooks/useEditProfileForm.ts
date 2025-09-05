@@ -73,7 +73,7 @@ export function useEditProfileForm(): UseEditProfileFormReturn {
         display_name: profile?.full_name || user.displayName || '',
         email: user.email || '',
         major: profile?.major || '',
-        year: (profile?.year as ProfileFormData['year']) || 'Freshman'
+        year: (profile?.class_year as ProfileFormData['year']) || 'Freshman'
       };
       
       setFormData(initialData);
@@ -161,7 +161,7 @@ export function useEditProfileForm(): UseEditProfileFormReturn {
       const { data, error } = await ProfileRepo.updateProfile(user.id, {
         full_name: cleanData.display_name,
         major: cleanData.major,
-        year: cleanData.year,
+        class_year: cleanData.year,
         // Only update email if it's editable
         ...(isEmailEditable && { email: cleanData.email })
       });

@@ -69,9 +69,15 @@ export interface UserProfile {
   avatar_url: string | null;
   major: string | null;
   university: string | null;
+  class_year: string | null;
+  bio: string | null;
+  is_verified: boolean;
+  completed_tasks_count: number;
+  response_rate: number;
   xp: number;
   level: number;
   credits: number;
+  last_seen_at: string;
   created_at: string;
   updated_at: string;
 }

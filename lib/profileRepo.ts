@@ -29,12 +29,30 @@ export class ProfileRepo {
    */
   static async updateProfile(userId: string, updates: Partial<UserProfile>): Promise<{ data: UserProfile | null; error: string | null }> {
     try {
+      // Prepare the update data with proper field mapping
+      const updateData: any = {
+        updated_at: new Date().toISOString()
+      };
+
+      // Map form fields to database fields
+      if (updates.full_name !== undefined) updateData.full_name = updates.full_name;
+      if (updates.username !== undefined) updateData.username = updates.username;
+      if (updates.avatar_url !== undefined) updateData.avatar_url = updates.avatar_url;
+      if (updates.major !== undefined) updateData.major = updates.major;
+      if (updates.university !== undefined) updateData.university = updates.university;
+      if (updates.bio !== undefined) updateData.bio = updates.bio;
+      if (updates.class_year !== undefined) updateData.class_year = updates.class_year;
+      if (updates.xp !== undefined) updateData.xp = updates.xp;
+      if (updates.level !== undefined) updateData.level = updates.level;
+      if (updates.credits !== undefined) updateData.credits = updates.credits;
+      if (updates.is_verified !== undefined) updateData.is_verified = updates.is_verified;
+      if (updates.completed_tasks_count !== undefined) updateData.completed_tasks_count = updates.completed_tasks_count;
+      if (updates.response_rate !== undefined) updateData.response_rate = updates.response_rate;
+      if (updates.last_seen_at !== undefined) updateData.last_seen_at = updates.last_seen_at;
+
       const { data, error } = await supabase
         .from('profiles')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', userId)
         .select()
         .limit(1);
