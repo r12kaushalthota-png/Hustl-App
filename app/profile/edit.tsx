@@ -1,35 +1,226 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, SafeAreaView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Camera, User, GraduationCap, Mail, MapPin, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { ArrowLeft, Camera, User, GraduationCap, Mail, MapPin, CircleAlert as AlertCircle, Save } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
 import { Colors } from '@/theme/colors';
+import { useEditProfileForm } from '@/hooks/useEditProfileForm';
+import YearSelector from '@/components/YearSelector';
+import MajorSelector from '@/components/MajorSelector';
+import Toast from '@/components/Toast';
+
+// University of Florida majors catalog
+const UF_MAJORS = [
+  'Accounting',
+  'Advertising',
+  'Aerospace Engineering',
+  'African American Studies',
+  'Agricultural and Life Sciences',
+  'Agricultural Education and Communication',
+  'Animal Sciences',
+  'Anthropology',
+  'Applied Physiology and Kinesiology',
+  'Architecture',
+  'Art',
+  'Art Education',
+  'Art History',
+  'Astronomy',
+  'Biology',
+  'Biomedical Engineering',
+  'Botany',
+  'Building Construction',
+  'Business Administration',
+  'Chemical Engineering',
+  'Chemistry',
+  'Civil Engineering',
+  'Classical Studies',
+  'Communication Sciences and Disorders',
+  'Computer Engineering',
+  'Computer Science',
+  'Criminology',
+  'Dance',
+  'Dentistry',
+  'Digital Arts and Sciences',
+  'Economics',
+  'Education',
+  'Electrical Engineering',
+  'Elementary Education',
+  'Engineering',
+  'English',
+  'Environmental Engineering',
+  'Environmental Science',
+  'Family, Youth and Community Sciences',
+  'Finance',
+  'Fire and Emergency Services',
+  'Food and Resource Economics',
+  'Food Science and Human Nutrition',
+  'Forest Resources and Conservation',
+  'French',
+  'Geography',
+  'Geology',
+  'German',
+  'Graphic Design',
+  'Health Education and Behavior',
+  'Health Science',
+  'History',
+  'Horticultural Science',
+  'Industrial and Systems Engineering',
+  'Information Systems',
+  'International Studies',
+  'Italian',
+  'Journalism',
+  'Landscape Architecture',
+  'Latin',
+  'Linguistics',
+  'Management',
+  'Marketing',
+  'Materials Science and Engineering',
+  'Mathematics',
+  'Mechanical Engineering',
+  'Medicine',
+  'Microbiology and Cell Science',
+  'Music',
+  'Music Education',
+  'Natural Resource Conservation',
+  'Nuclear Engineering',
+  'Nursing',
+  'Nutritional Sciences',
+  'Pharmacy',
+  'Philosophy',
+  'Physics',
+  'Political Science',
+  'Psychology',
+  'Public Health',
+  'Public Relations',
+  'Recreation, Parks and Tourism',
+  'Religion',
+  'Russian',
+  'Sociology',
+  'Soil and Water Sciences',
+  'Spanish',
+  'Special Education',
+  'Statistics',
+  'Sustainability Studies',
+  'Theatre',
+  'Tourism, Hospitality and Event Management',
+  'Veterinary Medicine',
+  'Wildlife Ecology and Conservation',
+  'Women\'s Studies',
+  'Zoology',
+  'Other'
+];
 
 export default function EditProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  
+  const {
+    formData,
+    errors,
+    isValid,
+    isDirty,
+    isLoading,
+    isSaving,
+    updateField,
+    validateField,
+    handleSave,
+    handleDiscard,
+    isEmailEditable,
+  } = useEditProfileForm();
+  
+  const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>({
+    visible: false,
+    message: '',
+    type: 'success'
+  });
 
-  // Form state
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [major, setMajor] = useState('Computer Science');
-  const [year, setYear] = useState('Junior');
-  const [university, setUniversity] = useState(user?.university || 'University of Florida');
-
-  const handleBack = () => {
-    router.back();
+  const triggerHaptics = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch (error) {
+        // Haptics not available, continue silently
+      }
+    }
   };
 
-  const handleSave = () => {
-    // TODO: Implement save functionality with Supabase
-    Alert.alert('Success', 'Profile updated successfully!');
-    router.back();
+  const handleBack = () => {
+    if (isDirty) {
+      Alert.alert(
+        'Unsaved Changes',
+        'You have unsaved changes. What would you like to do?',
+        [
+          { text: 'Discard', style: 'destructive', onPress: () => router.back() },
+          { text: 'Save', onPress: handleSaveAndBack },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      );
+    } else {
+      router.back();
+    }
+  };
+
+  const handleSaveAndBack = async () => {
+    triggerHaptics();
+    
+    const result = await handleSave();
+    
+    if (result.success) {
+      setToast({
+        visible: true,
+        message: 'Profile updated successfully!',
+        type: 'success'
+      });
+      
+      setTimeout(() => {
+        router.back();
+      }, 1000);
+    } else {
+      setToast({
+        visible: true,
+        message: result.error || 'Failed to save profile',
+        type: 'error'
+      });
+    }
+  };
+
+  const handleQuickSave = async () => {
+    triggerHaptics();
+    
+    const result = await handleSave();
+    
+    if (result.success) {
+      setToast({
+        visible: true,
+        message: 'Profile saved!',
+        type: 'success'
+      });
+    } else {
+      setToast({
+        visible: true,
+        message: result.error || 'Failed to save profile',
+        type: 'error'
+      });
+    }
+  };
+
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, visible: false }));
+  };
+
+  const handleFieldUpdate = (field: keyof typeof formData, value: string) => {
+    updateField(field, value);
+  };
+
+  const handleFieldBlur = (field: keyof typeof formData) => {
+    validateField(field);
   };
 
   const handleChangePhoto = () => {
-    // TODO: Implement photo picker
+    triggerHaptics();
     Alert.alert('Change Photo', 'Photo picker will be implemented soon!');
   };
 
@@ -42,7 +233,18 @@ export default function EditProfileScreen() {
       .slice(0, 2);
   };
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
+    <>
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -50,8 +252,15 @@ export default function EditProfileScreen() {
           <ArrowLeft size={24} color={Colors.white} strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Profile</Text>
-        <TouchableOpacity onPress={handleSave}>
-          <Text style={styles.saveButton}>Save</Text>
+        <TouchableOpacity 
+          style={[
+            styles.saveButton,
+            (!isValid || isSaving) && styles.saveButtonDisabled
+          ]}
+          onPress={handleQuickSave}
+          disabled={!isValid || isSaving}
+        >
+          <Save size={16} color={isValid && !isSaving ? Colors.white : Colors.semantic.tabInactive} strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -66,7 +275,7 @@ export default function EditProfileScreen() {
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
-                {getInitials(displayName)}
+                {getInitials(formData.display_name)}
               </Text>
             </View>
             <TouchableOpacity style={styles.cameraButton} onPress={handleChangePhoto}>
@@ -85,13 +294,18 @@ export default function EditProfileScreen() {
             <View style={styles.inputContainer}>
               <User size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
               <TextInput
-                style={styles.input}
-                value={displayName}
-                onChangeText={setDisplayName}
+                style={[styles.input, errors.display_name && styles.inputError]}
+                value={formData.display_name}
+                onChangeText={(value) => handleFieldUpdate('display_name', value)}
+                onBlur={() => handleFieldBlur('display_name')}
                 placeholder="Enter your display name"
                 placeholderTextColor={Colors.semantic.tabInactive}
+                editable={!isSaving}
               />
             </View>
+            {errors.display_name && (
+              <Text style={styles.errorText}>{errors.display_name}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
@@ -99,43 +313,54 @@ export default function EditProfileScreen() {
             <View style={styles.inputContainer}>
               <Mail size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
               <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Enter your email"
+                style={[
+                  styles.input, 
+                  errors.email && styles.inputError,
+                  !isEmailEditable && styles.inputDisabled
+                ]}
+                value={formData.email}
+                onChangeText={(value) => handleFieldUpdate('email', value)}
+                onBlur={() => handleFieldBlur('email')}
+                placeholder={isEmailEditable ? "Enter your email" : "Email from account"}
                 placeholderTextColor={Colors.semantic.tabInactive}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={isEmailEditable && !isSaving}
               />
             </View>
+            {!isEmailEditable && (
+              <Text style={styles.helperText}>Email is linked to your account and cannot be changed</Text>
+            )}
+            {errors.email && (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Major</Text>
-            <View style={styles.inputContainer}>
-              <GraduationCap size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-              <TextInput
-                style={styles.input}
-                value={major}
-                onChangeText={setMajor}
-                placeholder="Enter your major"
-                placeholderTextColor={Colors.semantic.tabInactive}
-              />
-            </View>
+            <Text style={styles.label}>Major *</Text>
+            <MajorSelector
+              value={formData.major}
+              onSelect={(value) => handleFieldUpdate('major', value)}
+              error={errors.major}
+              disabled={isSaving}
+              majors={UF_MAJORS}
+            />
+            {errors.major && (
+              <Text style={styles.errorText}>{errors.major}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Year</Text>
-            <View style={styles.inputContainer}>
-              <GraduationCap size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-              <TextInput
-                style={styles.input}
-                value={year}
-                onChangeText={setYear}
-                placeholder="Enter your year"
-                placeholderTextColor={Colors.semantic.tabInactive}
-              />
-            </View>
+            <Text style={styles.label}>Academic Year *</Text>
+            <YearSelector
+              value={formData.year}
+              onSelect={(value) => handleFieldUpdate('year', value)}
+              error={errors.year}
+              disabled={isSaving}
+            />
+            {errors.year && (
+              <Text style={styles.errorText}>{errors.year}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
@@ -144,16 +369,46 @@ export default function EditProfileScreen() {
               <MapPin size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
               <TextInput
                 style={styles.input}
-                value={university}
-                onChangeText={setUniversity}
-                placeholder="Enter your university"
+                value="University of Florida"
+                editable={false}
+                placeholder="University of Florida"
                 placeholderTextColor={Colors.semantic.tabInactive}
               />
             </View>
+            <Text style={styles.helperText}>University cannot be changed</Text>
           </View>
         </View>
+        
+        {/* Save Button */}
+        {isDirty && (
+          <View style={styles.saveButtonContainer}>
+            <TouchableOpacity
+              style={[
+                styles.saveButtonLarge,
+                (!isValid || isSaving) && styles.saveButtonLargeDisabled
+              ]}
+              onPress={handleSaveAndBack}
+              disabled={!isValid || isSaving}
+            >
+              <Text style={[
+                styles.saveButtonLargeText,
+                (!isValid || isSaving) && styles.saveButtonLargeTextDisabled
+              ]}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
+      
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
     </SafeAreaView>
+    </>
   );
 }
 
@@ -184,11 +439,15 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   saveButton: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.white,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.white + '33',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  saveButtonDisabled: {
+    backgroundColor: Colors.semantic.tabInactive + '33',
   },
   content: {
     flex: 1,
@@ -262,5 +521,55 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: Colors.semantic.inputText,
+  },
+  inputError: {
+    borderColor: Colors.semantic.errorAlert,
+  },
+  inputDisabled: {
+    backgroundColor: Colors.muted,
+    color: Colors.semantic.tabInactive,
+  },
+  errorText: {
+    fontSize: 14,
+    color: Colors.semantic.errorAlert,
+    marginTop: 4,
+  },
+  helperText: {
+    fontSize: 12,
+    color: Colors.semantic.tabInactive,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: Colors.semantic.tabInactive,
+  },
+  saveButtonContainer: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.semantic.divider,
+  },
+  saveButtonLarge: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  saveButtonLargeDisabled: {
+    backgroundColor: Colors.muted,
+  },
+  saveButtonLargeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.white,
+  },
+  saveButtonLargeTextDisabled: {
+    color: Colors.semantic.tabInactive,
   },
 });

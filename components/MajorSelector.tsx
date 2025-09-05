@@ -13,16 +13,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronDown, Search, Check, X } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/theme/colors';
-import { ALLOWED_MAJORS } from '@/lib/validation';
 
 interface MajorSelectorProps {
   value: string;
   onSelect: (major: string) => void;
   error?: string;
   disabled?: boolean;
+  majors: string[];
 }
 
-export default function MajorSelector({ value, onSelect, error, disabled }: MajorSelectorProps) {
+export default function MajorSelector({ value, onSelect, error, disabled, majors }: MajorSelectorProps) {
   const insets = useSafeAreaInsets();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,9 +57,10 @@ export default function MajorSelector({ value, onSelect, error, disabled }: Majo
 
   const getFilteredMajors = () => {
     if (!searchQuery.trim()) return ALLOWED_MAJORS;
+    if (!searchQuery.trim()) return majors;
     
     const query = searchQuery.toLowerCase();
-    return ALLOWED_MAJORS.filter(major => 
+    return majors.filter(major => 
       major.toLowerCase().includes(query)
     );
   };
