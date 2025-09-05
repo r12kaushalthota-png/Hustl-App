@@ -21,23 +21,56 @@ import ItemDetailModal from './ItemDetailModal';
 
 const { width } = Dimensions.get('window');
 
-// Restaurant data with menus
-const restaurants: { id: string; name: string; menu: RestaurantMenu }[] = [
-  { id: 'chick-fil-a', name: 'Chick-fil-A', menu: require('@/data/menus/chick-fil-a.json') },
-  { id: 'chipotle', name: 'Chipotle', menu: require('@/data/menus/chipotle.json') },
-  { id: 'panda-express', name: 'Panda Express', menu: require('@/data/menus/panda-express.json') },
-  { id: 'bento', name: 'Bento', menu: require('@/data/menus/bento.json') },
-  { id: 'publix', name: 'Publix', menu: require('@/data/menus/publix.json') },
-  { id: 'krispy-kreme', name: 'Krispy Kreme', menu: require('@/data/menus/krispy-kreme.json') },
-  { id: 'relish', name: 'Relish', menu: require('@/data/menus/relish.json') },
-  { id: 'blaze-pizza', name: 'Blaze Pizza', menu: require('@/data/menus/blaze-pizza.json') },
-  { id: 'dunkin', name: "Dunkin'", menu: require('@/data/menus/dunkin.json') },
-  { id: 'starbucks', name: 'Starbucks', menu: require('@/data/menus/starbucks.json') },
-  { id: 'mcdonalds', name: "McDonald's", menu: require('@/data/menus/mcdonalds.json') },
-  { id: 'jimmy-johns', name: "Jimmy John's", menu: require('@/data/menus/jimmy-johns.json') },
-  { id: 'subway', name: 'Subway', menu: require('@/data/menus/subway.json') },
-  { id: 'pita-pit', name: 'Pita Pit', menu: require('@/data/menus/pita-pit.json') },
-  { id: 'krishna-lunch', name: 'Krishna Lunch', menu: require('@/data/menus/krishna-lunch.json') },
+// Restaurant data with menus and logos
+const restaurants: { id: string; name: string; menu: RestaurantMenu; logo: string }[] = [
+  { 
+    id: 'chick-fil-a', 
+    name: 'Chick-fil-A', 
+    menu: require('@/data/menus/chick-fil-a.json'),
+    logo: 'https://images.pexels.com/photos/2983101/pexels-photo-2983101.jpeg?auto=compress&cs=tinysrgb&w=100'
+  },
+  { 
+    id: 'chipotle', 
+    name: 'Chipotle', 
+    menu: require('@/data/menus/chipotle.json'),
+    logo: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=100'
+  },
+  { 
+    id: 'panda-express', 
+    name: 'Panda Express', 
+    menu: require('@/data/menus/panda-express.json'),
+    logo: 'https://images.pexels.com/photos/2347311/pexels-photo-2347311.jpeg?auto=compress&cs=tinysrgb&w=100'
+  },
+  { 
+    id: 'starbucks', 
+    name: 'Starbucks', 
+    menu: require('@/data/menus/starbucks.json'),
+    logo: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=100'
+  },
+  { 
+    id: 'mcdonalds', 
+    name: "McDonald's", 
+    menu: require('@/data/menus/mcdonalds.json'),
+    logo: 'https://images.pexels.com/photos/2983101/pexels-photo-2983101.jpeg?auto=compress&cs=tinysrgb&w=100'
+  },
+  { 
+    id: 'subway', 
+    name: 'Subway', 
+    menu: require('@/data/menus/subway.json'),
+    logo: 'https://images.pexels.com/photos/7595072/pexels-photo-7595072.jpeg?auto=compress&cs=tinysrgb&w=100'
+  },
+  { 
+    id: 'dunkin', 
+    name: "Dunkin'", 
+    menu: require('@/data/menus/dunkin.json'),
+    logo: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=100'
+  },
+  { 
+    id: 'taco-bell', 
+    name: 'Taco Bell', 
+    menu: require('@/data/menus/taco-bell.json'),
+    logo: 'https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=100'
+  },
 ];
 
 interface MenuBrowserProps {
@@ -49,7 +82,7 @@ export default function MenuBrowser({ visible, onClose }: MenuBrowserProps) {
   const insets = useSafeAreaInsets();
   const { selectedRestaurant, setSelectedRestaurant, getCartSummary } = useFoodOrder();
   
-  const [selectedRestaurantData, setSelectedRestaurantData] = useState<{ id: string; name: string; menu: RestaurantMenu } | null>(null);
+  const [selectedRestaurantData, setSelectedRestaurantData] = useState<{ id: string; name: string; menu: RestaurantMenu; logo: string } | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [showItemDetail, setShowItemDetail] = useState(false);
@@ -64,7 +97,7 @@ export default function MenuBrowser({ visible, onClose }: MenuBrowserProps) {
     }
   };
 
-  const handleRestaurantSelect = (restaurant: { id: string; name: string; menu: RestaurantMenu }) => {
+  const handleRestaurantSelect = (restaurant: { id: string; name: string; menu: RestaurantMenu; logo: string }) => {
     triggerHaptics();
     setSelectedRestaurantData(restaurant);
     setSelectedRestaurant(restaurant.name);
@@ -98,91 +131,109 @@ export default function MenuBrowser({ visible, onClose }: MenuBrowserProps) {
   const cartSummary = getCartSummary();
 
   const renderRestaurantGrid = () => (
-    <View style={styles.restaurantGrid}>
-      {restaurants.map((restaurant) => (
-        <TouchableOpacity
-          key={restaurant.id}
-          style={styles.restaurantCard}
-          onPress={() => handleRestaurantSelect(restaurant)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.restaurantContent}>
-            <Text style={styles.restaurantName}>{restaurant.name}</Text>
-            <Text style={styles.restaurantSubtitle}>
-              {restaurant.menu.items.length} items
-            </Text>
-          </View>
-        </TouchableOpacity>
-      ))}
-    </View>
+    <ScrollView style={styles.restaurantContainer} showsVerticalScrollIndicator={false}>
+      <View style={styles.restaurantGrid}>
+        {restaurants.map((restaurant) => (
+          <TouchableOpacity
+            key={restaurant.id}
+            style={styles.restaurantCard}
+            onPress={() => handleRestaurantSelect(restaurant)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.restaurantHeader}>
+              <Image source={{ uri: restaurant.logo }} style={styles.restaurantLogo} />
+              <View style={styles.restaurantInfo}>
+                <Text style={styles.restaurantName}>{restaurant.name}</Text>
+                <Text style={styles.restaurantSubtitle}>
+                  {restaurant.menu.items.length} items available
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </ScrollView>
   );
 
   const renderMenu = () => {
     if (!selectedRestaurantData) return null;
 
     const { menu } = selectedRestaurantData;
-    const selectedCategoryData = menu.categories.find(cat => cat.id === selectedCategory);
     const categoryItems = menu.items.filter(item => item.categories.includes(selectedCategory));
 
     return (
       <View style={styles.menuContainer}>
-        {/* Category Tabs */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryTabs}
-        >
-          {menu.categories
-            .sort((a, b) => a.order - b.order)
-            .map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                style={[
-                  styles.categoryTab,
-                  selectedCategory === category.id && styles.activeCategoryTab
-                ]}
-                onPress={() => handleCategorySelect(category.id)}
-              >
-                <Text style={[
-                  styles.categoryTabText,
-                  selectedCategory === category.id && styles.activeCategoryTabText
-                ]}>
-                  {category.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-        </ScrollView>
+        {/* Fixed Category Tabs */}
+        <View style={styles.categoryTabsContainer}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryTabs}
+          >
+            {menu.categories
+              .sort((a, b) => a.order - b.order)
+              .map((category) => (
+                <TouchableOpacity
+                  key={category.id}
+                  style={[
+                    styles.categoryTab,
+                    selectedCategory === category.id && styles.activeCategoryTab
+                  ]}
+                  onPress={() => handleCategorySelect(category.id)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[
+                    styles.categoryTabText,
+                    selectedCategory === category.id && styles.activeCategoryTabText
+                  ]}>
+                    {category.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+          </ScrollView>
+        </View>
 
         {/* Menu Items */}
-        <ScrollView style={styles.menuItems} showsVerticalScrollIndicator={false}>
-          <View style={styles.itemsGrid}>
-            {categoryItems.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.menuItemCard}
-                onPress={() => handleItemSelect(item)}
-                activeOpacity={0.7}
-              >
-                <Image source={{ uri: item.image }} style={styles.itemImage} />
-                <View style={styles.itemContent}>
+        <ScrollView 
+          style={styles.menuItems} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.menuItemsContent}
+        >
+          {categoryItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.menuItemCard}
+              onPress={() => handleItemSelect(item)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.itemContent}>
+                <View style={styles.itemImageContainer}>
+                  <Image source={{ uri: item.image }} style={styles.itemImage} />
+                </View>
+                
+                <View style={styles.itemDetails}>
                   <Text style={styles.itemName} numberOfLines={1}>
                     {item.name}
                   </Text>
                   <Text style={styles.itemDescription} numberOfLines={2}>
                     {item.description}
                   </Text>
+                  
                   <View style={styles.itemFooter}>
                     <Text style={styles.itemPrice}>
                       {FoodOrderUtils.formatPrice(item.basePrice)}
                     </Text>
-                    <View style={styles.addButton}>
-                      <Plus size={16} color={Colors.primary} strokeWidth={2} />
-                    </View>
+                    <TouchableOpacity 
+                      style={styles.addButton}
+                      onPress={() => handleItemSelect(item)}
+                    >
+                      <Plus size={18} color={Colors.white} strokeWidth={2.5} />
+                    </TouchableOpacity>
                   </View>
                 </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+              </View>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
       </View>
     );
@@ -196,20 +247,32 @@ export default function MenuBrowser({ visible, onClose }: MenuBrowserProps) {
         onRequestClose={handleBack}
       >
         <View style={[styles.container, { paddingTop: insets.top }]}>
-          {/* Header */}
+          {/* Blue Header with Restaurant Name and Logo */}
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
               <ArrowLeft size={24} color={Colors.white} strokeWidth={2} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>
-              {selectedRestaurantData ? selectedRestaurantData.name : 'Choose Restaurant'}
-            </Text>
+            
+            <View style={styles.headerCenter}>
+              {selectedRestaurantData && (
+                <View style={styles.headerRestaurantInfo}>
+                  <Image source={{ uri: selectedRestaurantData.logo }} style={styles.headerLogo} />
+                  <Text style={styles.headerTitle}>
+                    {selectedRestaurantData.name}
+                  </Text>
+                </View>
+              )}
+              {!selectedRestaurantData && (
+                <Text style={styles.headerTitle}>Choose Restaurant</Text>
+              )}
+            </View>
+            
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <X size={24} color={Colors.white} strokeWidth={2} />
             </TouchableOpacity>
           </View>
 
-          {/* Cart Summary */}
+          {/* Cart Summary Bar */}
           {cartSummary.itemCount > 0 && (
             <View style={styles.cartSummary}>
               <View style={styles.cartInfo}>
@@ -244,19 +307,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.semantic.screen,
   },
+  
+  // Blue Header with Restaurant Name and Logo
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     backgroundColor: Colors.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.white + '33',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -264,23 +334,39 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.white + '33',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerRestaurantInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerLogo: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.white,
     textAlign: 'center',
-    flex: 1,
   },
+  
+  // Cart Summary
   cartSummary: {
     backgroundColor: Colors.primary + '15',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.semantic.divider,
+    borderBottomColor: 'rgba(229, 231, 235, 0.3)',
   },
   cartInfo: {
     flexDirection: 'row',
@@ -292,6 +378,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.primary,
+  },
+  
+  // Restaurant Selection Grid
+  restaurantContainer: {
+    flex: 1,
   },
   restaurantGrid: {
     padding: 16,
@@ -305,78 +396,125 @@ const styles = StyleSheet.create({
     borderColor: Colors.semantic.cardBorder,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 3,
   },
-  restaurantContent: {
+  restaurantHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 16,
+  },
+  restaurantLogo: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  restaurantInfo: {
+    flex: 1,
   },
   restaurantName: {
     fontSize: 18,
     fontWeight: '700',
     color: Colors.semantic.headingText,
-    textAlign: 'center',
+    marginBottom: 4,
   },
   restaurantSubtitle: {
     fontSize: 14,
     color: Colors.semantic.tabInactive,
-    textAlign: 'center',
   },
+  
+  // Menu Layout
   menuContainer: {
     flex: 1,
   },
+  
+  // Fixed Category Tabs
+  categoryTabsContainer: {
+    backgroundColor: Colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(229, 231, 235, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   categoryTabs: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+    paddingVertical: 16,
+    gap: 12,
   },
   categoryTab: {
-    backgroundColor: Colors.muted,
+    backgroundColor: 'rgba(245, 245, 245, 0.8)',
     borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: Colors.semantic.inputBorder,
+    borderColor: 'rgba(229, 231, 235, 0.6)',
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   activeCategoryTab: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   categoryTabText: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
     color: Colors.semantic.bodyText,
   },
   activeCategoryTabText: {
     color: Colors.white,
   },
+  
+  // Menu Items
   menuItems: {
     flex: 1,
+    backgroundColor: '#F8FAFC',
   },
-  itemsGrid: {
-    padding: 16,
-    gap: 12,
+  menuItemsContent: {
+    padding: 12,
+    gap: 8,
   },
   menuItemCard: {
     backgroundColor: Colors.semantic.card,
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors.semantic.cardBorder,
+    borderColor: 'rgba(229, 231, 235, 0.6)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+    marginBottom: 4,
+  },
+  itemContent: {
+    flexDirection: 'row',
+    padding: 16,
+    gap: 12,
+  },
+  itemImageContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: Colors.muted,
   },
   itemImage: {
     width: '100%',
-    height: 120,
+    height: '100%',
   },
-  itemContent: {
-    padding: 16,
+  itemDetails: {
+    flex: 1,
+    justifyContent: 'space-between',
   },
   itemName: {
     fontSize: 16,
@@ -385,10 +523,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   itemDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.semantic.tabInactive,
-    lineHeight: 20,
-    marginBottom: 12,
+    lineHeight: 18,
+    marginBottom: 8,
   },
   itemFooter: {
     flexDirection: 'row',
@@ -396,18 +534,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   itemPrice: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
-    color: Colors.secondary,
+    color: '#FF6B35', // Orange color for price
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.primary + '15',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });
