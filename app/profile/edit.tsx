@@ -177,7 +177,7 @@ export default function EditProfileScreen() {
       
       setTimeout(() => {
         router.back();
-      }, 1000);
+      }, 1500);
     } else {
       setToast({
         visible: true,
@@ -255,12 +255,12 @@ export default function EditProfileScreen() {
         <TouchableOpacity 
           style={[
             styles.saveButton,
-            (!isValid || isSaving) && styles.saveButtonDisabled
+            (!isDirty || !isValid || isSaving) && styles.saveButtonDisabled
           ]}
           onPress={handleQuickSave}
-          disabled={!isValid || isSaving}
+          disabled={!isDirty || !isValid || isSaving}
         >
-          <Save size={16} color={isValid && !isSaving ? Colors.white : Colors.semantic.tabInactive} strokeWidth={2} />
+          <Save size={16} color={isDirty && isValid && !isSaving ? Colors.white : Colors.semantic.tabInactive} strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -275,7 +275,7 @@ export default function EditProfileScreen() {
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
-                {getInitials(formData.display_name)}
+                {getInitials(formData.display_name || 'User')}
               </Text>
             </View>
             <TouchableOpacity style={styles.cameraButton} onPress={handleChangePhoto}>
@@ -301,6 +301,7 @@ export default function EditProfileScreen() {
                 placeholder="Enter your display name"
                 placeholderTextColor={Colors.semantic.tabInactive}
                 editable={!isSaving}
+                returnKeyType="done"
               />
             </View>
             {errors.display_name && (
@@ -326,6 +327,7 @@ export default function EditProfileScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 editable={isEmailEditable && !isSaving}
+                returnKeyType="done"
               />
             </View>
             {!isEmailEditable && (
@@ -389,6 +391,8 @@ export default function EditProfileScreen() {
               ]}
               onPress={handleSaveAndBack}
               disabled={!isValid || isSaving}
+              accessibilityLabel="Save profile changes"
+              accessibilityRole="button"
             >
               <Text style={[
                 styles.saveButtonLargeText,
