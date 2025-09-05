@@ -56,7 +56,6 @@ export default function MajorSelector({ value, onSelect, error, disabled, majors
   };
 
   const getFilteredMajors = () => {
-    if (!searchQuery.trim()) return ALLOWED_MAJORS;
     if (!searchQuery.trim()) return majors;
     
     const query = searchQuery.toLowerCase();
