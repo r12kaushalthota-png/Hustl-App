@@ -37,12 +37,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
-import { ChatService } from '@/lib/chat';
 import { supabase } from '@/lib/supabase';
 import { Task } from '@/types/database';
-import GlobalHeader from '@/components/GlobalHeader';
-import TasksMap from '@/components/TasksMap';
-import AuthPrompt from '@/components/AuthPrompt';
 import Toast from '@/components/Toast';
 
 const { width } = Dimensions.get('window');
@@ -53,12 +49,10 @@ type ViewMode = 'list' | 'map';
 const TaskCard = ({ 
   task, 
   onAccept, 
-  onChat, 
   isAccepting 
 }: { 
   task: Task; 
   onAccept: () => void;
-  onChat: () => void;
   isAccepting: boolean;
 }) => {
   const scale = useSharedValue(1);
@@ -187,15 +181,6 @@ const TaskCard = ({
         {/* Actions */}
         <View style={styles.taskActions}>
           <Pressable
-            style={styles.chatButton}
-            onPress={onChat}
-            accessibilityLabel="Chat about task"
-            accessibilityRole="button"
-          >
-            <Text style={styles.chatButtonText}>Chat</Text>
-          </Pressable>
-          
-          <Pressable
             style={[
               styles.acceptButton,
               isAccepting && styles.acceptButtonDisabled
@@ -237,7 +222,6 @@ export default function TasksScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [acceptingTaskId, setAcceptingTaskId] = useState<string | null>(null);
-  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>({
     visible: false,
     message: '',
@@ -333,7 +317,11 @@ export default function TasksScreen() {
 
   const handleAcceptTask = async (taskId: string) => {
     if (isGuest || !user) {
-      setShowAuthPrompt(true);
+      setToast({
+        visible: true,
+        message: 'Please sign in to accept tasks',
+        type: 'error'
+      });
       return;
     }
 
@@ -378,37 +366,6 @@ export default function TasksScreen() {
     }
   };
 
-  const handleChatPress = async (taskId: string) => {
-    if (isGuest || !user) {
-      setShowAuthPrompt(true);
-      return;
-    }
-
-    triggerHaptics();
-
-    try {
-      // Ensure chat room exists for the task
-      const { data: room, error } = await ChatService.ensureRoomForTask(taskId);
-
-      if (error || !room) {
-        setToast({
-          visible: true,
-          message: 'Failed to open chat. Please try again.',
-          type: 'error'
-        });
-        return;
-      }
-
-      // Navigate to chat
-      router.push(`/chat/${room.id}`);
-    } catch (error) {
-      setToast({
-        visible: true,
-        message: 'Failed to open chat. Please try again.',
-        type: 'error'
-      });
-    }
-  };
 
   const hideToast = () => {
     setToast(prev => ({ ...prev, visible: false }));
@@ -419,7 +376,6 @@ export default function TasksScreen() {
       key={task.id}
       task={task}
       onAccept={() => handleAcceptTask(task.id)}
-      onChat={() => handleChatPress(task.id)}
       isAccepting={acceptingTaskId === task.id}
     />
   );
@@ -436,14 +392,6 @@ export default function TasksScreen() {
           : 'Check back later for new tasks or post your own!'
         }
       </Text>
-      {isGuest && (
-        <TouchableOpacity 
-          style={styles.signInButton}
-          onPress={() => setShowAuthPrompt(true)}
-        >
-          <Text style={styles.signInButtonText}>Sign In</Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 
@@ -465,7 +413,9 @@ export default function TasksScreen() {
   return (
     <>
       <View style={styles.container}>
-        <GlobalHeader showSearch={true} showNotifications={false} />
+        <View style={styles.simpleHeader}>
+          <Text style={styles.headerTitle}>Available Tasks</Text>
+        </View>
 
         {/* View Mode Toggle */}
         <View style={styles.viewModeContainer}>
@@ -550,22 +500,13 @@ export default function TasksScreen() {
               renderEmptyState()
             )
           ) : (
-            <TasksMap
-              pins={taskPins}
-              onPressPin={(taskId) => router.push(`/task/${taskId}`)}
-              showsUserLocation={true}
-            />
+            <View style={styles.mapPlaceholder}>
+              <Text style={styles.mapPlaceholderText}>Map view coming soon</Text>
+            </View>
           )}
         </View>
       </View>
 
-      {/* Auth Prompt */}
-      <AuthPrompt
-        visible={showAuthPrompt}
-        onClose={() => setShowAuthPrompt(false)}
-        title="Sign in to accept tasks"
-        message="Create an account or sign in to accept tasks and connect with other students."
-      />
 
       {/* Toast */}
       <Toast
@@ -582,6 +523,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.semantic.screen,
+  },
+  simpleHeader: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    alignItems: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(229, 231, 235, 0.3)',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.semantic.headingText,
   },
   viewModeContainer: {
     paddingHorizontal: 20,
@@ -720,23 +674,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
-  chatButton: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chatButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
   acceptButton: {
-    flex: 2,
+    flex: 1,
     borderRadius: 12,
     overflow: 'hidden',
     shadowColor: Colors.primary,
@@ -802,20 +741,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
-  signInButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+  mapPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.muted,
   },
-  signInButtonText: {
+  mapPlaceholderText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: Colors.white,
+    color: Colors.semantic.tabInactive,
   },
 });

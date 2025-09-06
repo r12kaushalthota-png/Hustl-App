@@ -1,25 +1,14 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { HomeIcon as HomeIcon, List as ListIcon, MessageCircle, Gift, Zap } from 'lucide-react-native';
+import { HomeIcon as HomeIcon, List as ListIcon, Zap } from 'lucide-react-native';
 import { TouchableOpacity, View, StyleSheet, Platform, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring, 
-  withTiming,
-  interpolate,
-  withRepeat,
-  withSequence
-} from 'react-native-reanimated';
 
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
-
-// Enhanced Tab Icon Component
+// Simple Tab Icon Component
 const TabIcon = ({ 
   IconComponent, 
   size, 
@@ -31,127 +20,25 @@ const TabIcon = ({
   color: string; 
   focused: boolean;
 }) => {
-  const scale = useSharedValue(1);
-  const glowOpacity = useSharedValue(0);
-
-  React.useEffect(() => {
-    if (focused) {
-      scale.value = withSpring(1.15, { damping: 15 });
-      glowOpacity.value = withTiming(0.3, { duration: 200 });
-    } else {
-      scale.value = withSpring(1, { damping: 15 });
-      glowOpacity.value = withTiming(0, { duration: 200 });
-    }
-  }, [focused]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const animatedGlowStyle = useAnimatedStyle(() => ({
-    shadowOpacity: glowOpacity.value,
-  }));
-
   return (
-    <Animated.View style={[styles.tabIconContainer, animatedStyle]}>
-      <Animated.View style={[
-        styles.tabIconGlow,
-        { shadowColor: color },
-        animatedGlowStyle
+    <View style={styles.tabIconContainer}>
+      <View style={[
+        styles.tabIconBackground,
+        focused && { backgroundColor: color + '15' }
       ]}>
-        <View style={[
-          styles.tabIconBackground,
-          focused && { backgroundColor: color + '15' }
-        ]}>
-          <IconComponent 
-            size={size} 
-            color={color} 
-            strokeWidth={focused ? 2.5 : 2}
-          />
-        </View>
-      </Animated.View>
-    </Animated.View>
-  );
-};
-
-// Custom Tab Button for enhanced interaction
-const CustomTabButton = ({ 
-  children, 
-  onPress, 
-  accessibilityState 
-}: { 
-  children: React.ReactNode; 
-  onPress: () => void; 
-  accessibilityState?: any;
-}) => {
-  const scale = useSharedValue(1);
-  const focused = accessibilityState?.selected;
-
-  const handlePressIn = () => {
-    scale.value = withTiming(0.95, { duration: 100 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15 });
-  };
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  return (
-    <AnimatedTouchableOpacity
-      style={[styles.customTabButton, focused && styles.focusedTabButton]}
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      activeOpacity={1}
-    >
-      <Animated.View style={animatedStyle}>
-        {children}
-      </Animated.View>
-    </AnimatedTouchableOpacity>
+        <IconComponent 
+          size={size} 
+          color={color} 
+          strokeWidth={focused ? 2.5 : 2}
+        />
+      </View>
+    </View>
   );
 };
 
 // Post Task Tab Button Component
 const PostTaskButton = ({ focused }: { focused: boolean }) => {
   const router = useRouter();
-  const scale = useSharedValue(1);
-  const glowOpacity = useSharedValue(0.3);
-  const pulseScale = useSharedValue(1);
-
-  React.useEffect(() => {
-    // Continuous pulse animation
-    pulseScale.value = withRepeat(
-      withSequence(
-        withTiming(1.05, { duration: 1500 }),
-        withTiming(1, { duration: 1500 })
-      ),
-      -1,
-      true
-    );
-
-    if (focused) {
-      scale.value = withSpring(1.1, { damping: 15 });
-      glowOpacity.value = withTiming(0.6, { duration: 300 });
-    } else {
-      scale.value = withSpring(1, { damping: 15 });
-      glowOpacity.value = withTiming(0.4, { duration: 300 });
-    }
-  }, [focused]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const animatedGlowStyle = useAnimatedStyle(() => ({
-    shadowOpacity: glowOpacity.value,
-  }));
-
-  const animatedPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseScale.value }],
-  }));
 
   const handlePress = () => {
     if (Platform.OS !== 'web') {
@@ -165,40 +52,25 @@ const PostTaskButton = ({ focused }: { focused: boolean }) => {
   };
 
   return (
-    <AnimatedTouchableOpacity
-      style={[styles.postTaskButton, animatedStyle]}
+    <TouchableOpacity
+      style={styles.postTaskButton}
       onPress={handlePress}
       activeOpacity={0.9}
       accessibilityLabel="Post Task"
       accessibilityRole="button"
     >
-      <Animated.View style={[styles.postTaskIconContainer, animatedGlowStyle]}>
-        <Animated.View style={[styles.postTaskIconWrapper, animatedPulseStyle]}>
-          <LinearGradient
-            colors={['#0047FF', '#0021A5', '#FA4616']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            locations={[0, 0.6, 1]}
-            style={styles.postTaskGradient}
-          >
-            <Zap size={28} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
-          </LinearGradient>
-          
-          {/* Animated Pulse Ring */}
-          <View style={styles.pulseRing} />
-        </Animated.View>
-      </Animated.View>
-      <Text style={[
-        styles.postTaskLabel,
-        { 
-          color: focused ? '#0021A5' : '#9CA3AF', 
-          fontWeight: focused ? '700' : '600',
-          fontSize: focused ? 13 : 12
-        }
-      ]}>
-        {/* Hidden label for icon-only nav */}
-      </Text>
-    </AnimatedTouchableOpacity>
+      <View style={styles.postTaskIconContainer}>
+        <LinearGradient
+          colors={['#0047FF', '#0021A5', '#FA4616']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          locations={[0, 0.6, 1]}
+          style={styles.postTaskGradient}
+        >
+          <Zap size={28} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
+        </LinearGradient>
+      </View>
+    </TouchableOpacity>
   );
 };
 
@@ -239,7 +111,6 @@ export default function TabLayout() {
           tabBarActiveTintColor: '#0021A5',
           tabBarInactiveTintColor: '#9CA3AF',
           tabBarShowLabel: false,
-          tabBarButton: (props) => <CustomTabButton {...props} />,
         }}
       >
         <Tabs.Screen
@@ -274,32 +145,6 @@ export default function TabLayout() {
             tabBarButton: PostTaskTabButton,
           }}
         />
-        <Tabs.Screen
-          name="chats"
-          options={{
-            tabBarIcon: ({ size, color, focused }) => (
-              <TabIcon 
-                IconComponent={MessageCircle} 
-                size={size} 
-                color={color} 
-                focused={focused}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="referrals"
-          options={{
-            tabBarIcon: ({ size, color, focused }) => (
-              <TabIcon 
-                IconComponent={Gift} 
-                size={size} 
-                color={color} 
-                focused={focused}
-              />
-            ),
-          }}
-        />
       </Tabs>
     </View>
   );
@@ -309,25 +154,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  customTabButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: 16,
-    marginHorizontal: 4,
-  },
-  focusedTabButton: {
-    backgroundColor: 'rgba(0, 33, 165, 0.08)',
-  },
   tabIconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  tabIconGlow: {
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 4,
   },
   tabIconBackground: {
     width: 44,
@@ -355,32 +184,11 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 12,
   },
-  postTaskIconWrapper: {
+  postTaskGradient: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  postTaskGradient: {
-    width: '100%',
-    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  pulseRing: {
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: 'rgba(0, 33, 165, 0.3)',
-  },
-  postTaskLabel: {
-    fontSize: 12,
-    textAlign: 'center',
-    letterSpacing: 0.3,
   },
 });

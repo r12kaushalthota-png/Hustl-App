@@ -8,7 +8,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SupabaseProvider } from '@/contexts/SupabaseContext';
-import { FoodOrderProvider } from '@/contexts/FoodOrderContext';
 import { useRouter } from 'expo-router';
 
 export default function RootLayout() {
@@ -36,20 +35,17 @@ export default function RootLayout() {
   return (
     <SupabaseProvider>
       <AuthProvider>
-        <FoodOrderProvider>
-          <SafeAreaProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="(onboarding)" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="profile" />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-              <StatusBar style="auto" />
-            </GestureHandlerRootView>
-          </SafeAreaProvider>
-        </FoodOrderProvider>
+        <SafeAreaProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="task" />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="auto" />
+          </GestureHandlerRootView>
+        </SafeAreaProvider>
       </AuthProvider>
     </SupabaseProvider>
   );

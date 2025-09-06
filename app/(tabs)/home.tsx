@@ -41,7 +41,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import GlobalHeader from '@components/GlobalHeader';
 import { useAuth } from '@/contexts/AuthContext';
-import XPProgressBar from '@/components/XPProgressBar';
 
 const { width, height } = Dimensions.get('window');
 
@@ -358,7 +357,7 @@ const HeroSection = () => {
     }
     
     if (isGuest) {
-      router.push('/(onboarding)/auth');
+      router.push('/(tabs)/tasks');
     } else {
       router.push('/(tabs)/post');
     }
@@ -393,7 +392,7 @@ const HeroSection = () => {
               style={styles.ctaGradient}
             >
               <Text style={styles.ctaText}>
-                {isGuest ? 'Get Started' : 'Post a Task'}
+                {isGuest ? 'Browse Tasks' : 'Post a Task'}
               </Text>
               <ChevronRight size={18} color={Colors.white} strokeWidth={2.5} />
             </LinearGradient>
@@ -693,73 +692,6 @@ const CategoryCard = ({
   );
 };
 
-// Simplified Referral Banner
-const SimpleReferralBanner = () => {
-  const router = useRouter();
-  const { user } = useAuth();
-  
-  const glowAnimation = useSharedValue(0);
-
-  React.useEffect(() => {
-    glowAnimation.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 3000 }),
-        withTiming(0, { duration: 3000 })
-      ),
-      -1,
-      true
-    );
-  }, []);
-
-  const animatedGlowStyle = useAnimatedStyle(() => {
-    const shadowOpacity = interpolate(glowAnimation.value, [0, 1], [0.2, 0.4]);
-    return { shadowOpacity };
-  });
-
-
-  const handlePress = () => {
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      } catch (error) {
-        // Haptics not available, continue silently
-      }
-    }
-    router.push('/(tabs)/referrals');
-  };
-
-  return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.95}>
-      <Animated.View style={[styles.referralBanner, animatedGlowStyle]}>
-        <LinearGradient
-          colors={['#0047FF', '#0021A5', '#FA4616']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          locations={[0, 0.6, 1]}
-          style={styles.referralGradient}
-        >
-          
-          <View style={styles.referralContent}>
-            <View style={styles.referralIcon}>
-              <TrendingUp size={28} color={Colors.white} strokeWidth={2.5} />
-            </View>
-            
-            <View style={styles.referralText}>
-              <Text style={styles.referralTitle}>Earn $10 per referral</Text>
-              <Text style={styles.referralSubtitle}>
-                Invite friends • Get rewarded • Build your network
-              </Text>
-            </View>
-            
-            <View style={styles.referralArrow}>
-              <ChevronRight size={20} color={Colors.white} strokeWidth={3} />
-            </View>
-          </View>
-        </LinearGradient>
-      </Animated.View>
-    </TouchableOpacity>
-  );
-};
 
 // Simple Greeting Section
 const GreetingSection = () => {
@@ -838,7 +770,9 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <AnimatedBackground />
-      <GlobalHeader showSearch={true} showNotifications={false} />
+      <View style={styles.simpleHeader}>
+        <Text style={styles.headerTitle}>Hustl</Text>
+      </View>
 
       <ScrollView 
         style={styles.content} 
@@ -849,8 +783,6 @@ export default function HomeScreen() {
         {/* Greeting */}
         <GreetingSection />
 
-        {/* Referral Banner */}
-        <SimpleReferralBanner />
 
         {/* Task Categories Grid */}
         <View style={styles.categoriesSection}>
@@ -929,6 +861,19 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
+  simpleHeader: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    alignItems: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(229, 231, 235, 0.3)',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.semantic.headingText,
+  },
 
   // Greeting Section
   greetingSection: {
@@ -943,60 +888,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-
-  // Referral Banner
-  referralBanner: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#0047FF',
-    shadowOffset: { width: 0, height: 16 },
-    shadowRadius: 32,
-    elevation: 20,
-  },
-  referralGradient: {
-    position: 'relative',
-  },
-  referralContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    gap: 16,
-  },
-  referralIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  referralText: {
-    flex: 1,
-    gap: 4,
-  },
-  referralTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.white,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  referralSubtitle: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 18,
-  },
-  referralArrow: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
 
   // Categories Section
   categoriesSection: {

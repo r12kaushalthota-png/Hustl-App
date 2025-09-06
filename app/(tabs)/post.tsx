@@ -24,15 +24,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
-import { FoodOrderProvider, useFoodOrder } from '@/contexts/FoodOrderContext';
 import { TaskCategory, TaskUrgency } from '@/types/database';
 import { ModerationService } from '@/lib/moderation';
-import AuthPrompt from '@components/AuthPrompt';
-import TaskSuccessSheet from '@components/TaskSuccessSheet';
 import Toast from '@components/Toast';
-import MenuBrowser from '@/components/food/MenuBrowser';
-import CartSummary from '@/components/food/CartSummary';
-import { FoodOrderUtils } from '@/lib/foodOrderUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -230,20 +224,11 @@ const getCategoryDefaults = (categoryId: string) => {
 };
 
 export default function PostScreen() {
-  return (
-    <FoodOrderProvider>
-      <PostScreenContent />
-    </FoodOrderProvider>
-  );
-}
-
-function PostScreenContent() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { user, isGuest } = useAuth();
-  const { getCartSummary, getFinalOrder, clearCart } = useFoodOrder();
   
   // Form state
   const [title, setTitle] = useState('');
@@ -265,10 +250,6 @@ function PostScreenContent() {
   // UI state
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const [showSuccessSheet, setShowSuccessSheet] = useState(false);
-  const [lastCreatedTaskId, setLastCreatedTaskId] = useState<string | null>(null);
-  const [showMenuBrowser, setShowMenuBrowser] = useState(false);
   const [isLoadingStore, setIsLoadingStore] = useState(false);
   const [isLoadingDropoff, setIsLoadingDropoff] = useState(false);
   const [moderationError, setModerationError] = useState('');
@@ -321,12 +302,6 @@ function PostScreenContent() {
     const urgencyPrice = urgencyOptions.find(opt => opt.value === urgency)?.price || 100;
     let total = BASE_PRICE_CENTS + urgencyPrice;
     
-    // Add food order total if exists
-    const foodOrder = getFinalOrder();
-    if (foodOrder && category === 'food') {
-      total += foodOrder.total;
-    }
-    
     // Round up to nearest $0.25 (25 cents)
     total = Math.ceil(total / 25) * 25;
     
@@ -334,7 +309,7 @@ function PostScreenContent() {
     total = Math.max(MIN_PRICE_CENTS, Math.min(MAX_PRICE_CENTS, total));
     
     setComputedPriceCents(total);
-  }, [urgency, getFinalOrder, category]);
+  }, [urgency, category]);
 
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
@@ -502,7 +477,11 @@ function PostScreenContent() {
 
     // Check authentication
     if (isGuest || !user) {
-      setShowAuthPrompt(true);
+      setToast({
+        visible: true,
+        message: 'Please sign in to post tasks',
+        type: 'error'
+      });
       return;
     }
 
@@ -572,23 +551,20 @@ function PostScreenContent() {
         return;
       }
 
-      // Success - store the created task ID and show success screen
-      setLastCreatedTaskId(data.id);
-      
-      // Add to tasks list if available
-      if ((global as any).addNewTaskToTasksList) {
-        (global as any).addNewTaskToTasksList(data);
-      }
-      
-      setShowSuccessSheet(true);
+      // Success
+      setToast({
+        visible: true,
+        message: 'Task posted successfully!',
+        type: 'success'
+      });
       
       // Clear form for next use
       clearForm();
-      
-      // Clear food cart
-      if (category === 'food') {
-        clearCart();
-      }
+
+      // Navigate back to tasks
+      setTimeout(() => {
+        router.push('/(tabs)/tasks');
+      }, 1500);
     } catch (error) {
       setSubmitError("Couldn't post your task. Try again.");
     } finally {
@@ -610,7 +586,6 @@ function PostScreenContent() {
     setModerationError('');
     setShowStoreDropdown(false);
     setShowDropoffDropdown(false);
-    clearCart();
   };
 
   // Map UI categories to database categories
@@ -715,8 +690,6 @@ function PostScreenContent() {
 
   const PricingBreakdown = () => {
     const urgencyPrice = urgencyOptions.find(opt => opt.value === urgency)?.price || 100;
-    const foodOrder = getFinalOrder();
-    const foodTotal = foodOrder && category === 'food' ? foodOrder.total : 0;
     
     return (
       <View style={styles.inputGroup}>
@@ -730,12 +703,6 @@ function PostScreenContent() {
             <Text style={styles.pricingLabel}>Urgency ({urgency})</Text>
             <Text style={styles.pricingValue}>+{formatPrice(urgencyPrice)}</Text>
           </View>
-          {foodTotal > 0 && (
-            <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>Food Order</Text>
-              <Text style={styles.pricingValue}>+{formatPrice(foodTotal)}</Text>
-            </View>
-          )}
           <View style={[styles.pricingRow, styles.pricingTotal]}>
             <Text style={styles.pricingTotalLabel}>Total</Text>
             <Text style={styles.pricingTotalValue}>{formatPrice(computedPriceCents)}</Text>
@@ -745,44 +712,6 @@ function PostScreenContent() {
     );
   };
 
-  // Food Order Section (only for food category)
-  const FoodOrderSection = () => {
-    const cartSummary = getCartSummary();
-    
-    if (category !== 'food') return null;
-    
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Food Order</Text>
-        
-        {cartSummary.itemCount > 0 ? (
-          <View style={styles.foodOrderCard}>
-            <View style={styles.foodOrderHeader}>
-              <Text style={styles.foodOrderSummary}>
-                {cartSummary.itemCount} item{cartSummary.itemCount !== 1 ? 's' : ''} • {formatPrice(cartSummary.total)}
-              </Text>
-              <TouchableOpacity
-                style={styles.editOrderButton}
-                onPress={() => setShowMenuBrowser(true)}
-              >
-                <Text style={styles.editOrderButtonText}>Edit</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <CartSummary onEditItems={() => setShowMenuBrowser(true)} />
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.addItemsCard}
-            onPress={() => setShowMenuBrowser(true)}
-          >
-            <Text style={styles.addItemsText}>Add Items</Text>
-            <Text style={styles.addItemsSubtext}>Choose from Chick-fil-A, Chipotle, or Taco Bell</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
 
   return (
     <>
@@ -993,9 +922,6 @@ function PostScreenContent() {
                 <Text style={styles.sectionTitle}>Pricing</Text>
                 <PricingBreakdown />
               </View>
-              
-              {/* Food Order Section */}
-              <FoodOrderSection />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -1045,26 +971,6 @@ function PostScreenContent() {
       {/* Dropoff Selection Modal */}
       <DropoffSelectionModal />
 
-      {/* Auth Prompt Modal */}
-      <AuthPrompt
-        visible={showAuthPrompt}
-        onClose={() => setShowAuthPrompt(false)}
-        title="Sign in to post tasks"
-        message="Create an account or sign in to post tasks and connect with other students."
-      />
-
-      {/* Success Sheet */}
-      <TaskSuccessSheet
-        visible={showSuccessSheet}
-        onClose={() => setShowSuccessSheet(false)}
-        taskId={lastCreatedTaskId}
-      />
-      
-      {/* Menu Browser Modal */}
-      <MenuBrowser
-        visible={showMenuBrowser}
-        onClose={() => setShowMenuBrowser(false)}
-      />
 
       {/* Toast */}
       <Toast
@@ -1486,57 +1392,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.semantic.errorAlert,
     lineHeight: 20,
-  },
-  foodOrderCard: {
-    backgroundColor: Colors.semantic.card,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.semantic.cardBorder,
-  },
-  foodOrderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  foodOrderSummary: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.semantic.bodyText,
-  },
-  editOrderButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  editOrderButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  addItemsCard: {
-    backgroundColor: Colors.primary + '10',
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    borderStyle: 'dashed',
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    gap: 8,
-  },
-  addItemsText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  addItemsSubtext: {
-    fontSize: 14,
-    color: Colors.semantic.tabInactive,
-    textAlign: 'center',
   },
   dropdownButton: {
     flexDirection: 'row',

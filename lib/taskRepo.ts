@@ -1,20 +1,9 @@
 import { supabase } from './supabase';
 import type { Task, CreateTaskData, TaskStatus, TaskCategory, TaskUrgency } from '@/types/database';
 
-/**
- * Safe Task Repository - Eliminates 406 PGRST116 errors completely
- * 
- * Rules:
- * 1. NEVER use .single() or .maybeSingle() - always use .limit(1) + [0]
- * 2. Fetch by ID uses ONLY id filter, no status/created_by filters
- * 3. All single fetches return null for 0 rows (never throw)
- * 4. Business logic validation happens in application code
- * 5. Atomic updates use RPC functions for race condition protection
- */
 export class TaskRepo {
   /**
-   * Safe single task fetch - NEVER returns 406 PGRST116
-   * Only filters by ID, returns null if not found
+   * Get task by ID safely
    */
   static async getTaskByIdSafe(taskId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
@@ -36,8 +25,7 @@ export class TaskRepo {
   }
 
   /**
-   * Get available tasks (open tasks not created by current user)
-   * Safe list query - never uses .single()
+   * List open tasks available for acceptance
    */
   static async listOpenTasks(userId: string, limit: number = 20, offset: number = 0): Promise<{ data: Task[] | null; error: string | null }> {
     try {
@@ -60,8 +48,7 @@ export class TaskRepo {
   }
 
   /**
-   * Get tasks user is doing (accepted by current user)
-   * Safe list query - never uses .single()
+   * List tasks user is doing (accepted by user)
    */
   static async listUserDoingTasks(userId: string): Promise<{ data: Task[] | null; error: string | null }> {
     try {
@@ -83,8 +70,7 @@ export class TaskRepo {
   }
 
   /**
-   * Get user's posted tasks (created by current user, any status)
-   * Safe list query - never uses .single()
+   * List user's posted tasks
    */
   static async listUserPostedTasks(userId: string): Promise<{ data: Task[] | null; error: string | null }> {
     try {
@@ -106,7 +92,6 @@ export class TaskRepo {
 
   /**
    * Create a new task
-   * Safe creation - uses .limit(1) + [0] for response
    */
   static async createTask(taskData: CreateTaskData, userId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
@@ -136,8 +121,7 @@ export class TaskRepo {
   }
 
   /**
-   * Accept a task using atomic RPC function
-   * Uses atomic RPC function with proper enum casting to prevent race conditions
+   * Accept a task - generates unique code and assigns to user
    */
   static async acceptTask(taskId: string, userId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
@@ -171,41 +155,18 @@ export class TaskRepo {
   }
 
   /**
-   * Cancel a task (only by creator)
-   * Safe pattern: fetch by ID only, validate in code, atomic update
+   * Update task status (for basic status changes)
    */
-  static async cancelTask(taskId: string, userId: string): Promise<{ data: Task | null; error: string | null }> {
+  static async updateTaskStatus(taskId: string, status: TaskStatus, userId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
-      // SAFE: Fetch task by ID only - no restrictive filters
-      const { data: task, error: fetchError } = await TaskRepo.getTaskByIdSafe(taskId);
-
-      if (fetchError) {
-        return { data: null, error: fetchError };
-      }
-
-      if (!task) {
-        return { data: null, error: 'Task not found or no longer available' };
-      }
-
-      // Validate in application code (not database filters)
-      if (task.created_by !== userId) {
-        return { data: null, error: 'You can only cancel your own tasks' };
-      }
-      
-      if (task.status !== 'open' && task.status !== 'accepted') {
-        return { data: null, error: 'Only open or accepted tasks can be cancelled' };
-      }
-
-      // Atomic update with proper filters for race condition protection
       const { data, error } = await supabase
         .from('tasks')
         .update({
-          status: 'cancelled' as TaskStatus,
+          status,
           updated_at: new Date().toISOString(),
         })
         .eq('id', taskId)
-        .eq('created_by', userId)
-        .in('status', ['open', 'accepted'])
+        .eq('accepted_by', userId)
         .select()
         .limit(1);
 
@@ -213,19 +174,18 @@ export class TaskRepo {
         return { data: null, error: error.message };
       }
 
-      const updatedTask = data?.[0] ?? null;
-      if (!updatedTask) {
-        return { data: null, error: 'Task not found or no longer available for cancellation' };
+      const task = data?.[0] ?? null;
+      if (!task) {
+        return { data: null, error: 'Task not found or you do not have permission to update it' };
       }
 
-      return { data: updatedTask, error: null };
+      return { data: task, error: null };
     } catch (error) {
       return { data: null, error: 'Network error. Please check your connection.' };
     }
   }
 
-
-  // Utility methods for formatting (moved from TaskService)
+  // Utility formatting methods
   static formatReward(cents: number): string {
     return `$${(cents / 100).toFixed(0)}`;
   }
@@ -262,13 +222,13 @@ export class TaskRepo {
   static getUrgencyColor(urgency: string): string {
     switch (urgency) {
       case 'low':
-        return '#10B981'; // Green
+        return '#10B981';
       case 'medium':
-        return '#F59E0B'; // Yellow
+        return '#F59E0B';
       case 'high':
-        return '#EF4444'; // Red
+        return '#EF4444';
       default:
-        return '#6B7280'; // Gray
+        return '#6B7280';
     }
   }
 
@@ -278,8 +238,6 @@ export class TaskRepo {
         return 'Open';
       case 'accepted':
         return 'Accepted';
-      case 'in_progress':
-        return 'In Progress';
       case 'completed':
         return 'Completed';
       case 'cancelled':
@@ -292,17 +250,15 @@ export class TaskRepo {
   static getStatusColor(status: TaskStatus): string {
     switch (status) {
       case 'open':
-        return '#3B82F6'; // Blue
+        return '#3B82F6';
       case 'accepted':
-        return '#F59E0B'; // Orange
-      case 'in_progress':
-        return '#8B5CF6'; // Purple
+        return '#F59E0B';
       case 'completed':
-        return '#10B981'; // Green
+        return '#10B981';
       case 'cancelled':
-        return '#EF4444'; // Red
+        return '#EF4444';
       default:
-        return '#6B7280'; // Gray
+        return '#6B7280';
     }
   }
 }
