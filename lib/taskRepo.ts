@@ -141,16 +141,12 @@ export class TaskRepo {
    */
   static async acceptTask(taskId: string, userId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
-      console.log('Calling accept_task RPC with:', { p_task_id: taskId, p_user_id: userId });
-      
       const { data, error } = await supabase.rpc('accept_task', { 
         p_task_id: taskId,
         p_user_id: userId
       });
 
       if (error) {
-        console.error('accept_task RPC error:', error);
-        
         // Handle specific error cases
         if (error.message.includes('TASK_NOT_FOUND')) {
           return { data: null, error: 'Task not found' };
@@ -163,16 +159,13 @@ export class TaskRepo {
         }
       }
 
-      // RPC returns array of rows, get first one
       if (!data || data.length === 0) {
         return { data: null, error: 'Task acceptance failed. Please try again.' };
       }
 
       const acceptedTask = data[0];
-      console.log('Task accepted successfully:', acceptedTask);
       return { data: acceptedTask, error: null };
     } catch (error) {
-      console.error('accept_task exception:', error);
       return { data: null, error: 'Network error. Please check your connection.' };
     }
   }
