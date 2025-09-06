@@ -24,6 +24,7 @@ import Animated, {
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatService } from '@/lib/chat';
+import { ProfileService } from '@/services/profileService';
 import type { InboxItem } from '@/types/chat';
 
 const { width } = Dimensions.get('window');
@@ -170,7 +171,7 @@ const ChatRow = ({
           ) : (
             <View style={styles.avatarPlaceholder}>
               <Text style={styles.avatarText}>
-                {getInitials(item.other_name || 'User')}
+                {ProfileService.getInitials(item.other_name)}
               </Text>
             </View>
           )}
@@ -205,19 +206,6 @@ const ChatRow = ({
       </TouchableOpacity>
     </Animated.View>
   );
-};
-
-// Helper function for initials
-const getInitials = (name: string): string => {
-  if (!name || !name.trim()) return 'U';
-  
-  return name
-    .trim()
-    .split(' ')
-    .map(word => word.charAt(0))
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
 };
 
 interface ChatsListProps {

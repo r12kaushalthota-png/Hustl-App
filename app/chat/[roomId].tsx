@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
 import Conversation from '@/components/Conversation';
+import ProfileSheet from '@/components/ProfileSheet';
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -12,13 +13,21 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   
   const roomId = params.roomId as string;
+  const [showProfileSheet, setShowProfileSheet] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const handleBack = () => {
     router.back();
   };
 
+  const handleProfilePress = (userId: string) => {
+    setSelectedUserId(userId);
+    setShowProfileSheet(true);
+  };
+
   return (
-    <View style={styles.container}>
+    <>
+      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -31,9 +40,21 @@ export default function ChatScreen() {
         {/* Conversation */}
         <Conversation 
           roomId={roomId} 
-          onProfilePress={() => {}} // Placeholder for now
+          onProfilePress={handleProfilePress}
         />
-    </View>
+      </View>
+
+      {/* Profile Sheet */}
+      <ProfileSheet
+        visible={showProfileSheet}
+        onClose={() => {
+          setShowProfileSheet(false);
+          setSelectedUserId(null);
+        }}
+        userId={selectedUserId}
+        currentChatRoomId={roomId}
+      />
+    </>
   );
 }
 

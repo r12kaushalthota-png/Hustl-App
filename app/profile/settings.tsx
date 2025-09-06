@@ -4,7 +4,9 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Bell, Shield, Eye, Moon, Smartphone, ChevronRight } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
+import { NotificationService } from '@/services/notifications';
 import { useAuth } from '@/contexts/AuthContext';
+import type { NotificationPreferences } from '@/services/notifications';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -19,14 +21,35 @@ export default function SettingsScreen() {
   const [darkMode, setDarkMode] = useState(false);
   const [profileVisibility, setProfileVisibility] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   useEffect(() => {
-    // Load notification settings would go here
+    loadNotificationSettings();
   }, []);
 
+  const loadNotificationSettings = async () => {
+    if (!user) return;
+
+    try {
+      // Check if notifications are enabled at device level
+      const enabled = await NotificationService.areNotificationsEnabled();
+      setNotificationsEnabled(enabled);
+
+      // Load user preferences
+      const { data: preferences } = await NotificationService.getNotificationPreferences(user.id);
+      
+      if (preferences) {
+        setNewTasks(preferences.new_tasks);
+        setTaskAccepted(preferences.task_accepted);
+        setTaskUpdates(preferences.task_updates);
+      }
+    } catch (error) {
+      console.error('Failed to load notification settings:', error);
+    }
+  };
+
   const updateNotificationPreference = async (
-    key: string,
+    key: keyof Omit<NotificationPreferences, 'user_id'>,
     value: boolean
   ) => {
     if (!user || isLoading) return;
@@ -34,8 +57,25 @@ export default function SettingsScreen() {
     setIsLoading(true);
 
     try {
-      // Update notification preferences would go here
-      console.log('Updating notification preference:', key, value);
+      const { error } = await NotificationService.updateNotificationPreferences(user.id, {
+        [key]: value
+      });
+
+      if (error) {
+        console.error('Failed to update notification preferences:', error);
+        // Revert the change
+        switch (key) {
+          case 'new_tasks':
+            setNewTasks(!value);
+            break;
+          case 'task_accepted':
+            setTaskAccepted(!value);
+            break;
+          case 'task_updates':
+            setTaskUpdates(!value);
+            break;
+        }
+      }
     } catch (error) {
       console.error('Failed to update notification preferences:', error);
     } finally {
@@ -44,18 +84,22 @@ export default function SettingsScreen() {
   };
 
   const handleOpenNotificationSettings = async () => {
-    // Open notification settings would go here
-    console.log('Opening notification settings');
+    await NotificationService.openNotificationSettings();
   };
 
   const handleSendTestNotification = async () => {
     if (!user) return;
 
     try {
-      // Send test notification would go here
-      console.log('Sending test notification');
+      const { error } = await NotificationService.sendTestNotification();
+      
+      if (error) {
+        Alert.alert('Error', 'Failed to send test notification: ' + error);
+      } else {
+        Alert.alert('Success', 'Test notification sent! Check your device.');
+      }
     } catch (error) {
-      console.error('Failed to send test notification:', error);
+      Alert.alert('Error', 'Failed to send test notification');
     }
   };
 
