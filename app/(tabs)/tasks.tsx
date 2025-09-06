@@ -108,13 +108,12 @@ const TaskCard = ({
       { shadowColor: getUrgencyColor(task.urgency) },
       animatedGlowStyle
     ]}>
-      <TouchableOpacity
+      <Pressable
         style={styles.taskCardContent}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        activeOpacity={1}
         accessibilityLabel={`Task: ${task.title}`}
-        accessibilityRole="button"
+        accessibilityRole="article"
       >
         {/* Header */}
         <View style={styles.taskHeader}>
@@ -222,7 +221,7 @@ const TaskCard = ({
             )}
           </Pressable>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </Animated.View>
   );
 };
