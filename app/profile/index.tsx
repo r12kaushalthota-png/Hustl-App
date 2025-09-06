@@ -6,41 +6,9 @@ import { User, Camera, ChevronRight, FileText, History, MessageSquare, Settings,
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { ProfileRepo } from '@/lib/profileRepo';
 import { MediaUtils } from '@/lib/media';
-
-// Simple Toast component
-const Toast = ({ visible, message, type, onHide }: { 
-  visible: boolean; 
-  message: string; 
-  type: 'success' | 'error'; 
-  onHide: () => void;
-}) => {
-  React.useEffect(() => {
-    if (visible) {
-      const timer = setTimeout(onHide, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [visible, onHide]);
-
-  if (!visible) return null;
-
-  return (
-    <View style={{
-      position: 'absolute',
-      top: 50,
-      left: 16,
-      right: 16,
-      backgroundColor: type === 'success' ? '#10B981' : '#EF4444',
-      borderRadius: 12,
-      padding: 16,
-      zIndex: 1000,
-    }}>
-      <Text style={{ color: 'white', fontWeight: '600', textAlign: 'center' }}>
-        {message}
-      </Text>
-    </View>
-  );
-};
+import Toast from '@/components/Toast';
 
 const menuItems = [
   { 

@@ -28,6 +28,8 @@ import Animated, {
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import GlobalHeader from '@/components/GlobalHeader';
+import ProfileSheet from '@/components/ProfileSheet';
 
 const { width } = Dimensions.get('window');
 
@@ -427,6 +429,8 @@ export default function ChatsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showProfileSheet, setShowProfileSheet] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // Load conversations
   const loadConversations = useCallback(async (showRefreshIndicator = false) => {
@@ -532,12 +536,17 @@ export default function ChatsScreen() {
   const handleChatPress = (conversation: Conversation) => {
     router.push(`/chat/${conversation.conversation_id}`);
   };
+  
+  const handleProfilePress = (userId: string) => {
+    setSelectedUserId(userId);
+    setShowProfileSheet(true);
+  };
 
   const renderConversationItem = ({ item }: { item: Conversation }) => (
     <ChatRow
       conversation={item}
       onPress={() => handleChatPress(item)}
-      onProfilePress={() => {}} // Placeholder for now
+      onProfilePress={handleProfilePress}
       searchQuery={searchQuery}
     />
   );
@@ -641,6 +650,15 @@ export default function ChatsScreen() {
         </View>
       </View>
 
+      {/* Profile Sheet */}
+      <ProfileSheet
+        visible={showProfileSheet}
+        onClose={() => {
+          setShowProfileSheet(false);
+          setSelectedUserId(null);
+        }}
+        userId={selectedUserId}
+      />
     </>
   );
 }

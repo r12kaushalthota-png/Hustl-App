@@ -7,7 +7,7 @@ import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { Task } from '@/types/database';
-import Toast from '../../components/Toast';
+import Toast from '@/components/Toast';
 
 export default function TaskDetailScreen() {
   const router = useRouter();
