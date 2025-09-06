@@ -9,7 +9,8 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
-import GlobalHeader from '@components/GlobalHeader';
+import { GamificationRepo } from '@/lib/gamificationRepo';
+import GlobalHeader from '@/components/GlobalHeader';
 import Toast from '@components/Toast';
 
 const howItWorksSteps = [
@@ -154,7 +155,7 @@ export default function ReferralsScreen() {
             <View style={styles.statCard}>
               <DollarSign size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
               <Text style={styles.statValue}>
-                {user?.profile ? `${user.profile.credits || 0} credits` : '0 credits'}
+                {user?.profile ? GamificationRepo.formatCredits(user.profile.credits) : '0 credits'}
               </Text>
               <Text style={styles.statLabel}>Credits</Text>
             </View>

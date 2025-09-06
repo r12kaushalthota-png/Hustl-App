@@ -1,12 +1,6 @@
-const path = require('path');
 const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
-
-// Add watchFolders to include components directory
-config.watchFolders = [
-  path.resolve(__dirname, 'components')
-];
 
 // Add resolver configuration for better module resolution
 config.resolver.platforms = ['native', 'web', 'ios', 'android'];
