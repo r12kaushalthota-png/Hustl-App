@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Task, CreateTaskData, TaskStatus, TaskCategory, TaskUrgency } from '@/types/database';
+import type { Task, CreateTaskData, TaskStatus } from '@/types/database';
 
 export class TaskRepo {
   /**
