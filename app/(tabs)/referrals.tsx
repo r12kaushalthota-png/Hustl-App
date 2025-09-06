@@ -9,7 +9,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
-import GlobalHeader from '@/components/GlobalHeader';
+import GlobalHeader from '@components/GlobalHeader';
 import Toast from '@components/Toast';
 
 const howItWorksSteps = [
