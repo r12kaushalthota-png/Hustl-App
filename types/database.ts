@@ -1,5 +1,4 @@
 export type TaskStatus = 'open' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
-export type TaskCurrentStatus = 'accepted' | 'picked_up' | 'on_the_way' | 'delivered' | 'completed';
 export type TaskCategory = string; // Plain text, not enum
 export type TaskUrgency = 'low' | 'medium' | 'high';
 
@@ -15,10 +14,10 @@ export interface Task {
   reward_cents: number;
   estimated_minutes: number;
   status: TaskStatus;
-  task_current_status: TaskCurrentStatus;
-  last_status_update: string;
+  user_accept_code: string | null;
   created_by: string;
   accepted_by: string | null;
+  accepted_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -41,26 +40,6 @@ export interface UpdateTaskData {
   updated_at?: string;
 }
 
-export interface TaskStatusHistory {
-  id: string;
-  task_id: string;
-  status: TaskCurrentStatus;
-  changed_by: {
-    id: string;
-    full_name: string | null;
-    username: string | null;
-  };
-  note: string;
-  photo_url: string;
-  created_at: string;
-}
-
-export interface UpdateTaskStatusData {
-  taskId: string;
-  newStatus: TaskCurrentStatus;
-  note?: string;
-  photoUrl?: string;
-}
 
 export interface UserProfile {
   id: string;

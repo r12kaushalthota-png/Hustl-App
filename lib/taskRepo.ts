@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Task, CreateTaskData, TaskStatus, TaskCategory, TaskUrgency, TaskCurrentStatus, TaskStatusHistory, UpdateTaskStatusData } from '@/types/database';
+import type { Task, CreateTaskData, TaskStatus, TaskCategory, TaskUrgency } from '@/types/database';
 
 /**
  * Safe Task Repository - Eliminates 406 PGRST116 errors completely
@@ -224,103 +224,6 @@ export class TaskRepo {
     }
   }
 
-  /**
-   * Update task status with history tracking
-   */
-  static async updateTaskStatus(data: UpdateTaskStatusData): Promise<{ data: any | null; error: string | null }> {
-    try {
-      // First verify the task exists and user has permission
-      const { data: task, error: fetchError } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('id', data.taskId)
-        .limit(1);
-
-      if (fetchError) {
-        return { data: null, error: fetchError.message };
-      }
-
-      const currentTask = task?.[0] ?? null;
-      if (!currentTask) {
-        return { data: null, error: 'Task not found' };
-      }
-
-      // Update task status
-      const updateData: any = {
-        task_current_status: data.newStatus,
-        last_status_update: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      // If marking as completed, also update main status
-      if (data.newStatus === 'completed') {
-        updateData.status = 'completed';
-      }
-
-      const { data: updatedTask, error: updateError } = await supabase
-        .from('tasks')
-        .update(updateData)
-        .eq('id', data.taskId)
-        .select()
-        .limit(1);
-
-      if (updateError) {
-        return { data: null, error: updateError.message };
-      }
-
-      // Add status history entry
-      const { error: historyError } = await supabase
-        .from('task_status_history')
-        .insert({
-          task_id: data.taskId,
-          status: data.newStatus,
-          changed_by: currentTask.accepted_by || currentTask.created_by,
-          note: data.note || '',
-          photo_url: data.photoUrl || '',
-        });
-
-      if (historyError) {
-        console.warn('Failed to create status history:', historyError);
-      }
-
-      return { data: updatedTask?.[0] || null, error: null };
-    } catch (error) {
-      return { data: null, error: 'Network error. Please check your connection.' };
-    }
-  }
-
-  /**
-   * Get task status history
-   */
-  static async getTaskStatusHistory(taskId: string): Promise<{ data: TaskStatusHistory[] | null; error: string | null }> {
-    try {
-      const { data, error } = await supabase
-        .from('task_status_history')
-        .select(`
-          id,
-          task_id,
-          status,
-          note,
-          photo_url,
-          created_at,
-          changed_by:profiles!task_status_history_changed_by_fkey(
-            id,
-            full_name,
-            username
-          )
-        `)
-        .eq('task_id', taskId)
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        return { data: null, error: error.message };
-      }
-
-      return { data: data || [], error: null };
-    } catch (error) {
-      return { data: null, error: 'Network error. Please check your connection.' };
-    }
-  }
 
   // Utility methods for formatting (moved from TaskService)
   static formatReward(cents: number): string {
@@ -369,35 +272,35 @@ export class TaskRepo {
     }
   }
 
-  static formatCurrentStatus(status: TaskCurrentStatus): string {
+  static formatStatus(status: TaskStatus): string {
     switch (status) {
+      case 'open':
+        return 'Open';
       case 'accepted':
         return 'Accepted';
-      case 'picked_up':
-        return 'Picked Up';
-      case 'on_the_way':
-        return 'On the Way';
-      case 'delivered':
-        return 'Delivered';
+      case 'in_progress':
+        return 'In Progress';
       case 'completed':
         return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
       default:
         return status;
     }
   }
 
-  static getCurrentStatusColor(status: TaskCurrentStatus): string {
+  static getStatusColor(status: TaskStatus): string {
     switch (status) {
-      case 'accepted':
+      case 'open':
         return '#3B82F6'; // Blue
-      case 'picked_up':
+      case 'accepted':
         return '#F59E0B'; // Orange
-      case 'on_the_way':
+      case 'in_progress':
         return '#8B5CF6'; // Purple
-      case 'delivered':
-        return '#10B981'; // Green
       case 'completed':
-        return '#059669'; // Dark green
+        return '#10B981'; // Green
+      case 'cancelled':
+        return '#EF4444'; // Red
       default:
         return '#6B7280'; // Gray
     }
