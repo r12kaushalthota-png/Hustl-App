@@ -29,7 +29,7 @@ import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import GlobalHeader from '@/components/GlobalHeader';
-import ProfileSheet from '@/components/ProfileSheet';
+import ProfileSheet from '../../../components/ProfileSheet';
 
 const { width } = Dimensions.get('window');
 
