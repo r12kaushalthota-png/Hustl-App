@@ -39,7 +39,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { supabase } from '@/lib/supabase';
 import { Task } from '@/types/database';
-import Toast from '@/components/Toast';
+import Toast from '../../components/Toast';
 
 const { width } = Dimensions.get('window');
 

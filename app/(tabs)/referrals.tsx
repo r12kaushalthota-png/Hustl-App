@@ -10,8 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { GamificationRepo } from '@/lib/gamificationRepo';
-import GlobalHeader from '@/components/GlobalHeader';
-import Toast from '@components/Toast';
+import Toast from '../../components/Toast';
 
 const howItWorksSteps = [
   {

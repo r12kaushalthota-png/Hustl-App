@@ -6,7 +6,7 @@ import { ArrowLeft, Star, Filter } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
 import { ReviewRepo } from '@/lib/reviewRepo';
 import { TaskReview, UserRatingAggregate } from '@/types/database';
-import StarRating from '@/components/StarRating';
+import StarRating from '../../components/StarRating';
 
 const STAR_FILTERS = [
   { value: null, label: 'All' },

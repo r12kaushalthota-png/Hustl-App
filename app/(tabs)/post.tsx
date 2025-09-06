@@ -26,7 +26,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { TaskCategory, TaskUrgency } from '@/types/database';
 import { ModerationService } from '@/lib/moderation';
-import Toast from '@components/Toast';
+import Toast from '../../components/Toast';
 
 const { width } = Dimensions.get('window');
 

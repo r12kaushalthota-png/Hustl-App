@@ -8,7 +8,7 @@ import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileRepo } from '@/lib/profileRepo';
 import { MediaUtils } from '@/lib/media';
-import Toast from '@/components/Toast';
+import Toast from '../../components/Toast';
 
 const menuItems = [
   { 
