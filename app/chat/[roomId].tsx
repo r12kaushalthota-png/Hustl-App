@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
 import Conversation from '@/components/Conversation';
-import ProfileSheet from '@/components/ProfileSheet';
+import ProfileSheet from '../../../components/ProfileSheet';
 
 export default function ChatScreen() {
   const router = useRouter();
