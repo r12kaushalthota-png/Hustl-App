@@ -8,7 +8,8 @@ import {
   RefreshControl,
   Platform,
   ActivityIndicator,
-  Dimensions
+  Dimensions,
+  Pressable
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -186,16 +187,16 @@ const TaskCard = ({
 
         {/* Actions */}
         <View style={styles.taskActions}>
-          <TouchableOpacity
+          <Pressable
             style={styles.chatButton}
             onPress={onChat}
             accessibilityLabel="Chat about task"
             accessibilityRole="button"
           >
             <Text style={styles.chatButtonText}>Chat</Text>
-          </TouchableOpacity>
+          </Pressable>
           
-          <TouchableOpacity
+          <Pressable
             style={[
               styles.acceptButton,
               isAccepting && styles.acceptButtonDisabled
@@ -219,7 +220,7 @@ const TaskCard = ({
                 <Text style={styles.acceptButtonText}>Accept Task</Text>
               </LinearGradient>
             )}
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </TouchableOpacity>
     </Animated.View>
