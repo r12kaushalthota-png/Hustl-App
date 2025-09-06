@@ -26,7 +26,6 @@ import Animated, {
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatService } from '@/lib/chat';
-import { ProfileService } from '@/services/profileService';
 import { supabase } from '@/lib/supabase';
 import type { ChatMessage, UserProfile } from '@/types/chat';
 
@@ -114,6 +113,22 @@ const MessageBubble = ({
   otherUserProfile: UserProfile | null;
   onAvatarPress: () => void;
 }) => {
+  const getInitials = (name: string): string => {
+    if (!name || !name.trim()) return 'U';
+    
+    return name
+      .trim()
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getDisplayName = (profile: UserProfile): string => {
+    return profile.full_name || profile.username || 'User';
+  };
+
   const formatTime = (timestamp: string): string => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -138,7 +153,7 @@ const MessageBubble = ({
                 ) : (
                   <View style={styles.messageAvatarPlaceholder}>
                     <Text style={styles.messageAvatarText}>
-                      {ProfileService.getInitials(otherUserProfile?.full_name || otherUserProfile?.username)}
+                      {getInitials(otherUserProfile?.full_name || otherUserProfile?.username || 'User')}
                     </Text>
                   </View>
                 )}
@@ -194,6 +209,22 @@ export default function Conversation({ roomId, onProfilePress }: ConversationPro
   const [otherUserProfile, setOtherUserProfile] = useState<UserProfile | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const unsubscribeRef = useRef<(() => void) | null>(null);
+
+  const getInitials = (name: string): string => {
+    if (!name || !name.trim()) return 'U';
+    
+    return name
+      .trim()
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getDisplayName = (profile: UserProfile): string => {
+    return profile.full_name || profile.username || 'User';
+  };
 
   // Load messages and other user info
   useEffect(() => {
@@ -256,9 +287,16 @@ export default function Conversation({ roomId, onProfilePress }: ConversationPro
       if (roomData?.chat_members) {
         const otherMember = roomData.chat_members.find((m: any) => m.user_id !== user?.id);
         if (otherMember) {
-          // Load other user's profile using ProfileService
-          const { data: profile } = await ProfileService.getProfile(otherMember.user_id);
-          setOtherUserProfile(profile);
+          // Load other user's profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', otherMember.user_id)
+            .single();
+          
+          if (profile) {
+            setOtherUserProfile(profile);
+          }
         }
       }
     } catch (error) {
@@ -345,7 +383,7 @@ export default function Conversation({ roomId, onProfilePress }: ConversationPro
         ) : (
           <View style={styles.headerAvatarPlaceholder}>
             <Text style={styles.headerAvatarText}>
-              {ProfileService.getInitials(otherUserProfile?.full_name || otherUserProfile?.username)}
+              {getInitials(otherUserProfile?.full_name || otherUserProfile?.username || 'User')}
             </Text>
           </View>
         )}
@@ -353,7 +391,7 @@ export default function Conversation({ roomId, onProfilePress }: ConversationPro
       <View style={styles.headerInfo}>
         <View style={styles.headerNameRow}>
           <Text style={styles.headerTitle}>
-            {ProfileService.getDisplayName(otherUserProfile || {} as UserProfile)}
+            {getDisplayName(otherUserProfile || {} as UserProfile)}
           </Text>
           {otherUserProfile?.is_verified && (
             <View style={styles.verifiedBadge}>
