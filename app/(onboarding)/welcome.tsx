@@ -17,6 +17,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { BrandingUtils } from '@/constants/Branding';
+import HustlLogo from '@/components/HustlLogo';
 
 const { width, height } = Dimensions.get('window');
 
