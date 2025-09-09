@@ -17,52 +17,8 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { BrandingUtils } from '@/constants/Branding';
-import HustlLogo from '@/components/HustlLogo';
 
 const { width, height } = Dimensions.get('window');
-
-// University icons carousel
-const UniversityCarousel = () => {
-  const translateX = useSharedValue(0);
-  
-  const universities = BrandingUtils.getEnabledUniversities().concat(
-    Object.values(BrandingUtils.Universities).filter(u => !u.enabled)
-  );
-
-  useEffect(() => {
-    translateX.value = withRepeat(
-      withTiming(-universities.length * 80, { 
-        duration: 8000, 
-        easing: Easing.linear 
-      }),
-      -1,
-      false
-    );
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: translateX.value }],
-    };
-  });
-
-  return (
-    <View style={styles.carouselContainer}>
-      <View style={styles.carouselTrack}>
-        <Animated.View style={[styles.carouselContent, animatedStyle]}>
-          {/* Render universities twice for seamless loop */}
-          {[...universities, ...universities].map((university, index) => (
-            <View key={`${university.name}-${index}`} style={styles.universityIcon}>
-              <View style={[styles.universityCircle, { backgroundColor: university.colors.primary }]}>
-                <Text style={styles.universityText}>{university.shortName}</Text>
-              </View>
-            </View>
-          ))}
-        </Animated.View>
-      </View>
-    </View>
-  );
-};
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -113,8 +69,8 @@ export default function WelcomeScreen() {
     transform: [{ scale: buttonScale.value }],
   }));
 
-  const handleChooseCampus = () => {
-    router.push('/(onboarding)/university-selection');
+  const handleGetStarted = () => {
+    router.push('/(onboarding)/auth');
   };
 
   const handleTerms = () => {
@@ -152,23 +108,18 @@ export default function WelcomeScreen() {
         <Animated.View style={[styles.welcomeSection, animatedTitleStyle]}>
           <Text style={styles.welcomeTitle}>Welcome to Hustl!</Text>
           <Text style={styles.welcomeTagline}>
-            Your campus. Your network. Your hustle.
+            Connect. Collaborate. Get things done.
           </Text>
           <Text style={styles.welcomeDescription}>
-            Select your university to get started with campus tasks, food pickups, and more.
+            Join your campus community for tasks, food pickups, study sessions, and more.
           </Text>
-        </Animated.View>
-
-        {/* University Carousel */}
-        <Animated.View style={[styles.universitySection, animatedContentStyle]}>
-          <UniversityCarousel />
         </Animated.View>
 
         {/* Bottom Action Section */}
         <Animated.View style={[styles.bottomSection, animatedButtonStyle]}>
           <TouchableOpacity 
             style={styles.primaryButtonContainer}
-            onPress={handleChooseCampus}
+            onPress={handleGetStarted}
             activeOpacity={0.9}
           >
             <LinearGradient
@@ -177,9 +128,8 @@ export default function WelcomeScreen() {
               end={{ x: 1, y: 0.5 }}
               style={styles.primaryButton}
             >
-              <MapPin size={20} color={Colors.white} strokeWidth={2} />
-              <Text style={styles.primaryButtonText}>Choose Your Campus</Text>
-              <ChevronRight size={20} color={Colors.white} strokeWidth={2.5} />
+              <Text style={styles.primaryButtonText}>Get Started</Text>
+              <ChevronRight size={20} color={Colors.white} strokeWidth={2} />
             </LinearGradient>
           </TouchableOpacity>
 
@@ -216,14 +166,12 @@ const styles = StyleSheet.create({
   logoSection: {
     alignItems: 'center',
     paddingTop: 40,
-    paddingBottom: 140, // Space for fixed bottom section
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   welcomeSection: {
     alignItems: 'center',
     paddingHorizontal: 32,
-    paddingBottom: 40,
+    paddingBottom: 80,
   },
   welcomeTitle: {
     fontSize: 42,
@@ -256,45 +204,6 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
-  },
-  universitySection: {
-    alignItems: 'center',
-    paddingBottom: 60,
-  },
-  carouselContainer: {
-    height: 80,
-    overflow: 'hidden',
-    width: width,
-  },
-  carouselTrack: {
-    width: width,
-    height: 80,
-    overflow: 'hidden',
-  },
-  carouselContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 80,
-  },
-  universityIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 80,
-    height: 80,
-  },
-  universityCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  universityText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.white,
   },
   bottomSection: {
     position: 'absolute',
