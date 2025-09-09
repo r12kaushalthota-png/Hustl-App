@@ -100,7 +100,8 @@ export default function HustlLogo({
       case 'large': return LogoSizes.large;
       case 'xlarge': return LogoSizes.xlarge;
       default: return LogoSizes.medium;
-    );
+    }
+  };
 
   const logoSize = getSizeValue();
   const containerSize = logoSize + (showGlow ? 40 : 0);
