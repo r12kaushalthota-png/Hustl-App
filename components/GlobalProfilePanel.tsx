@@ -12,17 +12,7 @@ import {
   SafeAreaView
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  X, 
-  User, 
-  Star, 
-  Shield, 
-  CreditCard,
-  ChevronRight,
-  Settings,
-  HelpCircle,
-  LogOut
-} from 'lucide-react-native';
+import { X, User, Star, Shield, CreditCard, ChevronRight, Settings, CircleHelp as HelpCircle, LogOut } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, { 
   useSharedValue, 
