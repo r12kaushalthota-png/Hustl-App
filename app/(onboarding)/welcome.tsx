@@ -191,10 +191,10 @@ export default function WelcomeScreen() {
       
       {/* Gradient background matching screenshot */}
       <LinearGradient
-        colors={['#4A00E0', '#8E2DE2', '#FF6B6B', '#FF8E53']}
-        start={{ x: 0, y: 0.2 }}
+        colors={['#6B46C1', '#8B5CF6', '#EC4899', '#F97316']}
+        start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        locations={[0, 0.4, 0.7, 1]}
+        locations={[0, 0.3, 0.7, 1]}
         style={styles.backgroundGradient}
       />
 
@@ -228,7 +228,7 @@ export default function WelcomeScreen() {
             activeOpacity={0.9}
           >
             <LinearGradient
-              colors={['#FF6B6B', '#4A00E0']}
+              colors={['#F97316', '#3B82F6']}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
               style={styles.primaryButton}
@@ -267,14 +267,14 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingTop: 40,
   },
   logoSection: {
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
   logoContainer: {
     position: 'relative',
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   welcomeSection: {
     alignItems: 'center',
     paddingHorizontal: 32,
-    paddingVertical: 40,
+    paddingBottom: 40,
   },
   welcomeTitle: {
     fontSize: 42,
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   },
   universitySection: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingBottom: 60,
   },
   carouselContainer: {
     height: 80,
@@ -383,11 +383,15 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   bottomSection: {
+    position: 'absolute',
+    bottom: 40,
+    left: 24,
+    right: 24,
     alignItems: 'center',
     gap: 24,
   },
   primaryButtonContainer: {
-    shadowColor: '#FF6B6B',
+    shadowColor: '#F97316',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.5,
     shadowRadius: 20,
