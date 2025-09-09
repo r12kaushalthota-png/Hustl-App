@@ -7,9 +7,9 @@
 export const HustlBrand = {
   // Main logo assets
   logo: {
-    icon: require('@/assets/images/hustl-icon.png'),
-    wordmark: require('@/assets/images/hustl-wordmark.png'),
-    full: require('@/assets/images/hustl-logo-full.png'),
+    icon: require('@/assets/images/image.png'),
+    wordmark: require('@/assets/images/image.png'),
+    full: require('@/assets/images/image.png'),
   },
   
   // Brand colors
