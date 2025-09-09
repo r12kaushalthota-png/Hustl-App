@@ -9,9 +9,9 @@ export default function IndexScreen() {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    // Navigate to onboarding after a brief moment
+    // Navigate to splash screen to start onboarding flow
     const timer = setTimeout(() => {
-      router.replace('/(tabs)/home');
+      router.replace('/(onboarding)/splash');
     }, 100);
 
     return () => clearTimeout(timer);

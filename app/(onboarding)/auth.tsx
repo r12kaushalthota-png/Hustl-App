@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image, Alert, Dimensions, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image, Alert, Dimensions, SafeAreaView, StatusBar, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Eye, EyeOff, Zap, Shield, Star } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff, Zap, User, Mail, Lock } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -11,120 +11,39 @@ import Animated, {
   withSequence,
   withDelay,
   interpolate,
-  withRepeat
+  withRepeat,
+  Easing
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
-import { useAuth } from '@contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { width, height } = Dimensions.get('window');
 
-// Animated Background Component
-const AnimatedBackground = () => {
-  const floatingAnimation1 = useSharedValue(0);
-  const floatingAnimation2 = useSharedValue(0);
-  const shimmerAnimation = useSharedValue(-1);
-
-  React.useEffect(() => {
-    floatingAnimation1.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 8000 }),
-        withTiming(0, { duration: 8000 })
-      ),
-      -1,
-      true
-    );
-
-    floatingAnimation2.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 12000 }),
-        withTiming(0, { duration: 12000 })
-      ),
-      -1,
-      true
-    );
-
-    shimmerAnimation.value = withRepeat(
-      withTiming(1, { duration: 6000 }),
-      -1,
-      false
-    );
-  }, []);
-
-  const animatedStyle1 = useAnimatedStyle(() => {
-    const translateY = interpolate(floatingAnimation1.value, [0, 1], [0, -30]);
-    const opacity = interpolate(floatingAnimation1.value, [0, 0.5, 1], [0.1, 0.2, 0.1]);
-    return {
-      transform: [{ translateY }],
-      opacity,
-    };
-  });
-
-  const animatedStyle2 = useAnimatedStyle(() => {
-    const translateY = interpolate(floatingAnimation2.value, [0, 1], [0, 40]);
-    const opacity = interpolate(floatingAnimation2.value, [0, 0.5, 1], [0.08, 0.15, 0.08]);
-    return {
-      transform: [{ translateY }],
-      opacity,
-    };
-  });
-
-  const shimmerStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(shimmerAnimation.value, [0, 1], [-width, width * 2]);
-    return {
-      transform: [{ translateX }],
-    };
-  });
-
-  return (
-    <View style={styles.backgroundContainer}>
-      <Animated.View style={[styles.floatingElement1, animatedStyle1]} />
-      <Animated.View style={[styles.floatingElement2, animatedStyle2]} />
-      <Animated.View style={[styles.shimmerElement, shimmerStyle]} />
-    </View>
-  );
-};
-
-// Enhanced Logo Component
-const BrandLogo = () => {
+// Logo component
+const HustlLogo = () => {
   const glowAnimation = useSharedValue(0);
-  const rotateAnimation = useSharedValue(0);
 
   React.useEffect(() => {
     glowAnimation.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 3000 }),
-        withTiming(0, { duration: 3000 })
+        withTiming(1, { duration: 2000 }),
+        withTiming(0.5, { duration: 2000 })
       ),
       -1,
       true
     );
-
-    rotateAnimation.value = withRepeat(
-      withTiming(360, { duration: 20000 }),
-      -1,
-      false
-    );
   }, []);
 
   const animatedGlowStyle = useAnimatedStyle(() => {
-    const shadowOpacity = interpolate(glowAnimation.value, [0, 1], [0.2, 0.6]);
+    const shadowOpacity = interpolate(glowAnimation.value, [0, 1], [0.3, 0.7]);
     return { shadowOpacity };
   });
 
-  const animatedRotateStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotateAnimation.value}deg` }],
-  }));
-
   return (
-    <Animated.View style={[styles.logoContainer, animatedGlowStyle]}>
-      <Animated.View style={[styles.logoHalo, animatedRotateStyle]} />
+    <Animated.View style={[styles.authLogoContainer, animatedGlowStyle]}>
       <View style={styles.logoWrapper}>
-        <Image
-          source={require('@assets/images/image.png')}
-          style={styles.authLogo}
-          resizeMode="contain"
-        />
+        <Zap size={48} color={Colors.white} strokeWidth={3} fill={Colors.white} />
       </View>
     </Animated.View>
   );
@@ -213,39 +132,45 @@ export default function AuthScreen() {
   const isFormValid = email.trim() && password.trim() && (isLogin || displayName.trim());
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
-      <AnimatedBackground />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       
-      {/* Premium Header */}
+      {/* Gradient background */}
       <LinearGradient
-        colors={['rgba(0, 33, 165, 0.95)', 'rgba(250, 70, 22, 0.85)']}
-        style={styles.headerGradient}
-      >
-        <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <ArrowLeft size={24} color={Colors.white} strokeWidth={2} />
-          </TouchableOpacity>
-          <Text style={styles.headerBrand}>Hustl</Text>
-          <View style={styles.placeholder} />
-        </View>
-      </LinearGradient>
+        colors={['#4A00E0', '#8E2DE2', '#FF6B6B', '#FF8E53']}
+        start={{ x: 0, y: 0.2 }}
+        end={{ x: 1, y: 1 }}
+        locations={[0, 0.4, 0.7, 1]}
+        style={styles.backgroundGradient}
+      />
 
       <ScrollView 
         style={styles.content} 
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20 }]}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        contentInsetAdjustmentBehavior="never"
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Premium Auth Header */}
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <ArrowLeft size={24} color={Colors.white} strokeWidth={2} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {isLogin ? 'Welcome Back' : 'Join Hustl'}
+          </Text>
+          <View style={styles.headerPlaceholder} />
+        </View>
+
+        {/* Logo and Title */}
         <Animated.View style={[styles.authHeader, animatedHeaderStyle]}>
-          <BrandLogo />
+          <HustlLogo />
           
           <View style={styles.titleContainer}>
             <Text style={styles.title}>
-              {isLogin ? 'Welcome Back' : 'Join the Hustl'}
+              {isLogin ? 'Sign In' : 'Create Account'}
             </Text>
             <Text style={styles.subtitle}>
-              {isLogin ? 'Continue your campus journey' : 'Start your premium campus experience'}
+              {isLogin ? 'Continue to your campus network' : 'Join your campus community'}
             </Text>
           </View>
         </Animated.View>
@@ -257,11 +182,13 @@ export default function AuthScreen() {
           </View>
         ) : null}
 
+        {/* Form */}
         <Animated.View style={[styles.form, animatedFormStyle]}>
           {!isLogin && (
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Display Name</Text>
-              <View style={styles.inputWrapper}>
+              <View style={styles.inputWithIcon}>
+                <User size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
                 <TextInput
                   style={styles.input}
                   value={displayName}
@@ -277,7 +204,8 @@ export default function AuthScreen() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
-            <View style={styles.inputWrapper}>
+            <View style={styles.inputWithIcon}>
+              <Mail size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
               <TextInput
                 style={styles.input}
                 value={email}
@@ -294,9 +222,10 @@ export default function AuthScreen() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
-            <View style={styles.inputWrapper}>
+            <View style={styles.inputWithIcon}>
+              <Lock size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
               <TextInput
-                style={styles.passwordInputField}
+                style={styles.input}
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Enter your password"
@@ -319,9 +248,8 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </Animated.View>
 
-        <Animated.View style={[styles.buttonContainer, animatedFormStyle]}>
+          {/* Buttons */}
           <TouchableOpacity
             style={[
               styles.primaryButton,
@@ -333,16 +261,16 @@ export default function AuthScreen() {
           >
             {(!isFormValid || isLoading) ? (
               <View style={styles.disabledButtonContent}>
+                {isLoading && <ActivityIndicator size="small" color={Colors.white} />}
                 <Text style={styles.disabledButtonText}>
                   {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
                 </Text>
               </View>
             ) : (
               <LinearGradient
-                colors={['#0047FF', '#0021A5', '#FA4616']}
+                colors={['#FF6B6B', '#4A00E0']}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
-                locations={[0, 0.7, 1]}
                 style={styles.primaryButtonGradient}
               >
                 <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
@@ -359,11 +287,9 @@ export default function AuthScreen() {
             disabled={isLoading}
             activeOpacity={0.9}
           >
-            <View style={styles.secondaryButtonContent}>
-              <Text style={styles.secondaryButtonText}>
-                {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-              </Text>
-            </View>
+            <Text style={styles.secondaryButtonText}>
+              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+            </Text>
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
@@ -374,53 +300,27 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
-    position: 'relative',
   },
-  backgroundContainer: {
+  backgroundGradient: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 0,
   },
-  floatingElement1: {
-    position: 'absolute',
-    top: '15%',
-    right: '10%',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: '#0021A5',
+  content: {
+    flex: 1,
   },
-  floatingElement2: {
-    position: 'absolute',
-    top: '60%',
-    left: '5%',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#FA4616',
-  },
-  shimmerElement: {
-    position: 'absolute',
-    top: 0,
-    width: 200,
-    height: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    transform: [{ skewX: '-20deg' }],
-  },
-  headerGradient: {
-    paddingTop: 16,
-    paddingBottom: 16,
-    zIndex: 2,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 40,
   },
   backButton: {
     width: 40,
@@ -429,231 +329,180 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    backdropFilter: 'blur(10px)',
   },
-  headerBrand: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 20,
     fontWeight: '700',
     color: Colors.white,
-    letterSpacing: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  headerPlaceholder: {
+    width: 40,
+  },
+  authHeader: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    gap: 24,
+  },
+  authLogoContainer: {
+    shadowColor: '#FF6B6B',
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 20,
+    elevation: 16,
+  },
+  logoWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  titleContainer: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.white,
+    textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
-  placeholder: {
-    width: 40,
-  },
-  content: {
-    flex: 1,
-    zIndex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-  },
-  authHeader: {
-    paddingVertical: 24,
-    alignItems: 'center',
-    gap: 32,
-  },
-  logoContainer: {
-    position: 'relative',
-    shadowColor: '#0021A5',
-    shadowOffset: { width: 0, height: 12 },
-    shadowRadius: 24,
-    elevation: 12,
-  },
-  logoHalo: {
-    position: 'absolute',
-    top: -20,
-    left: -20,
-    right: -20,
-    bottom: -20,
-    borderRadius: 80,
-    borderWidth: 2,
-    borderColor: 'rgba(0, 33, 165, 0.3)',
-  },
-  logoWrapper: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  authLogo: {
-    width: 80,
-    height: 80,
-  },
-  titleContainer: {
-    alignItems: 'center',
-    gap: 12,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#111827',
-    textAlign: 'center',
-    letterSpacing: -0.5,
-  },
   subtitle: {
-    fontSize: 18,
-    color: '#6B7280',
+    fontSize: 16,
+    color: Colors.white,
     textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 20,
+    opacity: 0.9,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   errorContainer: {
-    backgroundColor: 'rgba(254, 242, 242, 0.95)',
-    borderWidth: 1,
-    borderColor: 'rgba(254, 202, 202, 0.8)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 107, 107, 0.5)',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 20,
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: 24,
   },
   errorText: {
     fontSize: 16,
-    color: Colors.semantic.errorAlert,
+    color: Colors.white,
     textAlign: 'center',
-    lineHeight: 22,
-    fontWeight: '500',
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   form: {
-    gap: 24,
-    marginBottom: 40,
+    gap: 20,
   },
   inputContainer: {
-    gap: 12,
+    gap: 8,
   },
   label: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#374151',
-    marginLeft: 4,
+    color: Colors.white,
+    opacity: 0.9,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  inputWrapper: {
-    position: 'relative',
+  inputWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderWidth: 1,
-    borderColor: 'rgba(229, 231, 235, 0.8)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
-    backdropFilter: 'blur(20px)',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 12,
+    minHeight: 56,
   },
   input: {
-    paddingHorizontal: 16,
-    paddingVertical: 18,
-    fontSize: 17,
-    color: '#111827',
-    backgroundColor: 'transparent',
-    minHeight: 56,
-  },
-  passwordInputField: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 18,
-    fontSize: 17,
-    color: '#111827',
-    backgroundColor: 'transparent',
-    minHeight: 56,
+    fontSize: 16,
+    color: Colors.semantic.inputText,
   },
   eyeButton: {
-    position: 'absolute',
-    right: 16,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 40,
-  },
-  buttonContainer: {
-    gap: 20,
-    paddingTop: 20,
+    padding: 4,
   },
   primaryButton: {
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#0021A5',
+    shadowColor: '#FF6B6B',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.4,
     shadowRadius: 16,
-    elevation: 12,
+    elevation: 8,
     minHeight: 56,
+    marginTop: 32,
+    marginBottom: 16,
   },
   primaryButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
+    paddingVertical: 16,
     paddingHorizontal: 24,
-    gap: 12,
+    gap: 8,
     minHeight: 56,
   },
   primaryButtonText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: Colors.white,
-    letterSpacing: 0.5,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   disabledButton: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     shadowOpacity: 0,
     elevation: 0,
   },
   disabledButtonContent: {
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    gap: 8,
     minHeight: 56,
   },
   disabledButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#9CA3AF',
-  },
-  secondaryButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 33, 165, 0.3)',
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
-    minHeight: 56,
-    backdropFilter: 'blur(20px)',
-  },
-  secondaryButtonContent: {
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 56,
-  },
-  secondaryButtonText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#0021A5',
-    letterSpacing: 0.3,
+    color: Colors.white,
+    opacity: 0.7,
+  },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    minHeight: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.white,
+    opacity: 0.9,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });

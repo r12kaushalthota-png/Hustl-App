@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronRight, MapPin } from 'lucide-react-native';
+import { ChevronRight, MapPin, Zap } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -15,29 +15,40 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import Colors from '@/theme/colors';
+import { Colors } from '@/theme/colors';
 
 const { width, height } = Dimensions.get('window');
 
-// Glowing logo animation
-const GlowingLogo = () => {
+// Enhanced logo with Hustl branding
+const HustlLogo = () => {
   const glowOpacity = useSharedValue(0.3);
-  const shimmerPosition = useSharedValue(-1);
+  const pulseScale = useSharedValue(1);
+  const rotateAnimation = useSharedValue(0);
 
   useEffect(() => {
-    // Gentle glow pulse
+    // Glow animation
     glowOpacity.value = withRepeat(
       withSequence(
-        withTiming(0.6, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0.3, { duration: 2000, easing: Easing.inOut(Easing.sin) })
+        withTiming(0.8, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0.4, { duration: 2000, easing: Easing.inOut(Easing.sin) })
       ),
       -1,
       true
     );
 
-    // Subtle shimmer sweep
-    shimmerPosition.value = withRepeat(
-      withTiming(1, { duration: 4000, easing: Easing.linear }),
+    // Pulse animation
+    pulseScale.value = withRepeat(
+      withSequence(
+        withTiming(1.05, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      true
+    );
+
+    // Slow rotation
+    rotateAnimation.value = withRepeat(
+      withTiming(360, { duration: 20000, easing: Easing.linear }),
       -1,
       false
     );
@@ -45,43 +56,42 @@ const GlowingLogo = () => {
 
   const animatedGlowStyle = useAnimatedStyle(() => ({
     shadowOpacity: glowOpacity.value,
+    transform: [{ scale: pulseScale.value }],
   }));
 
-  const animatedShimmerStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(shimmerPosition.value, [0, 1], [-120, 120]);
-    return {
-      transform: [{ translateX }],
-    };
-  });
+  const animatedRotateStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotateAnimation.value}deg` }],
+  }));
 
   return (
-    <Animated.View style={[styles.logoContainer, animatedGlowStyle]}>
-      <View style={styles.logoWrapper}>
-        <Image
-          source={require('@assets/images/image.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Animated.View style={[styles.shimmerOverlay, animatedShimmerStyle]} />
-      </View>
-    </Animated.View>
+    <View style={styles.logoContainer}>
+      {/* Rotating background halo */}
+      <Animated.View style={[styles.logoHalo, animatedRotateStyle]} />
+      
+      {/* Main logo with glow */}
+      <Animated.View style={[styles.logoWrapper, animatedGlowStyle]}>
+        <View style={styles.logoCircle}>
+          <Zap size={60} color={Colors.white} strokeWidth={3} fill={Colors.white} />
+        </View>
+      </Animated.View>
+    </View>
   );
 };
 
-// University carousel component
+// University icons carousel
 const UniversityCarousel = () => {
-  const scrollX = useSharedValue(0);
+  const translateX = useSharedValue(0);
+  
   const universities = [
-    { id: 'uf', name: 'UF', logo: require('@assets/images/Florida_Gators_gator_logo.png') },
-    { id: 'ucf', name: 'UCF', logo: require('@assets/images/141-1415685_ucf-university-of-central-florida-logo.jpg') },
-    { id: 'usf', name: 'USF', logo: require('@assets/images/UniversityOfSouthFlorida-logo-350x350.jpg') },
-    { id: 'fsu', name: 'FSU', logo: require('@assets/images/Florida_State_Seminoles_logo.png') },
+    { name: 'UF', color: '#0021A5' },
+    { name: 'UCF', color: '#FFD700' },
+    { name: 'USF', color: '#006747' },
+    { name: 'FSU', color: '#782F40' },
   ];
 
   useEffect(() => {
-    // Auto-scroll carousel
-    scrollX.value = withRepeat(
-      withTiming(universities.length * 100, { 
+    translateX.value = withRepeat(
+      withTiming(-universities.length * 80, { 
         duration: 8000, 
         easing: Easing.linear 
       }),
@@ -91,13 +101,8 @@ const UniversityCarousel = () => {
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(
-      scrollX.value % (universities.length * 100),
-      [0, universities.length * 100],
-      [0, -universities.length * 100]
-    );
     return {
-      transform: [{ translateX }],
+      transform: [{ translateX: translateX.value }],
     };
   });
 
@@ -107,66 +112,15 @@ const UniversityCarousel = () => {
         <Animated.View style={[styles.carouselContent, animatedStyle]}>
           {/* Render universities twice for seamless loop */}
           {[...universities, ...universities].map((university, index) => (
-            <View key={`${university.id}-${index}`} style={styles.universityItem}>
-              <View style={styles.universityLogoContainer}>
-                <Image
-                  source={university.logo}
-                  style={styles.universityLogo}
-                  resizeMode="contain"
-                />
+            <View key={`${university.name}-${index}`} style={styles.universityIcon}>
+              <View style={[styles.universityCircle, { backgroundColor: university.color }]}>
+                <Text style={styles.universityText}>{university.name}</Text>
               </View>
-              <Text style={styles.universityName}>{university.name}</Text>
             </View>
           ))}
         </Animated.View>
       </View>
     </View>
-  );
-};
-
-// Pulsing button animation
-const PulsingButton = ({ children, onPress, style }: { 
-  children: React.ReactNode; 
-  onPress: () => void; 
-  style?: any;
-}) => {
-  const scale = useSharedValue(1);
-  const glowOpacity = useSharedValue(0.3);
-
-  useEffect(() => {
-    scale.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 1500 }),
-        withTiming(1, { duration: 1500 })
-      ),
-      -1,
-      true
-    );
-
-    glowOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.6, { duration: 1500 }),
-        withTiming(0.3, { duration: 1500 })
-      ),
-      -1,
-      true
-    );
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const animatedGlowStyle = useAnimatedStyle(() => ({
-    shadowOpacity: glowOpacity.value,
-  }));
-
-  return (
-    <Animated.View style={[animatedGlowStyle, style]}>
-      <Animated.View style={animatedStyle}>
-        <View style={styles.placeholder} />
-      </Animated.View>
-    </Animated.View>
   );
 };
 
@@ -181,6 +135,8 @@ export default function WelcomeScreen() {
   const titleTranslateY = useSharedValue(30);
   const contentOpacity = useSharedValue(0);
   const contentTranslateY = useSharedValue(40);
+  const buttonOpacity = useSharedValue(0);
+  const buttonScale = useSharedValue(0.9);
 
   useEffect(() => {
     // Staggered entrance animations
@@ -192,6 +148,9 @@ export default function WelcomeScreen() {
 
     contentOpacity.value = withDelay(800, withTiming(1, { duration: 600 }));
     contentTranslateY.value = withDelay(800, withSpring(0, { damping: 15 }));
+
+    buttonOpacity.value = withDelay(1200, withTiming(1, { duration: 600 }));
+    buttonScale.value = withDelay(1200, withSpring(1, { damping: 15 }));
   }, []);
 
   const animatedLogoStyle = useAnimatedStyle(() => ({
@@ -209,6 +168,11 @@ export default function WelcomeScreen() {
     transform: [{ translateY: contentTranslateY.value }],
   }));
 
+  const animatedButtonStyle = useAnimatedStyle(() => ({
+    opacity: buttonOpacity.value,
+    transform: [{ scale: buttonScale.value }],
+  }));
+
   const handleChooseCampus = () => {
     router.push('/(onboarding)/university-selection');
   };
@@ -222,24 +186,22 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Clean gradient background */}
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      
+      {/* Gradient background matching screenshot */}
       <LinearGradient
-        colors={['#0021A5', '#FA4616']}
-        start={{ x: 0, y: 0 }}
+        colors={['#4A00E0', '#8E2DE2', '#FF6B6B', '#FF8E53']}
+        start={{ x: 0, y: 0.2 }}
         end={{ x: 1, y: 1 }}
+        locations={[0, 0.4, 0.7, 1]}
         style={styles.backgroundGradient}
       />
 
-      <ScrollView 
-        style={styles.content} 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior="never"
-      >
+      <View style={styles.content}>
         {/* Logo Section */}
         <Animated.View style={[styles.logoSection, animatedLogoStyle]}>
-          <GlowingLogo />
+          <HustlLogo />
         </Animated.View>
 
         {/* Welcome Text */}
@@ -257,45 +219,44 @@ export default function WelcomeScreen() {
         <Animated.View style={[styles.universitySection, animatedContentStyle]}>
           <UniversityCarousel />
         </Animated.View>
-      </ScrollView>
 
-      {/* Bottom Action Section */}
-      <Animated.View style={[styles.bottomSection, animatedContentStyle, { paddingBottom: insets.bottom + 20 }]}>
-        <TouchableOpacity 
-          style={styles.primaryButtonContainer}
-          onPress={handleChooseCampus}
-          activeOpacity={0.9}
-        >
-          <LinearGradient
-            colors={['#FA4616', '#0021A5']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={styles.primaryButton}
+        {/* Bottom Action Section */}
+        <Animated.View style={[styles.bottomSection, animatedButtonStyle]}>
+          <TouchableOpacity 
+            style={styles.primaryButtonContainer}
+            onPress={handleChooseCampus}
+            activeOpacity={0.9}
           >
-            <MapPin size={20} color={Colors.white} strokeWidth={2} />
-            <Text style={styles.primaryButtonText}>Choose Your Campus</Text>
-            <ChevronRight size={20} color={Colors.white} strokeWidth={2.5} />
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={['#FF6B6B', '#4A00E0']}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={styles.primaryButton}
+            >
+              <MapPin size={20} color={Colors.white} strokeWidth={2} />
+              <Text style={styles.primaryButtonText}>Choose Your Campus</Text>
+              <ChevronRight size={20} color={Colors.white} strokeWidth={2.5} />
+            </LinearGradient>
+          </TouchableOpacity>
 
-        <View style={styles.legalLinks}>
-          <TouchableOpacity onPress={handleTerms}>
-            <Text style={styles.legalText}>Terms of Service</Text>
-          </TouchableOpacity>
-          <Text style={styles.legalSeparator}>•</Text>
-          <TouchableOpacity onPress={handlePrivacy}>
-            <Text style={styles.legalText}>Privacy Policy</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-    </View>
+          <View style={styles.legalLinks}>
+            <TouchableOpacity onPress={handleTerms}>
+              <Text style={styles.legalText}>Terms of Service</Text>
+            </TouchableOpacity>
+            <Text style={styles.legalSeparator}>•</Text>
+            <TouchableOpacity onPress={handlePrivacy}>
+              <Text style={styles.legalText}>Privacy Policy</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.semantic.screen,
   },
   backgroundGradient: {
     position: 'absolute',
@@ -306,77 +267,77 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    zIndex: 2,
-  },
-  scrollContent: {
-    flexGrow: 1,
     justifyContent: 'space-between',
     paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
   logoSection: {
     alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 24,
+    paddingTop: 40,
   },
   logoContainer: {
-    shadowColor: '#FA4616',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 12,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoHalo: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   logoWrapper: {
-    position: 'relative',
-    overflow: 'hidden',
-    borderRadius: width * 0.15,
+    shadowColor: '#FF6B6B',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
+    elevation: 16,
   },
-  logo: {
-    width: width * 0.3,
-    height: width * 0.3,
-    maxWidth: 120,
-    maxHeight: 120,
-  },
-  shimmerOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: -120,
+  logoCircle: {
     width: 120,
-    height: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    transform: [{ skewX: '-20deg' }],
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   welcomeSection: {
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 60,
+    paddingHorizontal: 32,
+    paddingVertical: 40,
   },
   welcomeTitle: {
-    fontSize: 36,
+    fontSize: 42,
     fontWeight: '700',
     color: Colors.white,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
-    letterSpacing: 0.5,
+    letterSpacing: -0.5,
   },
   welcomeTagline: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
     color: Colors.white,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
     opacity: 0.95,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   welcomeDescription: {
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.white,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 26,
     opacity: 0.9,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
@@ -384,85 +345,71 @@ const styles = StyleSheet.create({
   },
   universitySection: {
     alignItems: 'center',
-    marginBottom: 40,
+    paddingVertical: 20,
   },
   carouselContainer: {
-    height: 100,
+    height: 80,
     overflow: 'hidden',
+    width: width,
   },
   carouselTrack: {
     width: width,
-    height: 100,
+    height: 80,
     overflow: 'hidden',
   },
   carouselContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 100,
+    height: 80,
   },
-  universityItem: {
+  universityIcon: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 100,
-    height: 100,
-    gap: 8,
+    width: 80,
+    height: 80,
   },
-  universityLogoContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.white,
+  universityCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  universityLogo: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  universityName: {
-    fontSize: 12,
+  universityText: {
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.white,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   bottomSection: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    zIndex: 3,
+    alignItems: 'center',
+    gap: 24,
   },
   primaryButtonContainer: {
-    shadowColor: '#FA4616',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowColor: '#FF6B6B',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 16,
     borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 24,
+    width: '100%',
   },
   primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
+    paddingVertical: 20,
     paddingHorizontal: 24,
-    gap: 12,
-    minHeight: 56,
+    gap: 16,
+    minHeight: 64,
   },
   primaryButtonText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: Colors.white,
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
@@ -471,24 +418,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
   },
   legalText: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.white,
-    opacity: 0.8,
+    opacity: 0.9,
     textDecorationLine: 'underline',
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+    fontWeight: '500',
   },
   legalSeparator: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.white,
-    opacity: 0.6,
-  },
-  placeholder: {
-    width: 1,
-    height: 1,
+    opacity: 0.7,
   },
 });

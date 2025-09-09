@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, ChevronRight, Lock } from 'lucide-react-native';
+import { ArrowLeft, ChevronRight, Lock, Zap } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, withSpring } from 'react-native-reanimated';
-import Colors from '@/theme/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '@/theme/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -13,7 +14,7 @@ interface UniversityCard {
   name: string;
   shortName: string;
   enabled: boolean;
-  logo: any;
+  color: string;
 }
 
 const universities: UniversityCard[] = [
@@ -22,28 +23,28 @@ const universities: UniversityCard[] = [
     name: 'University of Florida', 
     shortName: 'UF', 
     enabled: true,
-    logo: require('@assets/images/Florida_Gators_gator_logo.png')
+    color: '#0021A5'
   },
   { 
     id: 'ucf', 
     name: 'University of Central Florida', 
     shortName: 'UCF', 
     enabled: false,
-    logo: require('@assets/images/141-1415685_ucf-university-of-central-florida-logo.jpg')
+    color: '#FFD700'
   },
   { 
     id: 'usf', 
     name: 'University of South Florida', 
     shortName: 'USF', 
     enabled: false,
-    logo: require('@assets/images/UniversityOfSouthFlorida-logo-350x350.jpg')
+    color: '#006747'
   },
   { 
     id: 'fsu', 
     name: 'Florida State University', 
     shortName: 'FSU', 
     enabled: false,
-    logo: require('@assets/images/Florida_State_Seminoles_logo.png')
+    color: '#782F40'
   },
 ];
 
@@ -59,103 +60,74 @@ export default function UniversitySelection() {
       setSelectedId(university.id);
       // Delay navigation to show animation
       setTimeout(() => {
-        router.push('/(onboarding)/confirm-university');
+        router.push('/(onboarding)/auth');
       }, 300);
     }
   };
 
   const handleRequestCampus = () => {
-    alert('Email us at HustlApp@outlook.com!');
+    // Could open email or show contact info
+    console.log('Request campus feature');
   };
 
   const handleBack = () => {
     router.back();
   };
 
-  const handleSkip = () => {
-    // Allow users to skip and browse as guest
-    router.replace('/(tabs)/home');
-  };
-
   const UniversityCardComponent = ({ university }: { university: UniversityCard }) => {
     const scale = useSharedValue(1);
-    const logoTranslateX = useSharedValue(0);
-    const titleTranslateX = useSharedValue(0);
-    const arrowOpacity = useSharedValue(0);
-    const arrowScale = useSharedValue(0.8);
+    const glowOpacity = useSharedValue(0);
 
     const animatedCardStyle = useAnimatedStyle(() => ({
       transform: [{ scale: scale.value }],
     }));
 
-    const animatedLogoStyle = useAnimatedStyle(() => ({
-      transform: [{ translateX: logoTranslateX.value }],
-    }));
-
-    const animatedTitleStyle = useAnimatedStyle(() => ({
-      transform: [{ translateX: titleTranslateX.value }],
-    }));
-
-    const animatedArrowStyle = useAnimatedStyle(() => ({
-      opacity: arrowOpacity.value,
-      transform: [{ scale: arrowScale.value }],
+    const animatedGlowStyle = useAnimatedStyle(() => ({
+      shadowOpacity: glowOpacity.value,
     }));
 
     const handlePressIn = () => {
       if (!university.enabled) return;
       scale.value = withTiming(0.98, { duration: 100 });
+      glowOpacity.value = withTiming(0.3, { duration: 100 });
     };
 
     const handlePressOut = () => {
       if (!university.enabled) return;
       scale.value = withTiming(1, { duration: 100 });
+      glowOpacity.value = withTiming(0, { duration: 200 });
     };
 
     const handlePress = () => {
       if (!university.enabled) return;
-      
-      // Trigger selection animation
-      logoTranslateX.value = withTiming(-8, { duration: 250 });
-      titleTranslateX.value = withTiming(8, { duration: 250 });
-      arrowOpacity.value = withTiming(1, { duration: 250 });
-      arrowScale.value = withSpring(1, { damping: 15 });
-      
       handleUniversitySelect(university);
     };
 
     const isSelected = selectedId === university.id;
-    const cardStyle = [
-      styles.universityCard,
-      !university.enabled && styles.disabledCard,
-      isSelected && styles.selectedCard,
-    ];
 
     return (
-      <Animated.View style={animatedCardStyle}>
+      <Animated.View style={[animatedCardStyle, { shadowColor: university.color }, animatedGlowStyle]}>
         <TouchableOpacity
-          style={cardStyle}
+          style={[
+            styles.universityCard,
+            !university.enabled && styles.disabledCard,
+            isSelected && styles.selectedCard,
+          ]}
           onPress={handlePress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           disabled={!university.enabled}
-          accessibilityLabel={
-            university.enabled 
-              ? `Select ${university.name}` 
-              : `${university.name} - Coming Soon`
-          }
+          accessibilityLabel={university.enabled ? `Select ${university.name}` : `${university.name} - Coming Soon`}
           accessibilityRole="button"
-          accessibilityState={{ disabled: !university.enabled }}
         >
-          <Animated.View style={[styles.logoContainer, animatedLogoStyle]}>
-            <Image
-              source={university.logo}
-              style={styles.universityLogo}
-              resizeMode="contain"
-            />
-          </Animated.View>
+          <View style={styles.logoContainer}>
+            <View style={[styles.universityLogo, { backgroundColor: university.color }]}>
+              <Text style={styles.logoText}>{university.shortName}</Text>
+            </View>
+          </View>
           
           <View style={styles.cardContent}>
-            <Animated.View style={animatedTitleStyle}>
+            <View style={styles.textContent}>
               <Text style={[
                 styles.universityName,
                 !university.enabled && styles.disabledText
@@ -168,14 +140,10 @@ export default function UniversitySelection() {
                   <Text style={styles.comingSoonText}>Coming Soon</Text>
                 </View>
               )}
-            </Animated.View>
+            </View>
             
             {university.enabled && (
-              <Animated.View style={[styles.arrowContainer, animatedArrowStyle]}>
-                <View style={styles.arrowPill}>
-                  <ChevronRight size={16} color={Colors.primary} strokeWidth={2.5} />
-                </View>
-              </Animated.View>
+              <ChevronRight size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
             )}
           </View>
         </TouchableOpacity>
@@ -184,26 +152,37 @@ export default function UniversitySelection() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      
+      {/* Gradient background */}
+      <LinearGradient
+        colors={['#4A00E0', '#8E2DE2', '#FF6B6B', '#FF8E53']}
+        start={{ x: 0, y: 0.2 }}
+        end={{ x: 1, y: 1 }}
+        locations={[0, 0.4, 0.7, 1]}
+        style={styles.backgroundGradient}
+      />
+
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <ArrowLeft size={24} color={Colors.semantic.bodyText} strokeWidth={2} />
+            <ArrowLeft size={24} color={Colors.white} strokeWidth={2} />
           </TouchableOpacity>
-          <Image
-            source={require('@assets/images/image.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.placeholder} />
+          
+          <View style={styles.headerLogo}>
+            <Zap size={24} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
+          </View>
+          
+          <View style={styles.headerPlaceholder} />
         </View>
+        
         <Text style={styles.title}>Select Your University</Text>
       </View>
 
       <ScrollView 
         style={styles.content} 
         showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior="never"
         contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       >
         <View style={styles.cardsList}>
@@ -211,13 +190,13 @@ export default function UniversitySelection() {
             <UniversityCardComponent key={university.id} university={university} />
           ))}
         </View>
-      </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
-        <TouchableOpacity style={styles.requestButton} onPress={handleRequestCampus}>
-          <Text style={styles.requestButtonText}>Request your campus here</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.requestButton} onPress={handleRequestCampus}>
+            <Text style={styles.requestButtonText}>Request your campus here</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -225,84 +204,103 @@ export default function UniversitySelection() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.semantic.screen,
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   header: {
-    flexDirection: 'column',
-    alignItems: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 20,
-    gap: 16,
+    paddingBottom: 20,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    width: '100%',
+    marginBottom: 24,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.muted,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logo: {
-    width: 32,
-    height: 32,
+  headerLogo: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerPlaceholder: {
+    width: 40,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
-    color: Colors.semantic.bodyText,
+    color: Colors.white,
     textAlign: 'center',
-  },
-  skipText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.primary,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
   },
   cardsList: {
-    gap: 12,
+    gap: 16,
+    paddingTop: 20,
   },
   universityCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 16,
-    padding: 16,
-    minHeight: 80,
+    padding: 20,
+    minHeight: 88,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   selectedCard: {
-    backgroundColor: 'rgba(0, 56, 255, 0.06)',
-    borderColor: Colors.primary,
+    backgroundColor: 'rgba(255, 255, 255, 1)',
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    transform: [{ scale: 1.02 }],
   },
   disabledCard: {
-    backgroundColor: Colors.muted,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     opacity: 0.7,
   },
   logoContainer: {
-    width: 64,
-    height: 64,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: 16,
   },
   universityLogo: {
-    width: 56,
-    height: 56,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  logoText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.white,
   },
   cardContent: {
     flex: 1,
@@ -310,11 +308,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  textContent: {
+    flex: 1,
+  },
   universityName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: Colors.semantic.bodyText,
-    lineHeight: 22,
+    marginBottom: 4,
   },
   disabledText: {
     color: Colors.semantic.tabInactive,
@@ -323,42 +324,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 2,
   },
   comingSoonText: {
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.semantic.tabInactive,
-    fontWeight: '500',
-  },
-  arrowContainer: {
-    marginLeft: 12,
-  },
-  arrowPill: {
-    backgroundColor: Colors.primary,
-    borderRadius: 16,
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
+    fontWeight: '600',
   },
   footer: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 32,
+    paddingBottom: 20,
   },
   requestButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: Colors.primary,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
   },
   requestButtonText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
-    color: Colors.primary,
-  },
-  placeholder: {
-    width: 40,
+    color: Colors.white,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });
