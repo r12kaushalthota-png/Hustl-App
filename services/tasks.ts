@@ -43,9 +43,8 @@ export async function acceptTask(taskId: string): Promise<Task> {
     throw new Error('You must be signed in to accept tasks.');
   }
 
-  const { data, error } = await supabase.rpc('accept_task_atomic', {
-    p_task_id: taskId,
-    p_user_id: user.id
+  const { data, error } = await supabase.rpc('accept_task', {
+    task_id_param: taskId
   });
 
   if (error) {

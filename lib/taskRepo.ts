@@ -125,13 +125,12 @@ export class TaskRepo {
    */
   static async acceptTask(taskId: string, userId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
-      const { data, error } = await supabase.rpc('accept_task_atomic', { 
-        p_task_id: taskId,
-        p_user_id: userId
+      const { data, error } = await supabase.rpc('accept_task', { 
+        task_id_param: taskId
       });
 
       if (error) {
-        console.error('accept_task_atomic RPC error:', error);
+        console.error('accept_task RPC error:', error);
         
         // Handle specific error cases
         if (error.message.includes('TASK_NOT_FOUND')) {
