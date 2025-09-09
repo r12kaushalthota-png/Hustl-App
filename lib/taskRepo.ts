@@ -144,11 +144,11 @@ export class TaskRepo {
         
         // Handle specific error codes
         if (error.code === '42501') {
-          if (error.message.includes('own task')) {
+          if (error.message.includes('cannot accept your own task')) {
             return { data: null, error: 'You cannot accept your own task' };
           } else if (error.message.includes('already been accepted')) {
             return { data: null, error: 'This task was just accepted by someone else' };
-          } else if (error.message.includes('not available')) {
+          } else if (error.message.includes('not available for acceptance')) {
             return { data: null, error: 'Task is no longer available' };
           }
         }
