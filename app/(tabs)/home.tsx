@@ -41,6 +41,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import GlobalHeader from '@components/GlobalHeader';
 import { useAuth } from '@/contexts/AuthContext';
+import { useGlobalProfile } from '@/contexts/GlobalProfileContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -729,6 +730,7 @@ const GreetingSection = () => {
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { showProfilePanel } = useGlobalProfile();
   const [selectingTaskId, setSelectingTaskId] = useState<string | null>(null);
 
   const handleSelectTask = async (categoryId: string) => {
@@ -770,9 +772,11 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <AnimatedBackground />
-      <View style={styles.simpleHeader}>
-        <Text style={styles.headerTitle}>Hustl</Text>
-      </View>
+      <GlobalHeader 
+        title="Hustl"
+        showSearch={false}
+        showNotifications={true}
+      />
 
       <ScrollView 
         style={styles.content} 

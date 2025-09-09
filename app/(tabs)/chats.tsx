@@ -28,8 +28,8 @@ import Animated, {
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import GlobalHeader from '@/components/GlobalHeader';
 import ProfileSheet from '@/components/ProfileSheet';
+import { useGlobalProfile } from '@/contexts/GlobalProfileContext';
 
 const { width } = Dimensions.get('window');
 
@@ -315,7 +315,7 @@ const ChatsHeader = ({
   onSearchChange: (query: string) => void;
 }) => {
   const { user } = useAuth();
-  const router = useRouter();
+  const { showProfilePanel } = useGlobalProfile();
   const searchWidth = useSharedValue(0);
   const searchOpacity = useSharedValue(0);
 
@@ -342,7 +342,7 @@ const ChatsHeader = ({
         // Haptics not available, continue silently
       }
     }
-    router.push('/profile');
+    showProfilePanel();
   };
 
   const getInitials = (name: string): string => {

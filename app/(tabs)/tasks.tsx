@@ -39,6 +39,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { supabase } from '@/lib/supabase';
 import { Task } from '@/types/database';
+import GlobalHeader from '@/components/GlobalHeader';
 import Toast from '@/components/Toast';
 
 const { width } = Dimensions.get('window');
@@ -413,9 +414,11 @@ export default function TasksScreen() {
   return (
     <>
       <View style={styles.container}>
-        <View style={styles.simpleHeader}>
-          <Text style={styles.headerTitle}>Available Tasks</Text>
-        </View>
+        <GlobalHeader 
+          title="Available Tasks"
+          showSearch={false}
+          showNotifications={true}
+        />
 
         {/* View Mode Toggle */}
         <View style={styles.viewModeContainer}>

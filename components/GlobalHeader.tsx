@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, Bell } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/theme/colors';
+import { useGlobalProfile } from '@/contexts/GlobalProfileContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface GlobalHeaderProps {
   title?: string;
@@ -21,6 +23,8 @@ export default function GlobalHeader({
   onNotificationPress
 }: GlobalHeaderProps) {
   const insets = useSafeAreaInsets();
+  const { showProfilePanel } = useGlobalProfile();
+  const { user } = useAuth();
 
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
@@ -42,12 +46,40 @@ export default function GlobalHeader({
     onNotificationPress?.();
   };
 
+  const handleProfilePress = () => {
+    triggerHaptics();
+    showProfilePanel();
+  };
+
+  const getInitials = (name: string): string => {
+    if (!name || !name.trim()) return 'U';
+    
+    return name
+      .trim()
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.content}>
-        {/* Left side - could add user avatar or back button */}
+        {/* Left side - User Avatar */}
         <View style={styles.leftSection}>
-          {/* Placeholder for future left content */}
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={handleProfilePress}
+            accessibilityLabel="Open profile panel"
+            accessibilityRole="button"
+          >
+            <View style={styles.profileAvatar}>
+              <Text style={styles.profileAvatarText}>
+                {getInitials(user?.displayName || 'User')}
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Center - Title */}
@@ -104,8 +136,27 @@ const styles = StyleSheet.create({
     minHeight: 64,
   },
   leftSection: {
-    width: 40,
+    width: 44,
     alignItems: 'flex-start',
+  },
+  profileButton: {
+    width: 36,
+    height: 36,
+  },
+  profileAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 33, 165, 0.3)',
+  },
+  profileAvatarText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.white,
   },
   centerSection: {
     flex: 1,
