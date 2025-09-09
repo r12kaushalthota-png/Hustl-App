@@ -332,22 +332,12 @@ export default function TasksScreen() {
     setAcceptingTaskId(taskId);
 
     try {
-      const { data, error } = await TaskRepo.acceptTask(taskId, user.id);
+      const { data, error } = await TaskRepo.acceptTask(taskId);
 
       if (error) {
-        // Handle specific error cases
-        let errorMessage = error;
-        if (error.includes('cannot accept your own task')) {
-          errorMessage = 'You cannot accept your own task';
-        } else if (error.includes('already been accepted')) {
-          errorMessage = 'This task was just accepted by someone else';
-        } else if (error.includes('not found')) {
-          errorMessage = 'Task not found or no longer available';
-        }
-        
         setToast({
           visible: true,
-          message: errorMessage,
+          message: error,
           type: 'error'
         });
         return;

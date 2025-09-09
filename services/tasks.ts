@@ -32,40 +32,6 @@ export interface Task {
 /**
  * Accept a task atomically - only one user can win
  */
-export async function acceptTask(taskId: string): Promise<{
-  task_id: string;
-  status: string;
-  acceptance_code: string;
-  chat_id: string;
-  task_category: string;
-  accepted_by: string;
-  owner_id: string;
-  accepted_at: string;
-}> {
-  const { data: { user }, error: authErr } = await supabase.auth.getUser();
-  
-  if (authErr) {
-    throw new Error('Authentication error. Please sign in again.');
-  }
-  
-  if (!user) {
-    throw new Error('You must be signed in to accept tasks.');
-  }
-
-  const { data, error } = await supabase.rpc('accept_task', {
-    task_id: taskId
-  });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!data) {
-    throw new Error('Task acceptance failed. Please try again.');
-  }
-
-  return data;
-}
 
 /**
  * Fetch all open tasks (available for acceptance)

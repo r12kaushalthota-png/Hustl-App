@@ -123,7 +123,7 @@ export class TaskRepo {
   /**
    * Accept a task - generates unique code and assigns to user
    */
-  static async acceptTask(taskId: string, userId: string): Promise<{ 
+  static async acceptTask(taskId: string): Promise<{ 
     data: {
       task_id: string;
       status: string;
@@ -137,13 +137,23 @@ export class TaskRepo {
     error: string | null 
   }> {
     try {
-      const { data, error } = await supabase.rpc('accept_task', {
-        task_id: taskId
-      });
+      const { data, error } = await supabase.rpc('accept_task', { task_id: taskId });
 
       if (error) {
         console.error('accept_task RPC error:', error);
-        return { data: null, error: error.message };
+        
+        // Handle specific error codes
+        if (error.code === '42501') {
+          if (error.message.includes('own task')) {
+            return { data: null, error: 'You cannot accept your own task' };
+          } else if (error.message.includes('already been accepted')) {
+            return { data: null, error: 'This task was just accepted by someone else' };
+          } else if (error.message.includes('not available')) {
+            return { data: null, error: 'Task is no longer available' };
+          }
+        }
+        
+        return { data: null, error: error.message || 'Failed to accept task' };
       }
 
       if (!data) {
