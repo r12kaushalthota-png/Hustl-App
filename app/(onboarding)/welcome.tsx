@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronRight, MapPin, Zap } from 'lucide-react-native';
+import { ChevronRight, MapPin } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -16,78 +16,18 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
+import { BrandingUtils } from '@/constants/Branding';
+import HustlLogo from '@/components/HustlLogo';
 
 const { width, height } = Dimensions.get('window');
-
-// Enhanced logo with Hustl branding
-const HustlLogo = () => {
-  const glowOpacity = useSharedValue(0.3);
-  const pulseScale = useSharedValue(1);
-  const rotateAnimation = useSharedValue(0);
-
-  useEffect(() => {
-    // Glow animation
-    glowOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.8, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0.4, { duration: 2000, easing: Easing.inOut(Easing.sin) })
-      ),
-      -1,
-      true
-    );
-
-    // Pulse animation
-    pulseScale.value = withRepeat(
-      withSequence(
-        withTiming(1.05, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.sin) })
-      ),
-      -1,
-      true
-    );
-
-    // Slow rotation
-    rotateAnimation.value = withRepeat(
-      withTiming(360, { duration: 20000, easing: Easing.linear }),
-      -1,
-      false
-    );
-  }, []);
-
-  const animatedGlowStyle = useAnimatedStyle(() => ({
-    shadowOpacity: glowOpacity.value,
-    transform: [{ scale: pulseScale.value }],
-  }));
-
-  const animatedRotateStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotateAnimation.value}deg` }],
-  }));
-
-  return (
-    <View style={styles.logoContainer}>
-      {/* Rotating background halo */}
-      <Animated.View style={[styles.logoHalo, animatedRotateStyle]} />
-      
-      {/* Main logo with glow */}
-      <Animated.View style={[styles.logoWrapper, animatedGlowStyle]}>
-        <View style={styles.logoCircle}>
-          <Zap size={60} color={Colors.white} strokeWidth={3} fill={Colors.white} />
-        </View>
-      </Animated.View>
-    </View>
-  );
-};
 
 // University icons carousel
 const UniversityCarousel = () => {
   const translateX = useSharedValue(0);
   
-  const universities = [
-    { name: 'UF', color: '#0021A5' },
-    { name: 'UCF', color: '#FFD700' },
-    { name: 'USF', color: '#006747' },
-    { name: 'FSU', color: '#782F40' },
-  ];
+  const universities = BrandingUtils.getEnabledUniversities().concat(
+    Object.values(BrandingUtils.Universities).filter(u => !u.enabled)
+  );
 
   useEffect(() => {
     translateX.value = withRepeat(
@@ -113,8 +53,8 @@ const UniversityCarousel = () => {
           {/* Render universities twice for seamless loop */}
           {[...universities, ...universities].map((university, index) => (
             <View key={`${university.name}-${index}`} style={styles.universityIcon}>
-              <View style={[styles.universityCircle, { backgroundColor: university.color }]}>
-                <Text style={styles.universityText}>{university.name}</Text>
+              <View style={[styles.universityCircle, { backgroundColor: university.colors.primary }]}>
+                <Text style={styles.universityText}>{university.shortName}</Text>
               </View>
             </View>
           ))}
@@ -191,7 +131,7 @@ export default function WelcomeScreen() {
       
       {/* Gradient background matching screenshot */}
       <LinearGradient
-        colors={['#6B46C1', '#8B5CF6', '#EC4899', '#F97316']}
+        colors={BrandingUtils.getBrandGradient('welcome')}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         locations={[0, 0.3, 0.7, 1]}
@@ -201,7 +141,11 @@ export default function WelcomeScreen() {
       <View style={styles.content}>
         {/* Logo Section */}
         <Animated.View style={[styles.logoSection, animatedLogoStyle]}>
-          <HustlLogo />
+          <HustlLogo 
+            size="xlarge" 
+            animated={true} 
+            showGlow={true}
+          />
         </Animated.View>
 
         {/* Welcome Text */}
@@ -228,7 +172,7 @@ export default function WelcomeScreen() {
             activeOpacity={0.9}
           >
             <LinearGradient
-              colors={['#F97316', '#3B82F6']}
+              colors={BrandingUtils.getBrandGradient('button')}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
               style={styles.primaryButton}
@@ -267,44 +211,14 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'flex-start',
     paddingHorizontal: 24,
-    paddingTop: 40,
   },
   logoSection: {
     alignItems: 'center',
+    paddingTop: 40,
+    paddingBottom: 140, // Space for fixed bottom section
     paddingTop: 60,
     paddingBottom: 40,
-  },
-  logoContainer: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoHalo: {
-    position: 'absolute',
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  logoWrapper: {
-    shadowColor: '#FF6B6B',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.6,
-    shadowRadius: 24,
-    elevation: 16,
-  },
-  logoCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   welcomeSection: {
     alignItems: 'center',
@@ -384,14 +298,14 @@ const styles = StyleSheet.create({
   },
   bottomSection: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 60,
     left: 24,
     right: 24,
     alignItems: 'center',
     gap: 24,
   },
   primaryButtonContainer: {
-    shadowColor: '#F97316',
+    shadowColor: '#3B82F6',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.5,
     shadowRadius: 20,
@@ -407,7 +321,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 24,
     gap: 16,
-    minHeight: 64,
+    minHeight: 60,
   },
   primaryButtonText: {
     fontSize: 20,

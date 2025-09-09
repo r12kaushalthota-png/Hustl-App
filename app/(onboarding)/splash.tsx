@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withDelay, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '@/theme/colors';
+import HustlLogo from '@/components/HustlLogo';
 
 const { width, height } = Dimensions.get('window');
 
@@ -54,10 +55,10 @@ export default function SplashScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Animated.View style={[styles.logoContainer, animatedStyle]}>
-        <Image
-          source={require('@assets/images/image.png')}
-          style={styles.logo}
-          resizeMode="contain"
+        <HustlLogo 
+          size="xlarge" 
+          animated={true} 
+          showGlow={true}
         />
       </Animated.View>
       
@@ -83,10 +84,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 32,
-  },
-  logo: {
-    width: '100%',
-    height: '100%',
   },
   textContainer: {
     paddingHorizontal: 40,

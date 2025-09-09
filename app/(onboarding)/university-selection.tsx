@@ -1,59 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, ChevronRight, Lock, Zap } from 'lucide-react-native';
+import { ArrowLeft, ChevronRight, Lock } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, withSpring } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
+import { BrandingUtils, UniversityList } from '@/constants/Branding';
+import HustlLogo from '@/components/HustlLogo';
 
 const { width } = Dimensions.get('window');
-
-interface UniversityCard {
-  id: string;
-  name: string;
-  shortName: string;
-  enabled: boolean;
-  color: string;
-}
-
-const universities: UniversityCard[] = [
-  { 
-    id: 'uf', 
-    name: 'University of Florida', 
-    shortName: 'UF', 
-    enabled: true,
-    color: '#0021A5'
-  },
-  { 
-    id: 'ucf', 
-    name: 'University of Central Florida', 
-    shortName: 'UCF', 
-    enabled: false,
-    color: '#FFD700'
-  },
-  { 
-    id: 'usf', 
-    name: 'University of South Florida', 
-    shortName: 'USF', 
-    enabled: false,
-    color: '#006747'
-  },
-  { 
-    id: 'fsu', 
-    name: 'Florida State University', 
-    shortName: 'FSU', 
-    enabled: false,
-    color: '#782F40'
-  },
-];
 
 export default function UniversitySelection() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const handleUniversitySelect = (university: UniversityCard) => {
+  const handleUniversitySelect = (university: any) => {
     if (!university.enabled) return;
     
     if (university.id === 'uf') {
@@ -74,7 +37,7 @@ export default function UniversitySelection() {
     router.back();
   };
 
-  const UniversityCardComponent = ({ university }: { university: UniversityCard }) => {
+  const UniversityCardComponent = ({ university }: { university: any }) => {
     const scale = useSharedValue(1);
     const glowOpacity = useSharedValue(0);
 
@@ -106,7 +69,7 @@ export default function UniversitySelection() {
     const isSelected = selectedId === university.id;
 
     return (
-      <Animated.View style={[animatedCardStyle, { shadowColor: university.color }, animatedGlowStyle]}>
+      <Animated.View style={[animatedCardStyle, { shadowColor: university.colors.primary }, animatedGlowStyle]}>
         <TouchableOpacity
           style={[
             styles.universityCard,
@@ -121,7 +84,7 @@ export default function UniversitySelection() {
           accessibilityRole="button"
         >
           <View style={styles.logoContainer}>
-            <View style={[styles.universityLogo, { backgroundColor: university.color }]}>
+            <View style={[styles.universityLogo, { backgroundColor: university.colors.primary }]}>
               <Text style={styles.logoText}>{university.shortName}</Text>
             </View>
           </View>
@@ -157,7 +120,7 @@ export default function UniversitySelection() {
       
       {/* Gradient background */}
       <LinearGradient
-        colors={['#4A00E0', '#8E2DE2', '#FF6B6B', '#FF8E53']}
+        colors={BrandingUtils.getBrandGradient('welcome')}
         start={{ x: 0, y: 0.2 }}
         end={{ x: 1, y: 1 }}
         locations={[0, 0.4, 0.7, 1]}
@@ -171,7 +134,7 @@ export default function UniversitySelection() {
           </TouchableOpacity>
           
           <View style={styles.headerLogo}>
-            <Zap size={24} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
+            <HustlLogo size="small" />
           </View>
           
           <View style={styles.headerPlaceholder} />
@@ -186,7 +149,7 @@ export default function UniversitySelection() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       >
         <View style={styles.cardsList}>
-          {universities.map((university) => (
+          {UniversityList.map((university) => (
             <UniversityCardComponent key={university.id} university={university} />
           ))}
         </View>
@@ -233,8 +196,6 @@ const styles = StyleSheet.create({
   headerLogo: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -16,6 +16,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGlobalProfile } from '@/contexts/GlobalProfileContext';
+import { BrandingUtils } from '@/constants/Branding';
+import HustlLogo from '@/components/HustlLogo';
 
 const { width } = Dimensions.get('window');
 
@@ -69,9 +71,7 @@ const TopHeader = () => {
 
         {/* Center: Hustl Logo */}
         <View style={styles.logoChip}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>H</Text>
-          </View>
+          <HustlLogo size="small" />
         </View>
 
         {/* Right: Search */}
@@ -127,7 +127,7 @@ const ReferralBanner = () => {
       activeOpacity={0.9}
     >
       <LinearGradient
-        colors={['#3B82F6', '#8B5CF6', '#EC4899']}
+        colors={BrandingUtils.getBrandGradient('referral')}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={styles.referralGradient}
@@ -381,28 +381,8 @@ const styles = StyleSheet.create({
   logoChip: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: '#8B5CF6',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  logoContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#8B5CF6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.white,
   },
   searchButton: {
     width: 44,

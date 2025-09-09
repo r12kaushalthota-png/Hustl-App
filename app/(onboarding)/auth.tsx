@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image, Alert, Dimensions, SafeAreaView, StatusBar, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Dimensions, SafeAreaView, StatusBar, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Eye, EyeOff, Zap, User, Mail, Lock } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff, User, Mail, Lock } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -17,37 +17,10 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { BrandingUtils } from '@/constants/Branding';
+import HustlLogo from '@/components/HustlLogo';
 
 const { width, height } = Dimensions.get('window');
-
-// Logo component
-const HustlLogo = () => {
-  const glowAnimation = useSharedValue(0);
-
-  React.useEffect(() => {
-    glowAnimation.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 2000 }),
-        withTiming(0.5, { duration: 2000 })
-      ),
-      -1,
-      true
-    );
-  }, []);
-
-  const animatedGlowStyle = useAnimatedStyle(() => {
-    const shadowOpacity = interpolate(glowAnimation.value, [0, 1], [0.3, 0.7]);
-    return { shadowOpacity };
-  });
-
-  return (
-    <Animated.View style={[styles.authLogoContainer, animatedGlowStyle]}>
-      <View style={styles.logoWrapper}>
-        <Zap size={48} color={Colors.white} strokeWidth={3} fill={Colors.white} />
-      </View>
-    </Animated.View>
-  );
-};
 
 export default function AuthScreen() {
   const router = useRouter();
@@ -137,7 +110,7 @@ export default function AuthScreen() {
       
       {/* Gradient background */}
       <LinearGradient
-        colors={['#4A00E0', '#8E2DE2', '#FF6B6B', '#FF8E53']}
+        colors={BrandingUtils.getBrandGradient('welcome')}
         start={{ x: 0, y: 0.2 }}
         end={{ x: 1, y: 1 }}
         locations={[0, 0.4, 0.7, 1]}
@@ -163,7 +136,11 @@ export default function AuthScreen() {
 
         {/* Logo and Title */}
         <Animated.View style={[styles.authHeader, animatedHeaderStyle]}>
-          <HustlLogo />
+          <HustlLogo 
+            size="large" 
+            animated={true} 
+            showGlow={true}
+          />
           
           <View style={styles.titleContainer}>
             <Text style={styles.title}>
@@ -268,12 +245,12 @@ export default function AuthScreen() {
               </View>
             ) : (
               <LinearGradient
-                colors={['#FF6B6B', '#4A00E0']}
+                colors={BrandingUtils.getBrandGradient('button')}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
                 style={styles.primaryButtonGradient}
               >
-                <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
+                <HustlLogo size="small" />
                 <Text style={styles.primaryButtonText}>
                   {isLogin ? 'Sign In' : 'Create Account'}
                 </Text>
@@ -344,23 +321,7 @@ const styles = StyleSheet.create({
   authHeader: {
     paddingVertical: 20,
     alignItems: 'center',
-    gap: 24,
-  },
-  authLogoContainer: {
-    shadowColor: '#FF6B6B',
-    shadowOffset: { width: 0, height: 12 },
-    shadowRadius: 20,
-    elevation: 16,
-  },
-  logoWrapper: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    gap: 32,
   },
   titleContainer: {
     alignItems: 'center',
