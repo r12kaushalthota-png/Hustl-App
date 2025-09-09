@@ -143,15 +143,13 @@ export class TaskRepo {
         console.error('accept_task RPC error:', error);
         
         // Handle specific error codes
-        if (error.code === '42501') {
-          if (error.message?.includes('Cannot accept your own task')) {
-            return { data: null, error: 'You cannot accept your own task' };
-          } else if (error.message?.includes('already been accepted')) {
-            return { data: null, error: 'This task was just accepted by someone else' };
-          } else if (error.message?.includes('not available for acceptance')) {
-            return { data: null, error: 'Task is no longer available' };
-          }
-        } else if (error.code === '42704') {
+        if (error.message?.includes('Cannot accept your own task')) {
+          return { data: null, error: 'You cannot accept your own task' };
+        } else if (error.message?.includes('already been accepted')) {
+          return { data: null, error: 'This task was just accepted by someone else' };
+        } else if (error.message?.includes('not available for acceptance')) {
+          return { data: null, error: 'Task is no longer available' };
+        } else if (error.message?.includes('Task not found')) {
           return { data: null, error: 'Task not found' };
         }
         
