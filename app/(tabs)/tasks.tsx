@@ -344,20 +344,20 @@ export default function TasksScreen() {
       }
 
       if (data) {
-        // Show success message with code
+        // Show success message with acceptance code
         setToast({
           visible: true,
-          message: `🎉 Congratulations! You just accepted a task. Code: ${data.acceptance_code}`,
+          message: `🎉 Congratulations! You just accepted a task! Code: ${data.acceptance_code}`,
           type: 'success'
         });
 
         // Remove accepted task from list
         setTasks(prev => prev.filter(task => task.id !== taskId));
 
-        // Navigate to chat after showing success message
+        // Navigate to chat after brief delay to show success message
         setTimeout(() => {
           router.push(`/chat/${data.chat_id}`);
-        }, 2000);
+        }, 2500);
       }
     } catch (error) {
       setToast({
