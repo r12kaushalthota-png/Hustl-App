@@ -174,7 +174,6 @@ export default function HustlLogo({
         </Animated.View>
       </View>
     );
-  };
 }
 
 const styles = StyleSheet.create({
