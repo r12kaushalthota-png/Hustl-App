@@ -137,7 +137,7 @@ export class TaskRepo {
     error: string | null 
   }> {
     try {
-      const { data, error } = await supabase.rpc('accept_task', { task_id: taskId });
+      const { data, error } = await supabase.rpc('accept_task', { p_task_id: taskId });
 
       if (error) {
         console.error('accept_task RPC error:', error);
