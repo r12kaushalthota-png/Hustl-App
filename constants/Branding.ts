@@ -38,7 +38,7 @@ export const Universities = {
     id: 'uf',
     name: 'University of Florida',
     shortName: 'UF',
-    logo: require('@/assets/images/uf-logo.png'),
+    logo: require('@/assets/images/Florida_Gators_gator_logo.png'),
     colors: {
       primary: '#0021A5',
       secondary: '#FA4616',
