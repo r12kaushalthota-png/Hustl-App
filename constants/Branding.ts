@@ -49,7 +49,7 @@ export const Universities = {
     id: 'ucf',
     name: 'University of Central Florida',
     shortName: 'UCF',
-    logo: require('../assets/images/ucf_university-of-central-florida-logo.jpg'),
+    logo: require('../assets/images/141-1415685_ucf-university-of-central-florida-logo.jpg'),
     colors: {
       primary: '#FFD700',
       secondary: '#000000',
