@@ -49,7 +49,7 @@ export const Universities = {
     id: 'ucf',
     name: 'University of Central Florida',
     shortName: 'UCF',
-    logo: require('../assets/images/ucf-logo.png'),
+    logo: require('../assets/images/ucf_university-of-central-florida-logo.jpg'),
     colors: {
       primary: '#FFD700',
       secondary: '#000000',
@@ -60,7 +60,7 @@ export const Universities = {
     id: 'usf',
     name: 'University of South Florida',
     shortName: 'USF',
-    logo: require('../assets/images/usf-logo.png'),
+    logo: require('../assets/images/UniversityOfSouthFlorida-logo-350x350.jpg'),
     colors: {
       primary: '#006747',
       secondary: '#FFD700',
@@ -71,7 +71,7 @@ export const Universities = {
     id: 'fsu',
     name: 'Florida State University',
     shortName: 'FSU',
-    logo: require('../assets/images/fsu-logo.png'),
+    logo: require('../assets/images/Florida_State_Seminoles_logo.png'),
     colors: {
       primary: '#782F40',
       secondary: '#CEB888',
