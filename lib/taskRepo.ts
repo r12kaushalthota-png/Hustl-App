@@ -160,7 +160,9 @@ export class TaskRepo {
         return { data: null, error: 'Task acceptance failed. Please try again.' };
       }
 
-      return { data: data, error: null };
+      // Map the returned data to match expected format
+      const result = Array.isArray(data) ? data[0] : data;
+      return { data: result, error: null };
     } catch (error) {
       console.error('accept_task network error:', error);
       return { data: null, error: 'Network error. Please check your connection.' };
