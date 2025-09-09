@@ -41,6 +41,7 @@ import { supabase } from '@/lib/supabase';
 import { Task } from '@/types/database';
 import GlobalHeader from '@/components/GlobalHeader';
 import Toast from '@/components/Toast';
+import AcceptanceSuccessModal from '@/components/AcceptanceSuccessModal';
 
 const { width } = Dimensions.get('window');
 
@@ -228,6 +229,19 @@ export default function TasksScreen() {
     message: '',
     type: 'success'
   });
+  const [acceptanceData, setAcceptanceData] = useState<{
+    visible: boolean;
+    taskId: string;
+    chatId: string;
+    code: string;
+    category: string;
+  }>({
+    visible: false,
+    taskId: '',
+    chatId: '',
+    code: '',
+    category: ''
+  });
 
   // Load tasks
   const loadTasks = useCallback(async (showRefreshIndicator = false) => {
@@ -344,20 +358,17 @@ export default function TasksScreen() {
       }
 
       if (data) {
-        // Show success message with acceptance code
-        setToast({
+        // Show success modal with acceptance code
+        setAcceptanceData({
           visible: true,
-          message: `🎉 Congratulations! You just accepted a task! Code: ${data.acceptance_code}`,
-          type: 'success'
+          taskId: data.task_id,
+          chatId: data.chat_id,
+          code: data.acceptance_code,
+          category: data.task_category
         });
 
         // Remove accepted task from list
         setTasks(prev => prev.filter(task => task.id !== taskId));
-
-        // Navigate to chat after brief delay to show success message
-        setTimeout(() => {
-          router.push(`/chat/${data.chat_id}`);
-        }, 2500);
       }
     } catch (error) {
       setToast({
@@ -373,6 +384,18 @@ export default function TasksScreen() {
 
   const hideToast = () => {
     setToast(prev => ({ ...prev, visible: false }));
+  };
+
+  const handleCloseAcceptanceModal = () => {
+    setAcceptanceData(prev => ({ ...prev, visible: false }));
+  };
+
+  const handleMessagePoster = () => {
+    router.push(`/chat/${acceptanceData.chatId}`);
+  };
+
+  const handleViewTask = () => {
+    router.push(`/task/${acceptanceData.taskId}`);
   };
 
   const renderTaskCard = (task: Task) => (
@@ -520,6 +543,16 @@ export default function TasksScreen() {
         message={toast.message}
         type={toast.type}
         onHide={hideToast}
+      />
+
+      {/* Acceptance Success Modal */}
+      <AcceptanceSuccessModal
+        visible={acceptanceData.visible}
+        onClose={handleCloseAcceptanceModal}
+        acceptanceCode={acceptanceData.code}
+        taskCategory={acceptanceData.category}
+        onMessagePoster={handleMessagePoster}
+        onViewTask={handleViewTask}
       />
     </>
   );
