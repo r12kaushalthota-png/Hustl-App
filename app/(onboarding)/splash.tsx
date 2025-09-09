@@ -3,8 +3,15 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withDelay, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '@/theme/colors';
 import HustlLogo from '@/components/HustlLogo';
+
+// Exact brand colors from the logo
+const BrandColors = {
+  primary: '#0D2DEB', // Hustl Blue
+  surface: '#FFFFFF',
+  title: '#0A0F1F',
+  subtitle: '#5B6475',
+};
 
 const { width, height } = Dimensions.get('window');
 
@@ -74,7 +81,7 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.semantic.screen,
+    backgroundColor: BrandColors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -92,7 +99,7 @@ const styles = StyleSheet.create({
   brandText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#3B82F6', // Lighter UF blue
+    color: BrandColors.primary,
     textAlign: 'center',
     lineHeight: 24,
     letterSpacing: 0.5,

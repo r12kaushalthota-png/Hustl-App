@@ -15,10 +15,27 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { BrandingUtils } from '@/constants/Branding';
 import HustlLogo from '@/components/HustlLogo';
+
+// Exact brand colors from the logo
+const BrandColors = {
+  primary: '#0D2DEB', // Hustl Blue
+  purple: '#6B2BBF', // Hustl Purple
+  red: '#E53935', // Hustl Red
+  orange: '#FF5A1F', // Hustl Orange
+  accentYellow: '#FFC400', // Badge yellow
+  surface: '#FFFFFF',
+  title: '#0A0F1F',
+  subtitle: '#5B6475',
+  divider: '#E9EDF5',
+};
+
+// Brand gradients
+const BrandGradients = {
+  primary: [BrandColors.primary, BrandColors.purple, BrandColors.red, BrandColors.orange],
+  button: [BrandColors.primary, '#3D6BFF'],
+};
 
 const { width, height } = Dimensions.get('window');
 
@@ -110,7 +127,7 @@ export default function AuthScreen() {
       
       {/* Gradient background */}
       <LinearGradient
-        colors={BrandingUtils.getBrandGradient('welcome')}
+        colors={BrandGradients.primary}
         start={{ x: 0, y: 0.2 }}
         end={{ x: 1, y: 1 }}
         locations={[0, 0.4, 0.7, 1]}
@@ -126,7 +143,7 @@ export default function AuthScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <ArrowLeft size={24} color={Colors.white} strokeWidth={2} />
+            <ArrowLeft size={24} color={BrandColors.surface} strokeWidth={2} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
             {isLogin ? 'Welcome Back' : 'Join Hustl'}
@@ -165,13 +182,13 @@ export default function AuthScreen() {
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Display Name</Text>
               <View style={styles.inputWithIcon}>
-                <User size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                <User size={20} color={BrandColors.subtitle} strokeWidth={2} />
                 <TextInput
                   style={styles.input}
                   value={displayName}
                   onChangeText={setDisplayName}
                   placeholder="Enter your display name"
-                  placeholderTextColor={Colors.semantic.tabInactive}
+                  placeholderTextColor={BrandColors.subtitle}
                   autoCapitalize="words"
                   editable={!isLoading}
                 />
@@ -182,13 +199,13 @@ export default function AuthScreen() {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
             <View style={styles.inputWithIcon}>
-              <Mail size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+              <Mail size={20} color={BrandColors.subtitle} strokeWidth={2} />
               <TextInput
                 style={styles.input}
                 value={email}
                 onChangeText={setEmail}
                 placeholder="Enter your email"
-                placeholderTextColor={Colors.semantic.tabInactive}
+                placeholderTextColor={BrandColors.subtitle}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -200,13 +217,13 @@ export default function AuthScreen() {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
             <View style={styles.inputWithIcon}>
-              <Lock size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+              <Lock size={20} color={BrandColors.subtitle} strokeWidth={2} />
               <TextInput
                 style={styles.input}
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Enter your password"
-                placeholderTextColor={Colors.semantic.tabInactive}
+                placeholderTextColor={BrandColors.subtitle}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -218,9 +235,9 @@ export default function AuthScreen() {
                 disabled={isLoading}
               >
                 {showPassword ? (
-                  <EyeOff size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                  <EyeOff size={20} color={BrandColors.subtitle} strokeWidth={2} />
                 ) : (
-                  <Eye size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                  <Eye size={20} color={BrandColors.subtitle} strokeWidth={2} />
                 )}
               </TouchableOpacity>
             </View>
@@ -238,14 +255,14 @@ export default function AuthScreen() {
           >
             {(!isFormValid || isLoading) ? (
               <View style={styles.disabledButtonContent}>
-                {isLoading && <ActivityIndicator size="small" color={Colors.white} />}
+                {isLoading && <ActivityIndicator size="small" color={BrandColors.surface} />}
                 <Text style={styles.disabledButtonText}>
                   {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
                 </Text>
               </View>
             ) : (
               <LinearGradient
-                colors={BrandingUtils.getBrandGradient('button')}
+                colors={BrandGradients.button}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
                 style={styles.primaryButtonGradient}
@@ -310,7 +327,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.white,
+    color: BrandColors.surface,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
@@ -330,7 +347,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: Colors.white,
+    color: BrandColors.surface,
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
@@ -338,7 +355,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.white,
+    color: BrandColors.surface,
     textAlign: 'center',
     opacity: 0.9,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -355,7 +372,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: Colors.white,
+    color: BrandColors.surface,
     textAlign: 'center',
     fontWeight: '600',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -371,7 +388,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.white,
+    color: BrandColors.surface,
     opacity: 0.9,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
@@ -392,7 +409,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: Colors.semantic.inputText,
+    color: BrandColors.title,
   },
   eyeButton: {
     padding: 4,
@@ -421,7 +438,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 17,
     fontWeight: '700',
-    color: Colors.white,
+    color: BrandColors.surface,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
@@ -443,7 +460,7 @@ const styles = StyleSheet.create({
   disabledButtonText: {
     fontSize: 17,
     fontWeight: '600',
-    color: Colors.white,
+    color: BrandColors.surface,
     opacity: 0.7,
   },
   secondaryButton: {
@@ -460,7 +477,7 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.white,
+    color: BrandColors.surface,
     opacity: 0.9,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },

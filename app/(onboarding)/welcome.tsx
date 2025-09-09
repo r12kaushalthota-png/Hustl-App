@@ -15,9 +15,26 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/theme/colors';
-import { BrandingUtils } from '@/constants/Branding';
 import HustlLogo from '@/components/HustlLogo';
+
+// Exact brand colors from the logo
+const BrandColors = {
+  primary: '#0D2DEB', // Hustl Blue
+  purple: '#6B2BBF', // Hustl Purple
+  red: '#E53935', // Hustl Red
+  orange: '#FF5A1F', // Hustl Orange
+  accentYellow: '#FFC400', // Badge yellow
+  surface: '#FFFFFF',
+  title: '#0A0F1F',
+  subtitle: '#5B6475',
+  divider: '#E9EDF5',
+};
+
+// Brand gradients
+const BrandGradients = {
+  primary: [BrandColors.primary, BrandColors.purple, BrandColors.red, BrandColors.orange],
+  button: [BrandColors.primary, '#3D6BFF'],
+};
 
 const { width, height } = Dimensions.get('window');
 
@@ -88,10 +105,10 @@ export default function WelcomeScreen() {
       
       {/* Gradient background matching screenshot */}
       <LinearGradient
-        colors={BrandingUtils.getBrandGradient('welcome')}
-        start={{ x: 0, y: 0 }}
+        colors={BrandGradients.primary}
+        start={{ x: 0, y: 0.2 }}
         end={{ x: 1, y: 1 }}
-        locations={[0, 0.3, 0.7, 1]}
+        locations={[0, 0.4, 0.7, 1]}
         style={styles.backgroundGradient}
       />
 
@@ -124,13 +141,13 @@ export default function WelcomeScreen() {
             activeOpacity={0.9}
           >
             <LinearGradient
-              colors={BrandingUtils.getBrandGradient('button')}
+              colors={BrandGradients.button}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
               style={styles.primaryButton}
             >
               <Text style={styles.primaryButtonText}>Get Started</Text>
-              <ChevronRight size={20} color={Colors.white} strokeWidth={2} />
+              <ChevronRight size={20} color={BrandColors.surface} strokeWidth={2} />
             </LinearGradient>
           </TouchableOpacity>
 
@@ -177,7 +194,7 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: 42,
     fontWeight: '700',
-    color: Colors.white,
+    color: BrandColors.surface,
     textAlign: 'center',
     marginBottom: 20,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -188,7 +205,7 @@ const styles = StyleSheet.create({
   welcomeTagline: {
     fontSize: 20,
     fontWeight: '600',
-    color: Colors.white,
+    color: BrandColors.surface,
     textAlign: 'center',
     marginBottom: 20,
     opacity: 0.95,
@@ -198,7 +215,7 @@ const styles = StyleSheet.create({
   },
   welcomeDescription: {
     fontSize: 18,
-    color: Colors.white,
+    color: BrandColors.surface,
     textAlign: 'center',
     lineHeight: 26,
     opacity: 0.9,
@@ -236,7 +253,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.white,
+    color: BrandColors.surface,
     letterSpacing: 0.3,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
@@ -250,7 +267,7 @@ const styles = StyleSheet.create({
   },
   legalText: {
     fontSize: 16,
-    color: Colors.white,
+    color: BrandColors.surface,
     opacity: 0.9,
     textDecorationLine: 'underline',
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -260,7 +277,7 @@ const styles = StyleSheet.create({
   },
   legalSeparator: {
     fontSize: 16,
-    color: Colors.white,
+    color: BrandColors.surface,
     opacity: 0.7,
   },
 });

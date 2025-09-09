@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, StyleSheet, Image, Text } from 'react-native';
-import { Zap } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -11,8 +10,28 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/theme/colors';
-import { HustlBrand } from '@/constants/Branding';
+
+// Exact brand colors from the logo
+const BrandColors = {
+  primary: '#0D2DEB', // Hustl Blue
+  purple: '#6B2BBF', // Hustl Purple
+  red: '#E53935', // Hustl Red
+  orange: '#FF5A1F', // Hustl Orange
+  surface: '#FFFFFF',
+};
+
+// Brand gradients
+const BrandGradients = {
+  primary: [BrandColors.primary, BrandColors.purple, BrandColors.red, BrandColors.orange],
+};
+
+// Logo sizes
+const LogoSizes = {
+  small: 24,
+  medium: 32,
+  large: 48,
+  xlarge: 64,
+};
 
 interface HustlLogoProps {
   size?: 'small' | 'medium' | 'large' | 'xlarge';
@@ -76,11 +95,11 @@ export default function HustlLogo({
 
   const getSizeValue = () => {
     switch (size) {
-      case 'small': return HustlBrand.iconSize.small;
-      case 'medium': return HustlBrand.iconSize.medium;
-      case 'large': return HustlBrand.iconSize.large;
-      case 'xlarge': return HustlBrand.iconSize.xlarge;
-      default: return HustlBrand.iconSize.medium;
+      case 'small': return LogoSizes.small;
+      case 'medium': return LogoSizes.medium;
+      case 'large': return LogoSizes.large;
+      case 'xlarge': return LogoSizes.xlarge;
+      default: return LogoSizes.medium;
     }
   };
 
@@ -90,6 +109,34 @@ export default function HustlLogo({
   if (variant === 'icon') {
     return (
       <View style={[styles.container, { width: containerSize, height: containerSize }, style]}>
+        {/* Use the actual logo image */}
+        <Animated.View style={[
+          styles.logoWrapper,
+          {
+            width: logoSize,
+            height: logoSize,
+            borderRadius: logoSize / 2,
+            shadowColor: BrandColors.red
+          },
+          animatedGlowStyle
+        ]}>
+          <Image
+            source={require('@/src/assets/images/image copy copy.png')}
+            style={[styles.logoImage, { 
+              width: logoSize, 
+              height: logoSize, 
+              borderRadius: logoSize / 2 
+            }]}
+            resizeMode="contain"
+          />
+        </Animated.View>
+      </View>
+    );
+  }
+
+  // For other variants, use gradient circle with H
+  return (
+    <View style={[styles.container, { width: containerSize, height: containerSize }, style]}>
         {/* Rotating halo for animated version */}
         {animated && (
           <Animated.View style={[
@@ -110,51 +157,24 @@ export default function HustlLogo({
             width: logoSize,
             height: logoSize,
             borderRadius: logoSize / 2,
-            shadowColor: '#FF6B6B'
+            shadowColor: BrandColors.red
           },
           animatedGlowStyle
         ]}>
           <LinearGradient
-            colors={['#8B5CF6', '#EC4899']}
+            colors={BrandGradients.primary}
             style={[styles.logoCircle, { 
               width: logoSize, 
               height: logoSize, 
               borderRadius: logoSize / 2 
             }]}
           >
-            <Text style={[styles.logoText, { fontSize: logoSize * 0.4 }]}>H</Text>
+            <Text style={[styles.logoText, { fontSize: logoSize * 0.35 }]}>H</Text>
           </LinearGradient>
         </Animated.View>
       </View>
     );
-  }
-
-  // For other variants, use Zap icon as fallback
-  return (
-    <View style={[styles.container, { width: containerSize, height: containerSize }, style]}>
-      <Animated.View style={[
-        styles.logoWrapper,
-        {
-          width: logoSize,
-          height: logoSize,
-          borderRadius: logoSize / 2,
-          shadowColor: '#FF6B6B'
-        },
-        animatedGlowStyle
-      ]}>
-        <LinearGradient
-          colors={['#8B5CF6', '#EC4899']}
-          style={[styles.logoCircle, { 
-            width: logoSize, 
-            height: logoSize, 
-            borderRadius: logoSize / 2 
-          }]}
-        >
-          <Zap size={logoSize * 0.5} color={Colors.white} strokeWidth={3} fill={Colors.white} />
-        </LinearGradient>
-      </Animated.View>
-    </View>
-  );
+  };
 }
 
 const styles = StyleSheet.create({
@@ -179,9 +199,13 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
+  logoImage: {
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
   logoText: {
     fontWeight: '700',
-    color: Colors.white,
+    color: BrandColors.surface,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
