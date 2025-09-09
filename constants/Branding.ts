@@ -7,9 +7,9 @@
 export const HustlBrand = {
   // Main logo assets
   logo: {
-    icon: require('@/assets/images/image.png'),
-    wordmark: require('@/assets/images/image.png'),
-    full: require('@/assets/images/image.png'),
+    icon: require('../assets/images/image.png'),
+    wordmark: require('../assets/images/image.png'),
+    full: require('../assets/images/image.png'),
   },
   
   // Brand colors
@@ -38,7 +38,7 @@ export const Universities = {
     id: 'uf',
     name: 'University of Florida',
     shortName: 'UF',
-    logo: require('@/assets/images/Florida_Gators_gator_logo.png'),
+    logo: require('../assets/images/Florida_Gators_gator_logo.png'),
     colors: {
       primary: '#0021A5',
       secondary: '#FA4616',
@@ -49,7 +49,7 @@ export const Universities = {
     id: 'ucf',
     name: 'University of Central Florida',
     shortName: 'UCF',
-    logo: require('@/assets/images/ucf-logo.png'),
+    logo: require('../assets/images/ucf-logo.png'),
     colors: {
       primary: '#FFD700',
       secondary: '#000000',
@@ -60,7 +60,7 @@ export const Universities = {
     id: 'usf',
     name: 'University of South Florida',
     shortName: 'USF',
-    logo: require('@/assets/images/usf-logo.png'),
+    logo: require('../assets/images/usf-logo.png'),
     colors: {
       primary: '#006747',
       secondary: '#FFD700',
@@ -71,7 +71,7 @@ export const Universities = {
     id: 'fsu',
     name: 'Florida State University',
     shortName: 'FSU',
-    logo: require('@/assets/images/fsu-logo.png'),
+    logo: require('../assets/images/fsu-logo.png'),
     colors: {
       primary: '#782F40',
       secondary: '#CEB888',
