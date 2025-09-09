@@ -5,6 +5,7 @@ export default function ProfileLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="edit" />
+      <Stack.Screen name="wallet" />
       <Stack.Screen name="reviews" />
       <Stack.Screen name="my-tasks" />
       <Stack.Screen name="task-history" />

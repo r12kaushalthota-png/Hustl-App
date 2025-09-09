@@ -2,46 +2,32 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Platform, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { User, Camera, ChevronRight, FileText, History, MessageSquare, Settings, CircleHelp as HelpCircle, LogOut, ArrowLeft, Star } from 'lucide-react-native';
+import { User, Camera, ChevronRight, FileText, History, MessageSquare, Settings, CircleHelp as HelpCircle, LogOut, ArrowLeft, Star, Wallet } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { Colors } from '@/theme/colors';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileRepo } from '@/lib/profileRepo';
 import { MediaUtils } from '@/lib/media';
 import Toast from '@/components/Toast';
 
-const menuItems = [
-  { 
-    icon: <User size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
-    title: 'Profile Information',
-    route: '/profile/edit'
-  },
-  { 
-    icon: <FileText size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
-    title: 'My Tasks',
-    route: '/profile/my-tasks'
-  },
-  { 
-    icon: <History size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
-    title: 'Task History',
-    route: '/profile/task-history'
-  },
-  { 
-    icon: <MessageSquare size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
-    title: 'Messages',
-    route: '/(tabs)/chats'
-  },
-  { 
-    icon: <Settings size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
-    title: 'Settings',
-    route: '/profile/settings'
-  },
-  { 
-    icon: <HelpCircle size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
-    title: 'Help & Support',
-    route: '/profile/help'
-  },
-];
+// Exact brand colors from the logo
+const BrandColors = {
+  primary: '#0D2DEB', // Hustl Blue
+  purple: '#6B2BBF', // Hustl Purple
+  red: '#E53935', // Hustl Red
+  orange: '#FF5A1F', // Hustl Orange
+  accentYellow: '#FFC400', // Badge yellow
+  surface: '#FFFFFF',
+  title: '#0A0F1F',
+  subtitle: '#5B6475',
+  divider: '#E9EDF5',
+};
+
+// Brand gradients
+const BrandGradients = {
+  primary: [BrandColors.primary, BrandColors.purple, BrandColors.red, BrandColors.orange],
+  button: [BrandColors.primary, '#3D6BFF'],
+};
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -65,37 +51,42 @@ export default function ProfileScreen() {
   // Create menu items with user context
   const getMenuItems = () => [
     { 
-      icon: <User size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
+      icon: <User size={20} color={BrandColors.title} strokeWidth={2} />, 
       title: 'Profile Information',
       route: '/profile/edit'
     },
     { 
-      icon: <Star size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
+      icon: <Wallet size={20} color={BrandColors.title} strokeWidth={2} />, 
+      title: 'Wallet',
+      route: '/profile/wallet'
+    },
+    { 
+      icon: <Star size={20} color={BrandColors.title} strokeWidth={2} />, 
       title: 'Reviews',
       route: `/profile/reviews?userId=${user?.id || ''}`
     },
     { 
-      icon: <FileText size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
+      icon: <FileText size={20} color={BrandColors.title} strokeWidth={2} />, 
       title: 'My Tasks',
       route: '/profile/my-tasks'
     },
     { 
-      icon: <History size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
+      icon: <History size={20} color={BrandColors.title} strokeWidth={2} />, 
       title: 'Task History',
       route: '/profile/task-history'
     },
     { 
-      icon: <MessageSquare size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
+      icon: <MessageSquare size={20} color={BrandColors.title} strokeWidth={2} />, 
       title: 'Messages',
       route: '/(tabs)/chats'
     },
     { 
-      icon: <Settings size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
+      icon: <Settings size={20} color={BrandColors.title} strokeWidth={2} />, 
       title: 'Settings',
       route: '/profile/settings'
     },
     { 
-      icon: <HelpCircle size={20} color={Colors.semantic.bodyText} strokeWidth={2} />, 
+      icon: <HelpCircle size={20} color={BrandColors.title} strokeWidth={2} />, 
       title: 'Help & Support',
       route: '/profile/help'
     },
@@ -256,51 +247,60 @@ export default function ProfileScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <ArrowLeft size={24} color={Colors.white} strokeWidth={2} />
+          <ArrowLeft size={24} color={BrandColors.surface} strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
         <View style={styles.placeholder} />
       </View>
       
-      <View style={styles.profileHeader}>
-        <View style={styles.avatarContainer}>
-          {avatarUri ? (
-            <Image source={{ uri: avatarUri }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>
-                {user ? MediaUtils.getInitials(user.displayName) : 'U'}
-              </Text>
-            </View>
-          )}
+      {/* Profile Header with Gradient */}
+      <View style={styles.profileHeaderContainer}>
+        <LinearGradient
+          colors={BrandGradients.primary}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          locations={[0, 0.4, 0.7, 1]}
+          style={styles.profileHeader}
+        >
+          <View style={styles.avatarContainer}>
+            {avatarUri ? (
+              <Image source={{ uri: avatarUri }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>
+                  {user ? MediaUtils.getInitials(user.displayName) : 'U'}
+                </Text>
+              </View>
+            )}
+            
+            {/* Upload Progress Overlay */}
+            {isUploadingAvatar && (
+              <View style={styles.uploadOverlay}>
+                <ActivityIndicator size="large" color={BrandColors.surface} />
+              </View>
+            )}
+            
+            <TouchableOpacity 
+              style={[
+                styles.cameraButton,
+                isUploadingAvatar && styles.cameraButtonDisabled
+              ]}
+              onPress={handleAvatarPress}
+              disabled={isUploadingAvatar}
+              accessibilityLabel="Change profile photo"
+              accessibilityRole="button"
+            >
+              <Camera size={16} color={BrandColors.surface} strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
           
-          {/* Upload Progress Overlay */}
-          {isUploadingAvatar && (
-            <View style={styles.uploadOverlay}>
-              <ActivityIndicator size="large" color={Colors.white} />
-            </View>
-          )}
-          
-          <TouchableOpacity 
-            style={[
-              styles.cameraButton,
-              isUploadingAvatar && styles.cameraButtonDisabled
-            ]}
-            onPress={handleAvatarPress}
-            disabled={isUploadingAvatar}
-            accessibilityLabel="Change profile photo"
-            accessibilityRole="button"
-          >
-            <Camera size={16} color={Colors.white} strokeWidth={2} />
-          </TouchableOpacity>
-        </View>
-        
-        <Text style={styles.displayName}>
-          {user ? user.displayName : 'Guest User'}
-        </Text>
-        <Text style={styles.userInfo}>
-          {user ? `${user.university || 'University of Florida'} • Student` : 'Browse as Guest'}
-        </Text>
+          <Text style={styles.displayName}>
+            {user ? user.displayName : 'Guest User'}
+          </Text>
+          <Text style={styles.userInfo}>
+            {user ? `${user.university || 'University of Florida'} • Student` : 'Browse as Guest'}
+          </Text>
+        </LinearGradient>
       </View>
 
       <ScrollView 
@@ -310,20 +310,24 @@ export default function ProfileScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       >
         <View style={styles.menuSection}>
-          {getMenuItems().slice(0, 4).map(renderMenuItem)}
+          {getMenuItems().slice(0, 3).map(renderMenuItem)}
         </View>
 
         <View style={styles.menuSection}>
-          {getMenuItems().slice(4).map((item, index) => renderMenuItem(item, index + 4))}
+          {getMenuItems().slice(3, 6).map((item, index) => renderMenuItem(item, index + 3))}
+        </View>
+
+        <View style={styles.menuSection}>
+          {getMenuItems().slice(6).map((item, index) => renderMenuItem(item, index + 6))}
         </View>
 
         <View style={styles.menuSection}>
           <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
             <View style={styles.menuItemLeft}>
-              <LogOut size={20} color={Colors.secondary} strokeWidth={2} />
-              <Text style={[styles.menuItemText, { color: Colors.secondary }]}>Logout</Text>
+              <LogOut size={20} color={BrandColors.red} strokeWidth={2} />
+              <Text style={[styles.menuItemText, { color: BrandColors.red }]}>Logout</Text>
             </View>
-            <ChevronRight size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+            <ChevronRight size={20} color={BrandColors.subtitle} strokeWidth={2} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -341,7 +345,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.semantic.screen,
+    backgroundColor: BrandColors.surface,
   },
   header: {
     flexDirection: 'row',
@@ -349,26 +353,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Colors.primary,
+    backgroundColor: BrandColors.primary,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.white + '33', // 20% opacity
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.white,
+    color: BrandColors.surface,
   },
   placeholder: {
     width: 40,
   },
+  profileHeaderContainer: {
+    overflow: 'hidden',
+  },
   profileHeader: {
-    backgroundColor: Colors.primary,
     paddingHorizontal: 24,
     paddingBottom: 20,
     alignItems: 'center',
@@ -386,14 +392,14 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.white + '33',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
     fontSize: 24,
     fontWeight: '700',
-    color: Colors.white,
+    color: BrandColors.surface,
   },
   uploadOverlay: {
     position: 'absolute',
@@ -413,25 +419,32 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Colors.secondary,
+    backgroundColor: BrandColors.orange,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: Colors.primary,
+    borderColor: BrandColors.primary,
   },
   cameraButtonDisabled: {
-    backgroundColor: Colors.semantic.tabInactive,
+    backgroundColor: BrandColors.subtitle,
     opacity: 0.6,
   },
   displayName: {
     fontSize: 24,
     fontWeight: '700',
-    color: Colors.white,
+    color: BrandColors.surface,
     marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   userInfo: {
     fontSize: 14,
-    color: Colors.white + 'CC', // 80% opacity
+    color: BrandColors.surface,
+    opacity: 0.9,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   content: {
     flex: 1,
@@ -447,7 +460,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.semantic.divider,
+    borderBottomColor: BrandColors.divider,
   },
   menuItemLeft: {
     flexDirection: 'row',
@@ -456,7 +469,7 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 16,
-    color: Colors.semantic.bodyText,
+    color: BrandColors.title,
     fontWeight: '500',
   },
 });

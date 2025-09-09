@@ -12,7 +12,7 @@ import {
   SafeAreaView
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, User, Star, Shield, CreditCard, ChevronRight, Settings, CircleHelp as HelpCircle, LogOut } from 'lucide-react-native';
+import { X, User, Star, Shield, CreditCard, ChevronRight, Settings, CircleHelp as HelpCircle, LogOut, Wallet } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, { 
   useSharedValue, 
@@ -23,9 +23,26 @@ import Animated, {
   interpolate
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { GamificationRepo } from '@/lib/gamificationRepo';
+
+// Exact brand colors from the logo
+const BrandColors = {
+  primary: '#0D2DEB', // Hustl Blue
+  purple: '#6B2BBF', // Hustl Purple
+  red: '#E53935', // Hustl Red
+  orange: '#FF5A1F', // Hustl Orange
+  accentYellow: '#FFC400', // Badge yellow
+  surface: '#FFFFFF',
+  title: '#0A0F1F',
+  subtitle: '#5B6475',
+  divider: '#E9EDF5',
+};
+
+// Brand gradients
+const BrandGradients = {
+  primary: [BrandColors.primary, BrandColors.purple, BrandColors.red, BrandColors.orange],
+};
 
 const { width, height } = Dimensions.get('window');
 
@@ -37,25 +54,31 @@ interface GlobalProfilePanelProps {
 
 const menuItems = [
   {
-    icon: <User size={20} color={Colors.semantic.bodyText} strokeWidth={2} />,
+    icon: <User size={20} color={BrandColors.title} strokeWidth={2} />,
     title: 'Profile Information',
     route: '/profile/edit',
     showChevron: true,
   },
   {
-    icon: <Star size={20} color={Colors.semantic.bodyText} strokeWidth={2} />,
+    icon: <Wallet size={20} color={BrandColors.title} strokeWidth={2} />,
+    title: 'Wallet',
+    route: '/profile/wallet',
+    showChevron: true,
+  },
+  {
+    icon: <Star size={20} color={BrandColors.title} strokeWidth={2} />,
     title: 'Reviews',
     route: '/profile/reviews',
     showChevron: true,
   },
   {
-    icon: <Settings size={20} color={Colors.semantic.bodyText} strokeWidth={2} />,
+    icon: <Settings size={20} color={BrandColors.title} strokeWidth={2} />,
     title: 'Settings',
     route: '/profile/settings',
     showChevron: true,
   },
   {
-    icon: <HelpCircle size={20} color={Colors.semantic.bodyText} strokeWidth={2} />,
+    icon: <HelpCircle size={20} color={BrandColors.title} strokeWidth={2} />,
     title: 'Help & Support',
     route: '/profile/help',
     showChevron: true,
@@ -157,9 +180,10 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
         <SafeAreaView style={styles.panelContent}>
           {/* Header with Gradient */}
           <LinearGradient
-            colors={['#8B5CF6', '#EC4899', '#F59E0B']}
+            colors={BrandGradients.primary}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
+            locations={[0, 0.4, 0.7, 1]}
             style={styles.header}
           >
             {/* Close Button */}
@@ -169,7 +193,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
               accessibilityLabel="Close profile panel"
               accessibilityRole="button"
             >
-              <X size={24} color={Colors.white} strokeWidth={2} />
+              <X size={24} color={BrandColors.surface} strokeWidth={2} />
             </TouchableOpacity>
 
             {/* Profile Header Content */}
@@ -222,7 +246,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
             <View style={styles.verifiedSection}>
               <View style={styles.verifiedBadge}>
                 <View style={styles.verifiedIconContainer}>
-                  <Shield size={16} color={Colors.semantic.successAlert} strokeWidth={2} />
+                  <Shield size={16} color='#10B981' strokeWidth={2} />
                 </View>
                 <View style={styles.verifiedTextContainer}>
                   <Text style={styles.verifiedTitle}>Verified Student</Text>
@@ -235,7 +259,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
             <View style={styles.creditsSection}>
               <View style={styles.creditsCard}>
                 <View style={styles.creditsIconContainer}>
-                  <CreditCard size={16} color={Colors.primary} strokeWidth={2} />
+                  <CreditCard size={16} color={BrandColors.primary} strokeWidth={2} />
                 </View>
                 <Text style={styles.creditsText}>
                   {formatCredits(user?.profile?.credits || 0)}
@@ -261,7 +285,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
                     <Text style={styles.menuItemText}>{item.title}</Text>
                   </View>
                   {item.showChevron && (
-                    <ChevronRight size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                    <ChevronRight size={16} color={BrandColors.subtitle} strokeWidth={2} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -276,11 +300,11 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
               >
                 <View style={styles.menuItemLeft}>
                   <View style={styles.menuItemIcon}>
-                    <LogOut size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
+                    <LogOut size={20} color={BrandColors.red} strokeWidth={2} />
                   </View>
-                  <Text style={[styles.menuItemText, styles.logoutText]}>Logout</Text>
+                  <Text style={[styles.menuItemText, { color: BrandColors.red, fontWeight: '600' }]}>Logout</Text>
                 </View>
-                <ChevronRight size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
+                <ChevronRight size={16} color={BrandColors.subtitle} strokeWidth={2} />
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -309,7 +333,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: width * 0.85,
     maxWidth: 320,
-    backgroundColor: Colors.semantic.screen,
+    backgroundColor: BrandColors.surface,
     shadowColor: '#000',
     shadowOffset: { width: -8, height: 0 },
     shadowOpacity: 0.25,
@@ -364,7 +388,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 28,
     fontWeight: '700',
-    color: Colors.white,
+    color: BrandColors.surface,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
@@ -372,7 +396,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: '700',
-    color: Colors.white,
+    color: BrandColors.surface,
     textAlign: 'center',
     marginBottom: 8,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -385,7 +409,7 @@ const styles = StyleSheet.create({
   },
   university: {
     fontSize: 14,
-    color: Colors.white,
+    color: BrandColors.surface,
     opacity: 0.9,
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -394,7 +418,7 @@ const styles = StyleSheet.create({
   },
   userType: {
     fontSize: 14,
-    color: Colors.white,
+    color: BrandColors.surface,
     opacity: 0.9,
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -403,7 +427,7 @@ const styles = StyleSheet.create({
   },
   userStatus: {
     fontSize: 12,
-    color: Colors.white,
+    color: BrandColors.surface,
     opacity: 0.8,
     textAlign: 'center',
     fontWeight: '500',
@@ -419,14 +443,14 @@ const styles = StyleSheet.create({
   creditsAmount: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.white,
+    color: BrandColors.surface,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   panelBody: {
     flex: 1,
-    backgroundColor: Colors.semantic.screen,
+    backgroundColor: BrandColors.surface,
   },
   verifiedSection: {
     paddingHorizontal: 20,
@@ -436,17 +460,17 @@ const styles = StyleSheet.create({
   verifiedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.semantic.successAlert + '15',
+    backgroundColor: '#10B981' + '15',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: Colors.semantic.successAlert + '30',
+    borderColor: '#10B981' + '30',
   },
   verifiedIconContainer: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.semantic.successAlert + '20',
+    backgroundColor: '#10B981' + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -457,12 +481,12 @@ const styles = StyleSheet.create({
   verifiedTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.semantic.bodyText,
+    color: BrandColors.title,
     marginBottom: 2,
   },
   verifiedSubtitle: {
     fontSize: 13,
-    color: Colors.semantic.tabInactive,
+    color: BrandColors.subtitle,
   },
   creditsSection: {
     paddingHorizontal: 20,
@@ -471,17 +495,17 @@ const styles = StyleSheet.create({
   creditsCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: BrandColors.primary + '15',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderColor: BrandColors.primary + '30',
   },
   creditsIconContainer: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: Colors.primary + '20',
+    backgroundColor: BrandColors.primary + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -489,7 +513,7 @@ const styles = StyleSheet.create({
   creditsText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.primary,
+    color: BrandColors.primary,
   },
   menuSection: {
     paddingHorizontal: 20,
@@ -501,17 +525,17 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.semantic.divider,
-    backgroundColor: Colors.semantic.card,
+    borderBottomColor: BrandColors.divider,
+    backgroundColor: BrandColors.surface,
     marginBottom: 1,
   },
   logoutItem: {
     marginTop: 20,
     borderBottomWidth: 0,
     borderRadius: 12,
-    backgroundColor: Colors.semantic.errorAlert + '10',
+    backgroundColor: BrandColors.red + '10',
     borderWidth: 1,
-    borderColor: Colors.semantic.errorAlert + '20',
+    borderColor: BrandColors.red + '20',
   },
   menuItemLeft: {
     flexDirection: 'row',
@@ -522,7 +546,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.muted,
+    backgroundColor: BrandColors.divider,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -530,11 +554,7 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: 16,
     fontWeight: '500',
-    color: Colors.semantic.bodyText,
+    color: BrandColors.title,
     flex: 1,
-  },
-  logoutText: {
-    color: Colors.semantic.errorAlert,
-    fontWeight: '600',
   },
 });
