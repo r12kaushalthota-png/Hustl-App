@@ -43,9 +43,9 @@ export async function acceptTask(taskId: string): Promise<Task> {
     throw new Error('You must be signed in to accept tasks.');
   }
 
-  const { data, error } = await supabase.rpc('accept_task', {
-    task_id_param: taskId,
-    user_accept_code_param: user.id
+  const { data, error } = await supabase.rpc('accept_task_atomic', {
+    p_task_id: taskId,
+    p_user_id: user.id
   });
 
   if (error) {
@@ -58,15 +58,13 @@ export async function acceptTask(taskId: string): Promise<Task> {
       throw new Error('You cannot accept your own task.');
     } else if (String(error.message || '').includes('TASK_NOT_FOUND')) {
       throw new Error('Task not found or no longer available.');
-    } else if (String(error.message || '').includes('USER_NOT_AUTHENTICATED')) {
-      throw new Error('Please sign in to accept tasks.');
     } else {
       throw new Error('Unable to accept task. Please try again.');
     }
   }
 
   // RPC returns array, get first item
-  if (!data || data.length === 0) {
+  if (!data || !Array.isArray(data) || data.length === 0) {
     throw new Error('Task acceptance failed. Please try again.');
   }
 

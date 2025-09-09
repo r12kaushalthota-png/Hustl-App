@@ -125,29 +125,31 @@ export class TaskRepo {
    */
   static async acceptTask(taskId: string, userId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
-      const { data, error } = await supabase.rpc('accept_task', { 
-        task_id_param: taskId,
-        user_accept_code_param: userId
+      const { data, error } = await supabase.rpc('accept_task_atomic', { 
+        p_task_id: taskId,
+        p_user_id: userId
       });
 
       if (error) {
+        console.error('accept_task_atomic RPC error:', error);
+        
         // Handle specific error cases
         if (error.message.includes('TASK_NOT_FOUND')) {
-          return { data: null, error: 'Task not found' };
+          return { data: null, error: 'Task not found or no longer available' };
         } else if (error.message.includes('CANNOT_ACCEPT_OWN_TASK')) {
           return { data: null, error: 'You cannot accept your own task' };
         } else if (error.message.includes('TASK_ALREADY_ACCEPTED')) {
-          return { data: null, error: 'Task was already accepted by another user' };
+          return { data: null, error: 'This task was just accepted by someone else' };
         } else {
           return { data: null, error: error.message || 'Unable to accept task. Please try again.' };
         }
       }
 
-      if (!data || data.length === 0) {
+      if (!data || !Array.isArray(data) || data.length === 0) {
         return { data: null, error: 'Task acceptance failed. Please try again.' };
       }
 
-      const acceptedTask = data[0];
+      const acceptedTask = data[0] as Task;
       return { data: acceptedTask, error: null };
     } catch (error) {
       return { data: null, error: 'Network error. Please check your connection.' };

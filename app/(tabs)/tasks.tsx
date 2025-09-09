@@ -346,7 +346,7 @@ export default function TasksScreen() {
       if (data) {
         setToast({
           visible: true,
-          message: 'Task accepted successfully!',
+          message: `🎉 Congratulations! You just accepted a task. Your code: ${data.user_accept_code}`,
           type: 'success'
         });
 
