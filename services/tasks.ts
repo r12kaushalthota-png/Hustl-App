@@ -33,10 +33,14 @@ export interface Task {
  * Accept a task atomically - only one user can win
  */
 export async function acceptTask(taskId: string): Promise<{
-  task: Task;
+  task_id: string;
+  status: string;
   acceptance_code: string;
   chat_id: string;
   task_category: string;
+  accepted_by: string;
+  owner_id: string;
+  accepted_at: string;
 }> {
   const { data: { user }, error: authErr } = await supabase.auth.getUser();
   
@@ -53,39 +57,14 @@ export async function acceptTask(taskId: string): Promise<{
   });
 
   if (error) {
-    // Handle specific error cases
-    if (error.message.includes('already accepted')) {
-      throw new Error('This task was just accepted by someone else.');
-    } else if (error.message.includes('cannot accept your own task')) {
-      throw new Error('You cannot accept your own task.');
-    } else if (error.message.includes('not found')) {
-      throw new Error('Task not found or no longer available.');
-    } else {
-      throw new Error('Unable to accept task. Please try again.');
-    }
+    throw new Error(error.message);
   }
 
   if (!data) {
     throw new Error('Task acceptance failed. Please try again.');
   }
 
-  // Get the updated task data
-  const { data: taskData, error: taskError } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('id', taskId)
-    .single();
-
-  if (taskError || !taskData) {
-    throw new Error('Task accepted but failed to load updated data');
-  }
-
-  return {
-    task: taskData as Task,
-    acceptance_code: data.acceptance_code,
-    chat_id: data.chat_id,
-    task_category: data.task_category,
-  };
+  return data;
 }
 
 /**

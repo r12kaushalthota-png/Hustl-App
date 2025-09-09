@@ -335,16 +335,26 @@ export default function TasksScreen() {
       const { data, error } = await TaskRepo.acceptTask(taskId, user.id);
 
       if (error) {
+        // Handle specific error cases
+        let errorMessage = error;
+        if (error.includes('cannot accept your own task')) {
+          errorMessage = 'You cannot accept your own task';
+        } else if (error.includes('already been accepted')) {
+          errorMessage = 'This task was just accepted by someone else';
+        } else if (error.includes('not found')) {
+          errorMessage = 'Task not found or no longer available';
+        }
+        
         setToast({
           visible: true,
-          message: error,
+          message: errorMessage,
           type: 'error'
         });
         return;
       }
 
       if (data) {
-        // Show success message with code and chat option
+        // Show success message with code
         setToast({
           visible: true,
           message: `🎉 Congratulations! You just accepted a task. Code: ${data.acceptance_code}`,
@@ -354,8 +364,10 @@ export default function TasksScreen() {
         // Remove accepted task from list
         setTasks(prev => prev.filter(task => task.id !== taskId));
 
-        // Show acceptance modal with code and chat option
-        showAcceptanceModal(data);
+        // Navigate to chat after showing success message
+        setTimeout(() => {
+          router.push(`/chat/${data.chat_id}`);
+        }, 2000);
       }
     } catch (error) {
       setToast({
@@ -368,25 +380,6 @@ export default function TasksScreen() {
     }
   };
 
-  const showAcceptanceModal = (acceptanceData: {
-    task: Task;
-    acceptance_code: string;
-    chat_id: string;
-    task_category: string;
-  }) => {
-    // For now, show enhanced toast and navigate to chat
-    // In a full implementation, you'd show a modal with the code and actions
-    setToast({
-      visible: true,
-      message: `🎉 Congratulations! You just accepted a task. Code: ${acceptanceData.acceptance_code}`,
-      type: 'success'
-    });
-    
-    // Navigate to chat after a delay
-    setTimeout(() => {
-      router.push(`/chat/${acceptanceData.chat_id}`);
-    }, 2000);
-  };
 
   const hideToast = () => {
     setToast(prev => ({ ...prev, visible: false }));

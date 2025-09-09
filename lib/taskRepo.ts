@@ -124,55 +124,35 @@ export class TaskRepo {
    * Accept a task - generates unique code and assigns to user
    */
   static async acceptTask(taskId: string, userId: string): Promise<{ 
-    data: { 
-      task: Task; 
-      acceptance_code: string; 
-      chat_id: string; 
-      task_category: string; 
+    data: {
+      task_id: string;
+      status: string;
+      acceptance_code: string;
+      chat_id: string;
+      task_category: string;
+      accepted_by: string;
+      owner_id: string;
+      accepted_at: string;
     } | null; 
     error: string | null 
   }> {
     try {
-      const { data, error } = await supabase.rpc('accept_task', { 
+      const { data, error } = await supabase.rpc('accept_task', {
         task_id: taskId
       });
 
       if (error) {
         console.error('accept_task RPC error:', error);
-        
-        // Handle specific error cases
-        if (error.message.includes('cannot accept your own task')) {
-          return { data: null, error: 'You cannot accept your own task' };
-        } else if (error.message.includes('already accepted')) {
-          return { data: null, error: 'This task was just accepted by someone else' };
-        } else if (error.message.includes('not found')) {
-          return { data: null, error: 'Task not found or no longer available' };
-        } else {
-          return { data: null, error: 'Unable to accept task. Please try again.' };
-        }
+        return { data: null, error: error.message };
       }
 
       if (!data) {
         return { data: null, error: 'Task acceptance failed. Please try again.' };
       }
 
-      // Get the updated task data
-      const { data: taskData, error: taskError } = await this.getTaskByIdSafe(taskId);
-      
-      if (taskError || !taskData) {
-        return { data: null, error: 'Task accepted but failed to load updated data' };
-      }
-
-      return { 
-        data: {
-          task: taskData,
-          acceptance_code: data.acceptance_code,
-          chat_id: data.chat_id,
-          task_category: data.task_category,
-        }, 
-        error: null 
-      };
+      return { data: data, error: null };
     } catch (error) {
+      console.error('accept_task network error:', error);
       return { data: null, error: 'Network error. Please check your connection.' };
     }
   }
