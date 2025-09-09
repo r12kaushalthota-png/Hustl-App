@@ -32,7 +32,12 @@ export interface Task {
 /**
  * Accept a task atomically - only one user can win
  */
-export async function acceptTask(taskId: string): Promise<Task> {
+export async function acceptTask(taskId: string): Promise<{
+  task: Task;
+  acceptance_code: string;
+  chat_id: string;
+  task_category: string;
+}> {
   const { data: { user }, error: authErr } = await supabase.auth.getUser();
   
   if (authErr) {
@@ -44,30 +49,43 @@ export async function acceptTask(taskId: string): Promise<Task> {
   }
 
   const { data, error } = await supabase.rpc('accept_task', {
-    task_id_param: taskId
+    task_id: taskId
   });
 
   if (error) {
-    console.error('Accept task RPC error:', error);
-    
     // Handle specific error cases
-    if (String(error.message || '').includes('TASK_ALREADY_ACCEPTED')) {
+    if (error.message.includes('already accepted')) {
       throw new Error('This task was just accepted by someone else.');
-    } else if (String(error.message || '').includes('CANNOT_ACCEPT_OWN_TASK')) {
+    } else if (error.message.includes('cannot accept your own task')) {
       throw new Error('You cannot accept your own task.');
-    } else if (String(error.message || '').includes('TASK_NOT_FOUND')) {
+    } else if (error.message.includes('not found')) {
       throw new Error('Task not found or no longer available.');
     } else {
       throw new Error('Unable to accept task. Please try again.');
     }
   }
 
-  // RPC returns array, get first item
-  if (!data || !Array.isArray(data) || data.length === 0) {
+  if (!data) {
     throw new Error('Task acceptance failed. Please try again.');
   }
 
-  return data[0] as Task;
+  // Get the updated task data
+  const { data: taskData, error: taskError } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('id', taskId)
+    .single();
+
+  if (taskError || !taskData) {
+    throw new Error('Task accepted but failed to load updated data');
+  }
+
+  return {
+    task: taskData as Task,
+    acceptance_code: data.acceptance_code,
+    chat_id: data.chat_id,
+    task_category: data.task_category,
+  };
 }
 
 /**

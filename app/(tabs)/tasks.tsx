@@ -344,17 +344,18 @@ export default function TasksScreen() {
       }
 
       if (data) {
+        // Show success message with code and chat option
         setToast({
           visible: true,
-          message: `🎉 Congratulations! You just accepted a task. Your code: ${data.user_accept_code}`,
+          message: `🎉 Congratulations! You just accepted a task. Code: ${data.acceptance_code}`,
           type: 'success'
         });
 
         // Remove accepted task from list
         setTasks(prev => prev.filter(task => task.id !== taskId));
 
-        // Navigate to task detail
-        router.push(`/task/${taskId}`);
+        // Show acceptance modal with code and chat option
+        showAcceptanceModal(data);
       }
     } catch (error) {
       setToast({
@@ -367,6 +368,25 @@ export default function TasksScreen() {
     }
   };
 
+  const showAcceptanceModal = (acceptanceData: {
+    task: Task;
+    acceptance_code: string;
+    chat_id: string;
+    task_category: string;
+  }) => {
+    // For now, show enhanced toast and navigate to chat
+    // In a full implementation, you'd show a modal with the code and actions
+    setToast({
+      visible: true,
+      message: `🎉 Congratulations! You just accepted a task. Code: ${acceptanceData.acceptance_code}`,
+      type: 'success'
+    });
+    
+    // Navigate to chat after a delay
+    setTimeout(() => {
+      router.push(`/chat/${acceptanceData.chat_id}`);
+    }, 2000);
+  };
 
   const hideToast = () => {
     setToast(prev => ({ ...prev, visible: false }));
