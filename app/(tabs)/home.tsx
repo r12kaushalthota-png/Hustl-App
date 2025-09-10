@@ -187,7 +187,7 @@ const TopHeader = () => {
 
         {/* Center: Hustl Logo */}
         <View style={styles.logoChip}>
-          <HustlLogo size="small" />
+          <HustlLogo size="medium" />
         </View>
 
         {/* Right: Search */}
