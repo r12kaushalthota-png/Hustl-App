@@ -27,7 +27,7 @@ import { TaskRepo } from '@/lib/taskRepo';
 import { TaskCategory, TaskUrgency } from '@/types/database';
 import { ModerationService } from '@/lib/moderation';
 import Toast from '@components/Toast';
-import CheckoutForm from '@/components/Checkout-form.native';
+import CheckoutForm from '../../components/CheckoutForm';
 
 const { width } = Dimensions.get('window');
 
