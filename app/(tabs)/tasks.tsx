@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  FlatList, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
   RefreshControl,
   Platform,
   ActivityIndicator,
@@ -14,24 +14,24 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { 
-  List, 
-  Map as MapIcon, 
-  Clock, 
-  MapPin, 
-  Store, 
+import {
+  List,
+  Map as MapIcon,
+  Clock,
+  MapPin,
+  Store,
   Zap,
   User,
   Filter,
   Search
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring, 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
   withTiming,
-  interpolate
+  interpolate,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
@@ -42,18 +42,19 @@ import { Task } from '@/types/database';
 import GlobalHeader from '@/components/GlobalHeader';
 import Toast from '@/components/Toast';
 import AcceptanceSuccessModal from '@/components/AcceptanceSuccessModal';
+import MapViewComponent from '@/components/MapView';
 
 const { width } = Dimensions.get('window');
 
 type ViewMode = 'list' | 'map';
 
 // Enhanced Task Card Component
-const TaskCard = ({ 
-  task, 
-  onAccept, 
+const TaskCard = ({
+  task,
+  onAccept,
   isAccepting 
-}: { 
-  task: Task; 
+}: {
+  task: Task;
   onAccept: () => void;
   isAccepting: boolean;
 }) => {
@@ -98,10 +99,11 @@ const TaskCard = ({
   };
 
   return (
-    <Animated.View style={[
-      styles.taskCard,
-      animatedStyle,
-      { shadowColor: getUrgencyColor(task.urgency) },
+    <Animated.View
+      style={[
+        styles.taskCard,
+        animatedStyle,
+        { shadowColor: getUrgencyColor(task.urgency) },
       animatedGlowStyle
     ]}>
       <Pressable
@@ -118,24 +120,29 @@ const TaskCard = ({
               {task.title}
             </Text>
             <View style={styles.badgesContainer}>
-              <View style={[
-                styles.urgencyBadge,
-                { backgroundColor: getUrgencyColor(task.urgency) + '20' }
-              ]}>
-                <Text style={[
-                  styles.urgencyText,
-                  { color: getUrgencyColor(task.urgency) }
-                ]}>
-                  {String(task.urgency).charAt(0).toUpperCase() + String(task.urgency).slice(1)}
+              <View
+                style={[
+                  styles.urgencyBadge,
+                  { backgroundColor: getUrgencyColor(task.urgency) + '20' },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.urgencyText,
+                    { color: getUrgencyColor(task.urgency) },
+                  ]}
+                >
+                  {String(task.urgency).charAt(0).toUpperCase() +
+                    String(task.urgency).slice(1)}
                 </Text>
               </View>
-              
+
               <View style={[
-                styles.statusBadge,
+                  styles.statusBadge,
                 { backgroundColor: getStatusColor(task.status) + '20' }
               ]}>
                 <Text style={[
-                  styles.statusText,
+                    styles.statusText,
                   { color: getStatusColor(task.status) }
                 ]}>
                   {String(task.status).charAt(0).toUpperCase() + String(task.status).slice(1)}
@@ -143,7 +150,7 @@ const TaskCard = ({
               </View>
             </View>
           </View>
-          
+
           <Text style={styles.taskReward}>
             {TaskRepo.formatReward(task.reward_cents)}
           </Text>
@@ -159,21 +166,33 @@ const TaskCard = ({
         {/* Details */}
         <View style={styles.taskDetails}>
           <View style={styles.detailRow}>
-            <Store size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
+            <Store
+              size={16}
+              color={Colors.semantic.tabInactive}
+              strokeWidth={2}
+            />
             <Text style={styles.detailText} numberOfLines={1}>
               {task.store}
             </Text>
           </View>
-          
+
           <View style={styles.detailRow}>
-            <MapPin size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
+            <MapPin
+              size={16}
+              color={Colors.semantic.tabInactive}
+              strokeWidth={2}
+            />
             <Text style={styles.detailText} numberOfLines={1}>
               {task.dropoff_address}
             </Text>
           </View>
-          
+
           <View style={styles.detailRow}>
-            <Clock size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
+            <Clock
+              size={16}
+              color={Colors.semantic.tabInactive}
+              strokeWidth={2}
+            />
             <Text style={styles.detailText}>
               {TaskRepo.formatEstimatedTime(task.estimated_minutes)}
             </Text>
@@ -185,7 +204,7 @@ const TaskCard = ({
           <Pressable
             style={[
               styles.acceptButton,
-              isAccepting && styles.acceptButtonDisabled
+              isAccepting && styles.acceptButtonDisabled,
             ]}
             onPress={onAccept}
             disabled={isAccepting}
@@ -202,7 +221,12 @@ const TaskCard = ({
                 colors={['#0047FF', '#0021A5']}
                 style={styles.acceptButtonGradient}
               >
-                <Zap size={16} color={Colors.white} strokeWidth={2} fill={Colors.white} />
+                <Zap
+                  size={16}
+                  color={Colors.white}
+                  strokeWidth={2}
+                  fill={Colors.white}
+                />
                 <Text style={styles.acceptButtonText}>Accept Task</Text>
               </LinearGradient>
             )}
@@ -218,16 +242,20 @@ export default function TasksScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { user, isGuest } = useAuth();
-  
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [acceptingTaskId, setAcceptingTaskId] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>({
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
     visible: false,
     message: '',
-    type: 'success'
+    type: 'success',
   });
   const [acceptanceData, setAcceptanceData] = useState<{
     visible: boolean;
@@ -240,46 +268,49 @@ export default function TasksScreen() {
     taskId: '',
     chatId: '',
     code: '',
-    category: ''
+    category: '',
   });
 
   // Load tasks
-  const loadTasks = useCallback(async (showRefreshIndicator = false) => {
-    if (showRefreshIndicator) {
-      setIsRefreshing(true);
-    } else {
-      setIsLoading(true);
-    }
-
-    try {
-      if (isGuest) {
-        // For guest users, show mock data or empty state
-        setTasks([]);
-      } else if (user) {
-        const { data, error } = await TaskRepo.listOpenTasks(user.id);
-        
-        if (error) {
-          setToast({
-            visible: true,
-            message: error,
-            type: 'error'
-          });
-          return;
-        }
-        
-        setTasks(data || []);
+  const loadTasks = useCallback(
+    async (showRefreshIndicator = false) => {
+      if (showRefreshIndicator) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
       }
-    } catch (error) {
-      setToast({
-        visible: true,
-        message: 'Failed to load tasks. Please try again.',
-        type: 'error'
-      });
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [user, isGuest]);
+
+      try {
+        if (isGuest) {
+          // For guest users, show mock data or empty state
+          setTasks([]);
+        } else if (user) {
+          const { data, error } = await TaskRepo.listOpenTasks(user.id);
+
+          if (error) {
+            setToast({
+              visible: true,
+              message: error,
+              type: 'error',
+            });
+            return;
+          }
+
+          setTasks(data || []);
+        }
+      } catch (error) {
+        setToast({
+          visible: true,
+          message: 'Failed to load tasks. Please try again.',
+          type: 'error',
+        });
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
+    },
+    [user, isGuest]
+  );
 
   // Load tasks on mount
   useEffect(() => {
@@ -327,7 +358,7 @@ export default function TasksScreen() {
 
   const handleViewModeToggle = () => {
     triggerHaptics();
-    setViewMode(prev => prev === 'list' ? 'map' : 'list');
+    setViewMode((prev) => (prev === 'list' ? 'map' : 'list'));
   };
 
   const handleAcceptTask = async (taskId: string) => {
@@ -335,7 +366,7 @@ export default function TasksScreen() {
       setToast({
         visible: true,
         message: 'Please sign in to accept tasks',
-        type: 'error'
+        type: 'error',
       });
       return;
     }
@@ -352,7 +383,7 @@ export default function TasksScreen() {
         setToast({
           visible: true,
           message: error,
-          type: 'error'
+          type: 'error',
         });
         return;
       }
@@ -364,30 +395,29 @@ export default function TasksScreen() {
           taskId: data.task_id,
           chatId: data.chat_id,
           code: data.acceptance_code,
-          category: data.task_category
+          category: data.task_category,
         });
 
         // Remove accepted task from list
-        setTasks(prev => prev.filter(task => task.id !== taskId));
+        setTasks((prev) => prev.filter((task) => task.id !== taskId));
       }
     } catch (error) {
       setToast({
         visible: true,
         message: 'Failed to accept task. Please try again.',
-        type: 'error'
+        type: 'error',
       });
     } finally {
       setAcceptingTaskId(null);
     }
   };
 
-
   const hideToast = () => {
-    setToast(prev => ({ ...prev, visible: false }));
+    setToast((prev) => ({ ...prev, visible: false }));
   };
 
   const handleCloseAcceptanceModal = () => {
-    setAcceptanceData(prev => ({ ...prev, visible: false }));
+    setAcceptanceData((prev) => ({ ...prev, visible: false }));
   };
 
   const handleMessagePoster = () => {
@@ -414,10 +444,9 @@ export default function TasksScreen() {
       </View>
       <Text style={styles.emptyStateText}>No tasks available</Text>
       <Text style={styles.emptyStateSubtext}>
-        {isGuest 
+        {isGuest
           ? 'Sign in to view and accept tasks from other students'
-          : 'Check back later for new tasks or post your own!'
-        }
+          : 'Check back later for new tasks or post your own!'}
       </Text>
     </View>
   );
@@ -427,7 +456,7 @@ export default function TasksScreen() {
   const keyExtractor = (item: Task) => item.id;
 
   // Convert tasks to map pins
-  const taskPins = tasks.map(task => ({
+  const taskPins = tasks.map((task) => ({
     id: task.id,
     title: task.title,
     reward: TaskRepo.formatReward(task.reward_cents),
@@ -440,7 +469,7 @@ export default function TasksScreen() {
   return (
     <>
       <View style={styles.container}>
-        <GlobalHeader 
+        <GlobalHeader
           title="Available Tasks"
           showSearch={false}
           showNotifications={true}
@@ -452,43 +481,55 @@ export default function TasksScreen() {
             <TouchableOpacity
               style={[
                 styles.viewModeButton,
-                viewMode === 'list' && styles.activeViewModeButton
+                viewMode === 'list' && styles.activeViewModeButton,
               ]}
               onPress={() => setViewMode('list')}
               accessibilityLabel="List view"
               accessibilityRole="button"
             >
-              <List 
-                size={18} 
-                color={viewMode === 'list' ? Colors.white : Colors.semantic.tabInactive} 
-                strokeWidth={2} 
+              <List
+                size={18}
+                color={
+                  viewMode === 'list'
+                    ? Colors.white
+                    : Colors.semantic.tabInactive
+                }
+                strokeWidth={2}
               />
-              <Text style={[
-                styles.viewModeButtonText,
-                viewMode === 'list' && styles.activeViewModeButtonText
-              ]}>
+              <Text
+                style={[
+                  styles.viewModeButtonText,
+                  viewMode === 'list' && styles.activeViewModeButtonText,
+                ]}
+              >
                 List
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={[
                 styles.viewModeButton,
-                viewMode === 'map' && styles.activeViewModeButton
+                viewMode === 'map' && styles.activeViewModeButton,
               ]}
               onPress={() => setViewMode('map')}
               accessibilityLabel="Map view"
               accessibilityRole="button"
             >
-              <MapIcon 
-                size={18} 
-                color={viewMode === 'map' ? Colors.white : Colors.semantic.tabInactive} 
-                strokeWidth={2} 
+              <MapIcon
+                size={18}
+                color={
+                  viewMode === 'map'
+                    ? Colors.white
+                    : Colors.semantic.tabInactive
+                }
+                strokeWidth={2}
               />
-              <Text style={[
-                styles.viewModeButtonText,
-                viewMode === 'map' && styles.activeViewModeButtonText
-              ]}>
+              <Text
+                style={[
+                  styles.viewModeButtonText,
+                  viewMode === 'map' && styles.activeViewModeButtonText,
+                ]}
+              >
                 Map
               </Text>
             </TouchableOpacity>
@@ -529,9 +570,11 @@ export default function TasksScreen() {
               renderEmptyState()
             )
           ) : (
-            <View style={styles.mapPlaceholder}>
-              <Text style={styles.mapPlaceholderText}>Map view coming soon</Text>
-            </View>
+            <MapViewComponent data={taskPins} />
+            // <View style={styles.mapPlaceholder}>
+            //   <MapViewComponent />
+            //   {/* <Text style={styles.mapPlaceholderText}>Map view coming soon</Text> */}
+            // </View>
           )}
         </View>
       </View>
@@ -782,6 +825,8 @@ const styles = StyleSheet.create({
   },
   mapPlaceholder: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.muted,

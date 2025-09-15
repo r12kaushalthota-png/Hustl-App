@@ -11,6 +11,7 @@ import { SupabaseProvider } from '@/contexts/SupabaseContext';
 import { GlobalProfileProvider, useGlobalProfile } from '@/contexts/GlobalProfileContext';
 import GlobalProfilePanel from '@/components/GlobalProfilePanel';
 import { useRouter } from 'expo-router';
+import StripeProvider from '@/components/StripeProvider';
 
 function AppContent() {
   const router = useRouter();
@@ -21,7 +22,7 @@ function AppContent() {
   };
 
   return (
-    <>
+    <StripeProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(tabs)" />
@@ -35,7 +36,7 @@ function AppContent() {
         onClose={hideProfilePanel}
         onNavigate={handleNavigate}
       />
-    </>
+    </StripeProvider>
   );
 }
 
