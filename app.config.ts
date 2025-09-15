@@ -57,6 +57,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "YOUR_GOOGLE_MAPS_KEY",
       },
     ],
+    [
+      "@stripe/stripe-react-native",
+      {
+        merchantIdentifier: "merchant.com.hustl", // required for Apple Pay
+        publishableKey: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "YOUR_STRIPE_KEY",
+      },
+    ],
     "expo-font",
     "expo-web-browser"
   ],

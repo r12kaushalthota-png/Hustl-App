@@ -27,6 +27,7 @@ import { TaskRepo } from '@/lib/taskRepo';
 import { TaskCategory, TaskUrgency } from '@/types/database';
 import { ModerationService } from '@/lib/moderation';
 import Toast from '@components/Toast';
+import CheckoutForm from '@/components/Checkout-form.native';
 
 const { width } = Dimensions.get('window');
 
@@ -935,7 +936,7 @@ export default function PostScreen() {
           paddingBottom: 16,
         }
       ]}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[
             styles.submitButton,
             (!isFormValid() || isLoading) && styles.submitButtonDisabled
@@ -962,7 +963,8 @@ export default function PostScreen() {
               )}
             </View>
           )}
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        <CheckoutForm amount={computedPriceCents} isFormValid={isFormValid} submitTask={handleSubmit} />
       </View>
 
       {/* Store Selection Modal */}
