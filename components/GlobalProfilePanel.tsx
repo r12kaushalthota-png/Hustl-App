@@ -760,11 +760,12 @@ const styles = StyleSheet.create({
     color: BrandColors.subtitle,
   },
   menuSection: {
-    paddingHorizontal: 20,
+    flex: 1,
     paddingTop: 20,
   },
   menuContent: {
-    paddingBottom: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   menuItem: {
     flexDirection: 'row',
