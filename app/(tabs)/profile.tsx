@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
-  Platform
+  Platform,
+  SafeAreaView
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';

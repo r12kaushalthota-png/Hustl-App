@@ -123,46 +123,21 @@ export class TaskRepo {
   /**
    * Accept a task - generates unique code and assigns to user
    */
-  static async acceptTask(taskId: string): Promise<{ 
-    data: {
-      task_id: string;
-      status: string;
-      acceptance_code: string;
-      chat_id: string;
-      task_category: string;
-      accepted_by: string;
-      owner_id: string;
-      accepted_at: string;
-    } | null; 
-    error: string | null 
-  }> {
+  static async acceptTask(taskId: string): Promise<{ data: Task | null; error: string | null }> {
     try {
       const { data, error } = await supabase.rpc('accept_task', { p_task_id: taskId });
 
       if (error) {
         console.error('accept_task RPC error:', error);
-        
-        // Handle specific error codes
-        if (error.message?.includes('Cannot accept your own task')) {
-          return { data: null, error: 'You cannot accept your own task' };
-        } else if (error.message?.includes('already been accepted')) {
-          return { data: null, error: 'This task was just accepted by someone else' };
-        } else if (error.message?.includes('not available for acceptance')) {
-          return { data: null, error: 'Task is no longer available' };
-        } else if (error.message?.includes('Task not found')) {
-          return { data: null, error: 'Task not found' };
-        }
-        
-        return { data: null, error: error.message || 'Failed to accept task' };
+        return { data: null, error: error.message };
       }
 
-      if (!data) {
-        return { data: null, error: 'Task acceptance failed. Please try again.' };
+      const acceptedTask = data?.[0] ?? null;
+      if (!acceptedTask) {
+        return { data: null, error: 'Task is no longer available or cannot be accepted' };
       }
 
-      // Map the returned data to match expected format
-      const result = Array.isArray(data) ? data[0] : data;
-      return { data: result, error: null };
+      return { data: acceptedTask, error: null };
     } catch (error) {
       console.error('accept_task network error:', error);
       return { data: null, error: 'Network error. Please check your connection.' };
