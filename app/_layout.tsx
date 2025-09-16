@@ -26,6 +26,7 @@ function AppContent() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(modals)" options={{ presentation: 'modal' }} />
         <Stack.Screen name="task" />
         <Stack.Screen name="+not-found" />
       </Stack>

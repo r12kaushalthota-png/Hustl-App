@@ -473,6 +473,10 @@ export default function TasksScreen() {
           title="Available Tasks"
           showSearch={false}
           showNotifications={true}
+          onNotificationPress={() => {
+            // TODO: Implement notifications
+            console.log('Notifications pressed');
+          }}
         />
 
         {/* View Mode Toggle */}

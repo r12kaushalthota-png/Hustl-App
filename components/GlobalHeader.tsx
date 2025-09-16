@@ -38,12 +38,22 @@ export default function GlobalHeader({
 
   const handleSearchPress = () => {
     triggerHaptics();
-    onSearchPress?.();
+    if (onSearchPress) {
+      onSearchPress();
+    } else {
+      // Default behavior: navigate to search modal
+      router.push('/(modals)/search');
+    }
   };
 
   const handleNotificationPress = () => {
     triggerHaptics();
-    onNotificationPress?.();
+    if (onNotificationPress) {
+      onNotificationPress();
+    } else {
+      // Default behavior: could navigate to notifications
+      console.log('Notifications pressed');
+    }
   };
 
   const handleProfilePress = () => {

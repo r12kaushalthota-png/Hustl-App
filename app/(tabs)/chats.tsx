@@ -527,9 +527,14 @@ export default function ChatsScreen() {
       }
     }
     
-    setShowSearch(!showSearch);
     if (showSearch) {
+      // Closing search
+      setShowSearch(false);
       setSearchQuery('');
+    } else {
+      // Opening search
+      setShowSearch(true);
+      // Focus will be handled by autoFocus prop
     }
   };
 

@@ -108,7 +108,14 @@ export default function ReferralsScreen() {
   return (
     <>
       <View style={styles.container}>
-        <GlobalHeader showSearch={true} showNotifications={false} />
+        <GlobalHeader 
+          showSearch={true} 
+          showNotifications={false}
+          onSearchPress={() => {
+            // TODO: Implement search functionality for referrals
+            console.log('Search pressed in referrals');
+          }}
+        />
         
         <ScrollView 
           style={styles.content} 
