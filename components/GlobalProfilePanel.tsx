@@ -92,7 +92,7 @@ const menuItems = [
   {
     icon: <User size={20} color={BrandColors.title} strokeWidth={2} />,
     title: 'Profile Information',
-    route: '/profile/index',
+    route: '/profile/edit',
     showChevron: true,
   },
   {
@@ -104,13 +104,7 @@ const menuItems = [
   {
     icon: <Star size={20} color={BrandColors.title} strokeWidth={2} />,
     title: 'Reviews',
-    route: `/profile/reviews?userId=${user?.id || ''}`,
-    showChevron: true,
-  },
-  {
-    icon: <Clock size={20} color={BrandColors.title} strokeWidth={2} />,
-    title: 'Task History',
-    route: '/profile/task-history',
+    route: '/profile/reviews',
     showChevron: true,
   },
   {
@@ -439,9 +433,12 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
               </View>
             </View>
 
-
             {/* Menu Items */}
-            <View style={styles.menuSection}>
+            <ScrollView 
+              style={styles.menuSection}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.menuContent}
+            >
               {menuItems.map((item, index) => (
                 <TouchableOpacity
                   key={index}
@@ -462,11 +459,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
                   )}
                 </TouchableOpacity>
               ))}
-          <ScrollView 
-            style={styles.menuSection}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.menuContent}
-          >
+
               {/* Logout */}
               <TouchableOpacity
                 style={[styles.menuItem, styles.logoutItem]}
@@ -483,8 +476,8 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
                 </View>
                 <ChevronRight size={16} color={BrandColors.subtitle} strokeWidth={2} />
               </TouchableOpacity>
-            </View>
-          </ScrollView>
+            </ScrollView>
+          </View>
         </SafeAreaView>
       </Animated.View>
     </Modal>
@@ -760,12 +753,11 @@ const styles = StyleSheet.create({
     color: BrandColors.subtitle,
   },
   menuSection: {
-    flex: 1,
+    paddingHorizontal: 20,
     paddingTop: 20,
   },
   menuContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   menuItem: {
     flexDirection: 'row',
