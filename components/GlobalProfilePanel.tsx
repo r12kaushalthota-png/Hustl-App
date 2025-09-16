@@ -92,7 +92,7 @@ const menuItems = [
   {
     icon: <User size={20} color={BrandColors.title} strokeWidth={2} />,
     title: 'Profile Information',
-    route: '/profile/edit',
+    route: '/profile/index',
     showChevron: true,
   },
   {
@@ -104,7 +104,13 @@ const menuItems = [
   {
     icon: <Star size={20} color={BrandColors.title} strokeWidth={2} />,
     title: 'Reviews',
-    route: '/profile/reviews',
+    route: `/profile/reviews?userId=${user?.id || ''}`,
+    showChevron: true,
+  },
+  {
+    icon: <Clock size={20} color={BrandColors.title} strokeWidth={2} />,
+    title: 'Task History',
+    route: '/profile/task-history',
     showChevron: true,
   },
   {
@@ -456,7 +462,11 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
                   )}
                 </TouchableOpacity>
               ))}
-
+          <ScrollView 
+            style={styles.menuSection}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.menuContent}
+          >
               {/* Logout */}
               <TouchableOpacity
                 style={[styles.menuItem, styles.logoutItem]}
@@ -474,7 +484,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
                 <ChevronRight size={16} color={BrandColors.subtitle} strokeWidth={2} />
               </TouchableOpacity>
             </View>
-          </View>
+          </ScrollView>
         </SafeAreaView>
       </Animated.View>
     </Modal>
@@ -750,8 +760,12 @@ const styles = StyleSheet.create({
     color: BrandColors.subtitle,
   },
   menuSection: {
-    paddingHorizontal: 20,
+    flex: 1,
     paddingTop: 20,
+  },
+  menuContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   menuItem: {
     flexDirection: 'row',
