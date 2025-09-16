@@ -9,10 +9,13 @@ import {
   Image,
   Dimensions,
   Platform,
-  SafeAreaView
+  SafeAreaView,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, User, Star, Shield, CreditCard, ChevronRight, Settings, CircleHelp as HelpCircle, LogOut, Wallet } from 'lucide-react-native';
+import { X, User, Star, Shield, CreditCard, ChevronRight, Settings, CircleHelp as HelpCircle, LogOut, Wallet, Clock, MapPin, Store, ChevronDown, ChevronUp, DollarSign, Filter } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, { 
   useSharedValue, 
@@ -20,11 +23,16 @@ import Animated, {
   withTiming, 
   withSpring,
   runOnJS,
-  interpolate
+  interpolate,
+  useFocusEffect
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
 import { GamificationRepo } from '@/lib/gamificationRepo';
+import { supabase } from '@/lib/supabase';
+import TaskHistoryCard from '@/components/TaskHistoryCard';
+import EmptyState from '@/components/EmptyState';
+import ErrorState from '@/components/ErrorState';
 
 // Exact brand colors from the logo
 const BrandColors = {
@@ -45,6 +53,34 @@ const BrandGradients = {
 };
 
 const { width, height } = Dimensions.get('window');
+
+interface Task {
+  id: string;
+  title: string;
+  status: string;
+  completed_at: string | null;
+  updated_at: string;
+  created_at: string;
+  reward_cents: number;
+  price_cents: number;
+  dropoff_address: string;
+  store: string;
+  created_by: string;
+  accepted_by: string | null;
+  estimated_minutes: number;
+  category: string;
+  urgency: string;
+}
+
+type FilterType = 'all' | 'requester' | 'helper';
+
+const ITEMS_PER_PAGE = 20;
+
+const filterOptions: { value: FilterType; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'requester', label: 'As Requester' },
+  { value: 'helper', label: 'As Helper' },
+];
 
 interface GlobalProfilePanelProps {
   visible: boolean;
@@ -89,6 +125,16 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   
+  // Task history state
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<FilterType>('all');
+  const [offset, setOffset] = useState(0);
+  
   // Animation values
   const translateX = useSharedValue(width);
   const overlayOpacity = useSharedValue(0);
@@ -98,6 +144,9 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
       // Slide in from right
       translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
       overlayOpacity.value = withTiming(1, { duration: 300 });
+      
+      // Load task history when panel opens
+      loadTasks();
     } else {
       // Slide out to right
       translateX.value = withTiming(width, { duration: 250 });
@@ -112,6 +161,101 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
   const animatedOverlayStyle = useAnimatedStyle(() => ({
     opacity: overlayOpacity.value,
   }));
+
+  // Load tasks
+  const loadTasks = async (refresh = false, loadMore = false) => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      if (refresh) {
+        setIsRefreshing(true);
+        setOffset(0);
+        setHasMore(true);
+        setError(null);
+      } else if (loadMore) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+        setOffset(0);
+        setHasMore(true);
+        setError(null);
+      }
+
+      const currentOffset = refresh || !loadMore ? 0 : offset;
+
+      // Build query based on filter
+      let query = supabase
+        .from('tasks')
+        .select('*')
+        .in('status', ['completed'])
+        .order('updated_at', { ascending: false })
+        .range(currentOffset, currentOffset + ITEMS_PER_PAGE - 1);
+
+      // Apply filter
+      if (filter === 'requester') {
+        query = query.eq('created_by', user.id);
+      } else if (filter === 'helper') {
+        query = query.eq('accepted_by', user.id);
+      } else {
+        // All: tasks where user was either requester or helper
+        query = query.or(`created_by.eq.${user.id},accepted_by.eq.${user.id}`);
+      }
+
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) {
+        setError(fetchError.message);
+        return;
+      }
+
+      const newTasks = data || [];
+      
+      if (refresh || !loadMore) {
+        setTasks(newTasks);
+        setOffset(newTasks.length);
+      } else {
+        setTasks(prev => [...prev, ...newTasks]);
+        setOffset(prev => prev + newTasks.length);
+      }
+
+      // Update pagination
+      setHasMore(newTasks.length === ITEMS_PER_PAGE);
+
+    } catch (error) {
+      setError('Failed to load task history. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Load tasks when filter changes
+  useEffect(() => {
+    if (visible && user) {
+      loadTasks();
+    }
+  }, [filter, visible, user]);
+
+  const handleRefresh = () => {
+    loadTasks(true);
+  };
+
+  const handleLoadMore = () => {
+    if (hasMore && !isLoadingMore) {
+      loadTasks(false, true);
+    }
+  };
+
+  const handleFilterChange = (newFilter: FilterType) => {
+    if (newFilter === filter) return;
+    
+    triggerHaptics();
+    setFilter(newFilter);
+  };
 
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
@@ -156,6 +300,26 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
   const formatCredits = (credits: number): string => {
     return `${credits} credit${credits !== 1 ? 's' : ''}`;
   };
+
+  const renderTaskItem = ({ item }: { item: Task }) => (
+    <TaskHistoryCard
+      task={item}
+      currentUserId={user?.id || ''}
+    />
+  );
+
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    
+    return (
+      <View style={styles.loadingFooter}>
+        <ActivityIndicator size="small" color={BrandColors.primary} />
+        <Text style={styles.loadingFooterText}>Loading more...</Text>
+      </View>
+    );
+  };
+
+  const keyExtractor = (item: Task) => item.id;
 
   if (!visible) return null;
 
@@ -237,11 +401,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
           </LinearGradient>
 
           {/* Panel Body */}
-          <ScrollView 
-            style={styles.panelBody}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
-          >
+          <View style={styles.panelBody}>
             {/* Verified Student Badge */}
             <View style={styles.verifiedSection}>
               <View style={styles.verifiedBadge}>
@@ -267,9 +427,90 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
               </View>
             </View>
 
+            {/* Task History Section */}
+            <View style={styles.taskHistorySection}>
+              <Text style={styles.taskHistoryTitle}>Task History</Text>
+              
+              {/* Filter Pills */}
+              <View style={styles.filterContainer}>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.filterPills}
+                >
+                  {filterOptions.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={[
+                        styles.filterPill,
+                        filter === option.value && styles.activeFilterPill
+                      ]}
+                      onPress={() => handleFilterChange(option.value)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[
+                        styles.filterPillText,
+                        filter === option.value && styles.activeFilterPillText
+                      ]}>
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* Task History List */}
+              <View style={styles.taskHistoryContainer}>
+                {isLoading && !isRefreshing ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={BrandColors.primary} />
+                    <Text style={styles.loadingText}>Loading task history...</Text>
+                  </View>
+                ) : error ? (
+                  <ErrorState
+                    message={error}
+                    onRetry={() => loadTasks()}
+                  />
+                ) : tasks.length === 0 ? (
+                  <EmptyState
+                    title="No completed tasks yet"
+                    subtitle="Your completed tasks will appear here"
+                    icon="📋"
+                  />
+                ) : (
+                  <FlatList
+                    data={tasks}
+                    renderItem={renderTaskItem}
+                    keyExtractor={keyExtractor}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                      <RefreshControl
+                        refreshing={isRefreshing}
+                        onRefresh={handleRefresh}
+                        tintColor={BrandColors.primary}
+                        colors={[BrandColors.primary]}
+                      />
+                    }
+                    onEndReached={handleLoadMore}
+                    onEndReachedThreshold={0.3}
+                    ListFooterComponent={renderFooter}
+                    contentContainerStyle={styles.taskListContent}
+                    removeClippedSubviews={true}
+                    maxToRenderPerBatch={10}
+                    windowSize={10}
+                    getItemLayout={(_, index) => ({
+                      length: 120,
+                      offset: 120 * index,
+                      index,
+                    })}
+                  />
+                )}
+              </View>
+            </View>
+
             {/* Menu Items */}
             <View style={styles.menuSection}>
-              {menuItems.map((item, index) => (
+              {menuItems.slice(0, 4).map((item, index) => (
                 <TouchableOpacity
                   key={index}
                   style={styles.menuItem}
@@ -307,7 +548,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
                 <ChevronRight size={16} color={BrandColors.subtitle} strokeWidth={2} />
               </TouchableOpacity>
             </View>
-          </ScrollView>
+          </View>
         </SafeAreaView>
       </Animated.View>
     </Modal>
@@ -515,8 +756,76 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: BrandColors.primary,
   },
+  taskHistorySection: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    flex: 1,
+  },
+  taskHistoryTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: BrandColors.title,
+    marginBottom: 16,
+  },
+  filterContainer: {
+    marginBottom: 16,
+  },
+  filterPills: {
+    paddingHorizontal: 0,
+    gap: 12,
+  },
+  filterPill: {
+    backgroundColor: BrandColors.divider,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 231, 235, 0.6)',
+  },
+  activeFilterPill: {
+    backgroundColor: BrandColors.primary,
+    borderColor: BrandColors.primary,
+  },
+  filterPillText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: BrandColors.title,
+  },
+  activeFilterPillText: {
+    color: BrandColors.surface,
+    fontWeight: '600',
+  },
+  taskHistoryContainer: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: BrandColors.subtitle,
+  },
+  taskListContent: {
+    paddingBottom: 16,
+  },
+  loadingFooter: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  loadingFooterText: {
+    fontSize: 14,
+    color: BrandColors.subtitle,
+  },
   menuSection: {
     paddingHorizontal: 20,
+    paddingTop: 20,
   },
   menuItem: {
     flexDirection: 'row',
