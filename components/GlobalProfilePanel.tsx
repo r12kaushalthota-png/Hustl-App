@@ -88,55 +88,50 @@ interface GlobalProfilePanelProps {
   onNavigate: (route: string) => void;
 }
 
-const menuItems = [
-  {
-    icon: <User size={20} color={BrandColors.title} strokeWidth={2} />,
-    title: 'Profile Information',
-    route: '/profile/index',
-    showChevron: true,
-  },
-  {
-    icon: <Wallet size={20} color={BrandColors.title} strokeWidth={2} />,
-    title: 'Wallet',
-    route: '/profile/wallet',
-    showChevron: true,
-  },
-  {
-    icon: <Star size={20} color={BrandColors.title} strokeWidth={2} />,
-    title: 'Reviews',
-    route: `/profile/reviews?userId=${user?.id || ''}`,
-    showChevron: true,
-  },
-  {
-    icon: <Clock size={20} color={BrandColors.title} strokeWidth={2} />,
-    title: 'Task History',
-    route: '/profile/task-history',
-    showChevron: true,
-  },
-  {
-    icon: <Clock size={20} color={BrandColors.title} strokeWidth={2} />,
-    title: 'Task History',
-    route: '/profile/task-history',
-    showChevron: true,
-  },
-  {
-    icon: <Settings size={20} color={BrandColors.title} strokeWidth={2} />,
-    title: 'Settings',
-    route: '/profile/settings',
-    showChevron: true,
-  },
-  {
-    icon: <HelpCircle size={20} color={BrandColors.title} strokeWidth={2} />,
-    title: 'Help & Support',
-    route: '/profile/help',
-    showChevron: true,
-  },
-];
-
 export default function GlobalProfilePanel({ visible, onClose, onNavigate }: GlobalProfilePanelProps) {
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   
+  // Define menu items inside component to access user
+  const menuItems = [
+    {
+      icon: <User size={20} color={BrandColors.title} strokeWidth={2} />,
+      title: 'Profile Information',
+      route: '/profile/index',
+      showChevron: true,
+    },
+    {
+      icon: <Wallet size={20} color={BrandColors.title} strokeWidth={2} />,
+      title: 'Wallet',
+      route: '/profile/wallet',
+      showChevron: true,
+    },
+    {
+      icon: <Star size={20} color={BrandColors.title} strokeWidth={2} />,
+      title: 'Reviews',
+      route: `/profile/reviews?userId=${user?.id || ''}`,
+      showChevron: true,
+    },
+    {
+      icon: <Clock size={20} color={BrandColors.title} strokeWidth={2} />,
+      title: 'Task History',
+      route: '/profile/task-history',
+      showChevron: true,
+    },
+    {
+      icon: <Settings size={20} color={BrandColors.title} strokeWidth={2} />,
+      title: 'Settings',
+      route: '/profile/settings',
+      showChevron: true,
+    },
+    {
+      icon: <HelpCircle size={20} color={BrandColors.title} strokeWidth={2} />,
+      title: 'Help & Support',
+      route: '/profile/help',
+      showChevron: true,
+    },
+  ];
+
   // Task history state
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);

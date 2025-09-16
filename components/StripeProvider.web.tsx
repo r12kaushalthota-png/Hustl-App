@@ -4,7 +4,7 @@ import { Elements } from '@stripe/react-stripe-js';
 
 // Inisialisasi promise Stripe (harus di luar komponen)
 const stripePromise = loadStripe(
-  process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'YOUR_STRIPE_KEY'
+  process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder'
 );
 
 const ExpoStripeProvider = ({
