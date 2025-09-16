@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { ProfileRepo } from '@/lib/profileRepo';
 
 interface FormData {
   display_name: string;
@@ -24,7 +24,7 @@ interface SaveResult {
 }
 
 export function useEditProfileForm() {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     display_name: '',
     email: '',
@@ -36,9 +36,47 @@ export function useEditProfileForm() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
 
   // Load initial data
   useEffect(() => {
+    loadProfile();
+  }, [user]);
+
+  const loadProfile = async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { data: profileData, error } = await ProfileRepo.getProfile(user.id);
+      
+      if (error) {
+        console.error('Error loading profile:', error);
+        setIsLoading(false);
+        return;
+      }
+
+      setProfile(profileData);
+      
+      if (profileData) {
+        setFormData({
+          display_name: profileData.full_name || '',
+          email: user.email || '',
+          major: profileData.major || '',
+          year: profileData.class_year || '',
+          bio: profileData.bio || '',
+        });
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refreshFormData = () => {
     if (profile && user) {
       setFormData({
         display_name: profile.full_name || '',
@@ -47,9 +85,8 @@ export function useEditProfileForm() {
         year: profile.class_year || '',
         bio: profile.bio || '',
       });
-      setIsLoading(false);
     }
-  }, [profile, user]);
+  };
 
   const validateField = (field: keyof FormData): string | undefined => {
     const value = formData[field];
@@ -114,7 +151,7 @@ export function useEditProfileForm() {
   const isValid = Object.keys(validateForm()).length === 0;
 
   const handleSave = async (): Promise<SaveResult> => {
-    if (!user || !profile) {
+    if (!user) {
       return { success: false, error: 'User not authenticated' };
     }
 
@@ -127,24 +164,20 @@ export function useEditProfileForm() {
     setIsSaving(true);
     
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: formData.display_name.trim(),
-          major: formData.major,
-          class_year: formData.year,
-          bio: formData.bio.trim(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
+      const { data: updatedProfile, error } = await ProfileRepo.updateProfile(user.id, {
+        full_name: formData.display_name.trim(),
+        major: formData.major,
+        class_year: formData.year,
+        bio: formData.bio.trim(),
+      });
 
       if (error) {
         console.error('Error updating profile:', error);
         return { success: false, error: 'Failed to update profile' };
       }
 
-      // Refresh the profile data
-      await refreshProfile();
+      // Update local profile state
+      setProfile(updatedProfile);
       setIsDirty(false);
       
       return { success: true };
@@ -157,17 +190,9 @@ export function useEditProfileForm() {
   };
 
   const handleDiscard = () => {
-    if (profile && user) {
-      setFormData({
-        display_name: profile.full_name || '',
-        email: user.email || '',
-        major: profile.major || '',
-        year: profile.class_year || '',
-        bio: profile.bio || '',
-      });
-      setErrors({});
-      setIsDirty(false);
-    }
+    refreshFormData();
+    setErrors({});
+    setIsDirty(false);
   };
 
   // Email is not editable as it's tied to the auth system

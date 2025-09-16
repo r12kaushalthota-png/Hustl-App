@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     id: supabaseUser.id,
     email: supabaseUser.email || '',
     displayName: supabaseUser.user_metadata?.display_name || supabaseUser.email?.split('@')[0] || 'User',
-    university: supabaseUser.user_metadata?.university || 'University of Florida',
+    university: supabaseUser.user_metadata?.university || 'University of Florida'
   });
 
   // Format auth error messages
