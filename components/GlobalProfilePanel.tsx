@@ -108,6 +108,12 @@ const menuItems = [
     showChevron: true,
   },
   {
+    icon: <Clock size={20} color={BrandColors.title} strokeWidth={2} />,
+    title: 'Task History',
+    route: '/profile/task-history',
+    showChevron: true,
+  },
+  {
     icon: <Settings size={20} color={BrandColors.title} strokeWidth={2} />,
     title: 'Settings',
     route: '/profile/settings',
@@ -427,86 +433,10 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
               </View>
             </View>
 
-            {/* Task History Section */}
-            <View style={styles.taskHistorySection}>
-              <Text style={styles.taskHistoryTitle}>Task History</Text>
-              
-              {/* Filter Pills */}
-              <View style={styles.filterContainer}>
-                <View style={styles.filterPills}>
-                  {filterOptions.map((option) => (
-                    <TouchableOpacity
-                      key={option.value}
-                      style={[
-                        styles.filterPill,
-                        filter === option.value && styles.activeFilterPill
-                      ]}
-                      onPress={() => handleFilterChange(option.value)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[
-                        styles.filterPillText,
-                        filter === option.value && styles.activeFilterPillText
-                      ]}>
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {/* Task History List */}
-              <View style={styles.taskHistoryContainer}>
-                {isLoading && !isRefreshing ? (
-                  <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={BrandColors.primary} />
-                    <Text style={styles.loadingText}>Loading task history...</Text>
-                  </View>
-                ) : error ? (
-                  <ErrorState
-                    message={error}
-                    onRetry={() => loadTasks()}
-                  />
-                ) : tasks.length === 0 ? (
-                  <EmptyState
-                    title="No completed tasks yet"
-                    subtitle="Your completed tasks will appear here"
-                    icon="📋"
-                  />
-                ) : (
-                  <FlatList
-                    data={tasks}
-                    renderItem={renderTaskItem}
-                    keyExtractor={keyExtractor}
-                    showsVerticalScrollIndicator={false}
-                    refreshControl={
-                      <RefreshControl
-                        refreshing={isRefreshing}
-                        onRefresh={handleRefresh}
-                        tintColor={BrandColors.primary}
-                        colors={[BrandColors.primary]}
-                      />
-                    }
-                    onEndReached={handleLoadMore}
-                    onEndReachedThreshold={0.3}
-                    ListFooterComponent={renderFooter}
-                    contentContainerStyle={styles.taskListContent}
-                    removeClippedSubviews={true}
-                    maxToRenderPerBatch={10}
-                    windowSize={10}
-                    getItemLayout={(_, index) => ({
-                      length: 120,
-                      offset: 120 * index,
-                      index,
-                    })}
-                  />
-                )}
-              </View>
-            </View>
 
             {/* Menu Items */}
             <View style={styles.menuSection}>
-              {menuItems.slice(0, 4).map((item, index) => (
+              {menuItems.map((item, index) => (
                 <TouchableOpacity
                   key={index}
                   style={styles.menuItem}
