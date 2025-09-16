@@ -141,6 +141,7 @@ const taskCards = [
 const TopHeader = () => {
   const { user } = useAuth();
   const { showProfilePanel } = useGlobalProfile();
+  const router = useRouter();
 
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
@@ -157,6 +158,10 @@ const TopHeader = () => {
     showProfilePanel();
   };
 
+  const handleSearchPress = () => {
+    triggerHaptics();
+    router.push('/(modals)/search');
+  };
   const getInitials = (name: string): string => {
     if (!name || !name.trim()) return 'U';
     
@@ -191,7 +196,13 @@ const TopHeader = () => {
         </View>
 
         {/* Right: Search */}
-        <TouchableOpacity style={styles.searchButton} activeOpacity={0.8}>
+        <TouchableOpacity 
+          style={styles.searchButton} 
+          onPress={handleSearchPress}
+          activeOpacity={0.8}
+          accessibilityLabel="Search"
+          accessibilityRole="button"
+        >
           <Search size={20} color={BrandColors.subtitle} strokeWidth={2} />
         </TouchableOpacity>
       </View>
