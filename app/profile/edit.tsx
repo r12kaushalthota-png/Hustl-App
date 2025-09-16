@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
 import { Colors } from '@/theme/colors';
 import { useEditProfileForm } from '@/hooks/useEditProfileForm';
+import { ProfileRepo } from '@/lib/profileRepo';
 import YearSelector from '@/components/YearSelector';
 import MajorSelector from '@/components/MajorSelector';
 import Toast from '@/components/Toast';

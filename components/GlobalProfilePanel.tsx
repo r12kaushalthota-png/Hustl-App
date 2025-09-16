@@ -97,7 +97,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
     {
       icon: <User size={20} color={BrandColors.title} strokeWidth={2} />,
       title: 'Profile Information',
-      route: '/profile/index',
+      route: '/profile/edit',
       showChevron: true,
     },
     {

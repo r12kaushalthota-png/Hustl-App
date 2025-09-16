@@ -54,6 +54,15 @@ export function useEditProfileForm() {
       
       if (error) {
         console.error('Error loading profile:', error);
+        // Continue with empty profile if error
+        setProfile(null);
+        setFormData({
+          display_name: user.displayName || '',
+          email: user.email || '',
+          major: '',
+          year: '',
+          bio: '',
+        });
         setIsLoading(false);
         return;
       }
@@ -68,9 +77,26 @@ export function useEditProfileForm() {
           year: profileData.class_year || '',
           bio: profileData.bio || '',
         });
+      } else {
+        // No profile exists yet, use user data
+        setFormData({
+          display_name: user.displayName || '',
+          email: user.email || '',
+          major: '',
+          year: '',
+          bio: '',
+        });
       }
     } catch (error) {
       console.error('Error loading profile:', error);
+      // Fallback to user data
+      setFormData({
+        display_name: user.displayName || '',
+        email: user.email || '',
+        major: '',
+        year: '',
+        bio: '',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -164,11 +190,14 @@ export function useEditProfileForm() {
     setIsSaving(true);
     
     try {
-      const { data: updatedProfile, error } = await ProfileRepo.updateProfile(user.id, {
+      // Use upsert to create profile if it doesn't exist
+      const { data: updatedProfile, error } = await ProfileRepo.upsertProfile({
+        id: user.id,
         full_name: formData.display_name.trim(),
         major: formData.major,
         class_year: formData.year,
         bio: formData.bio.trim(),
+        university: 'University of Florida',
       });
 
       if (error) {
