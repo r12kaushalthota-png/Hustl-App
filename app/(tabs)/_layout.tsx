@@ -67,7 +67,7 @@ const LightningActionButton = ({ focused }: { focused: boolean }) => {
 // Custom tab bar button for Lightning Action
 const LightningTabButton = (props: any) => {
   return (
-    <View style={styles.lightningTabContainer}>
+    <View style={[styles.lightningTabContainer, { backgroundColor: 'transparent' }]}>
       <LightningActionButton focused={props.accessibilityState?.selected || false} />
     </View>
   );
