@@ -92,7 +92,7 @@ const menuItems = [
   {
     icon: <User size={20} color={BrandColors.title} strokeWidth={2} />,
     title: 'Profile Information',
-    route: '/profile/edit',
+    route: '/profile/index',
     showChevron: true,
   },
   {
@@ -104,7 +104,13 @@ const menuItems = [
   {
     icon: <Star size={20} color={BrandColors.title} strokeWidth={2} />,
     title: 'Reviews',
-    route: '/profile/reviews',
+    route: `/profile/reviews?userId=${user?.id || ''}`,
+    showChevron: true,
+  },
+  {
+    icon: <Clock size={20} color={BrandColors.title} strokeWidth={2} />,
+    title: 'Task History',
+    route: '/profile/task-history',
     showChevron: true,
   },
   {
@@ -432,6 +438,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
                 </Text>
               </View>
             </View>
+
 
             {/* Menu Items */}
             <ScrollView 
