@@ -433,11 +433,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
               
               {/* Filter Pills */}
               <View style={styles.filterContainer}>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.filterPills}
-                >
+                <View style={styles.filterPills}>
                   {filterOptions.map((option) => (
                     <TouchableOpacity
                       key={option.value}
@@ -456,7 +452,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
                       </Text>
                     </TouchableOpacity>
                   ))}
-                </ScrollView>
+                </View>
               </View>
 
               {/* Task History List */}
@@ -771,7 +767,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   filterPills: {
-    paddingHorizontal: 0,
+    flexDirection: 'row',
     gap: 12,
   },
   filterPill: {
