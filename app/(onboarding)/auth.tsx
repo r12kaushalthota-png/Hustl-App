@@ -44,8 +44,8 @@ export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const { login, signup, isLoading } = useAuth();
   const [isLogin, setIsLogin] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('mail.hanifdaffan@gmail.com');
+  const [password, setPassword] = useState('Hanif123');
   const [displayName, setDisplayName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');

@@ -12,19 +12,37 @@ import {
   SafeAreaView,
   FlatList,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, User, Star, Shield, CreditCard, ChevronRight, Settings, CircleHelp as HelpCircle, LogOut, Wallet, Clock, MapPin, Store, ChevronDown, ChevronUp, DollarSign, Filter } from 'lucide-react-native';
+import {
+  X,
+  User,
+  Star,
+  Shield,
+  CreditCard,
+  ChevronRight,
+  Settings,
+  CircleHelp as HelpCircle,
+  LogOut,
+  Wallet,
+  Clock,
+  MapPin,
+  Store,
+  ChevronDown,
+  ChevronUp,
+  DollarSign,
+  Filter,
+} from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withTiming, 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
   withSpring,
   runOnJS,
   interpolate,
-  useFocusEffect
+  useFocusEffect,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,6 +51,8 @@ import { supabase } from '@/lib/supabase';
 import TaskHistoryCard from '@/components/TaskHistoryCard';
 import EmptyState from '@/components/EmptyState';
 import ErrorState from '@/components/ErrorState';
+import KYCRequestModal from './KYCRequestModal';
+import { StripeConnect } from '@/lib/stripeConnect';
 
 // Exact brand colors from the logo
 const BrandColors = {
@@ -49,7 +69,12 @@ const BrandColors = {
 
 // Brand gradients
 const BrandGradients = {
-  primary: [BrandColors.primary, BrandColors.purple, BrandColors.red, BrandColors.orange],
+  primary: [
+    BrandColors.primary,
+    BrandColors.purple,
+    BrandColors.red,
+    BrandColors.orange,
+  ],
 };
 
 const { width, height } = Dimensions.get('window');
@@ -88,10 +113,14 @@ interface GlobalProfilePanelProps {
   onNavigate: (route: string) => void;
 }
 
-export default function GlobalProfilePanel({ visible, onClose, onNavigate }: GlobalProfilePanelProps) {
+export default function GlobalProfilePanel({
+  visible,
+  onClose,
+  onNavigate,
+}: GlobalProfilePanelProps) {
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
-  
+
   // Define menu items inside component to access user
   const menuItems = [
     {
@@ -141,7 +170,8 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>('all');
   const [offset, setOffset] = useState(0);
-  
+  const [showKYCModal, setShowKYCModal] = useState(false);
+
   // Animation values
   const translateX = useSharedValue(width);
   const overlayOpacity = useSharedValue(0);
@@ -151,7 +181,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
       // Slide in from right
       translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
       overlayOpacity.value = withTiming(1, { duration: 300 });
-      
+
       // Load task history when panel opens
       loadTasks();
     } else {
@@ -219,18 +249,17 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
       }
 
       const newTasks = data || [];
-      
+
       if (refresh || !loadMore) {
         setTasks(newTasks);
         setOffset(newTasks.length);
       } else {
-        setTasks(prev => [...prev, ...newTasks]);
-        setOffset(prev => prev + newTasks.length);
+        setTasks((prev) => [...prev, ...newTasks]);
+        setOffset((prev) => prev + newTasks.length);
       }
 
       // Update pagination
       setHasMore(newTasks.length === ITEMS_PER_PAGE);
-
     } catch (error) {
       setError('Failed to load task history. Please try again.');
     } finally {
@@ -259,7 +288,7 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
 
   const handleFilterChange = (newFilter: FilterType) => {
     if (newFilter === filter) return;
-    
+
     triggerHaptics();
     setFilter(newFilter);
   };
@@ -279,7 +308,15 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
     onClose();
   };
 
-  const handleMenuPress = (route: string) => {
+  const handleMenuPress = async (route: string) => {
+    if (route === '/profile/wallet') {
+      const { error, payouts_enabled } =
+        await StripeConnect.getIsPayoutsenabled(user?.id || '');
+      if (error || !payouts_enabled) {
+        setShowKYCModal(true);
+        return;
+      }
+    }
     triggerHaptics();
     onClose();
     onNavigate(route);
@@ -294,11 +331,11 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
 
   const getInitials = (name: string): string => {
     if (!name || !name.trim()) return 'U';
-    
+
     return name
       .trim()
       .split(' ')
-      .map(word => word.charAt(0))
+      .map((word) => word.charAt(0))
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -309,15 +346,12 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
   };
 
   const renderTaskItem = ({ item }: { item: Task }) => (
-    <TaskHistoryCard
-      task={item}
-      currentUserId={user?.id || ''}
-    />
+    <TaskHistoryCard task={item} currentUserId={user?.id || ''} />
   );
 
   const renderFooter = () => {
     if (!isLoadingMore) return null;
-    
+
     return (
       <View style={styles.loadingFooter}>
         <ActivityIndicator size="small" color={BrandColors.primary} />
@@ -330,159 +364,192 @@ export default function GlobalProfilePanel({ visible, onClose, onNavigate }: Glo
 
   if (!visible) return null;
 
+  if(showKYCModal) {
+    return (
+      <KYCRequestModal
+        visible={showKYCModal}
+        onClose={() => setShowKYCModal(false)}
+        feature="Access your wallet"
+      />)
+  }
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="none"
-      onRequestClose={handleClose}
-    >
-      {/* Overlay */}
-      <Animated.View style={[styles.overlay, animatedOverlayStyle]}>
-        <TouchableOpacity 
-          style={styles.overlayTouchable}
-          onPress={handleClose}
-          activeOpacity={1}
-        />
-      </Animated.View>
+    <>
+      <Modal
+        visible={visible}
+        transparent
+        animationType="none"
+        onRequestClose={handleClose}
+      >
+        {/* Overlay */}
+        <Animated.View style={[styles.overlay, animatedOverlayStyle]}>
+          <TouchableOpacity
+            style={styles.overlayTouchable}
+            onPress={handleClose}
+            activeOpacity={1}
+          />
+        </Animated.View>
 
-      {/* Panel */}
-      <Animated.View style={[styles.panel, animatedPanelStyle]}>
-        <SafeAreaView style={styles.panelContent}>
-          {/* Header with Gradient */}
-          <LinearGradient
-            colors={BrandGradients.primary}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            locations={[0, 0.4, 0.7, 1]}
-            style={styles.header}
-          >
-            {/* Close Button */}
-            <TouchableOpacity 
-              style={styles.closeButton}
-              onPress={handleClose}
-              accessibilityLabel="Close profile panel"
-              accessibilityRole="button"
+        {/* Panel */}
+        <Animated.View style={[styles.panel, animatedPanelStyle]}>
+          <SafeAreaView style={styles.panelContent}>
+            {/* Header with Gradient */}
+            <LinearGradient
+              colors={BrandGradients.primary}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              locations={[0, 0.4, 0.7, 1]}
+              style={styles.header}
             >
-              <X size={24} color={BrandColors.surface} strokeWidth={2} />
-            </TouchableOpacity>
+              {/* Close Button */}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={handleClose}
+                accessibilityLabel="Close profile panel"
+                accessibilityRole="button"
+              >
+                <X size={24} color={BrandColors.surface} strokeWidth={2} />
+              </TouchableOpacity>
 
-            {/* Profile Header Content */}
-            <View style={styles.profileHeaderContent}>
-              {/* Avatar */}
-              <View style={styles.avatarContainer}>
-                {user?.profile?.avatar_url ? (
-                  <Image 
-                    source={{ uri: user.profile.avatar_url }} 
-                    style={styles.avatar} 
-                  />
-                ) : (
-                  <View style={styles.avatarPlaceholder}>
-                    <Text style={styles.avatarText}>
-                      {getInitials(user?.displayName || 'User')}
+              {/* Profile Header Content */}
+              <View style={styles.profileHeaderContent}>
+                {/* Avatar */}
+                <View style={styles.avatarContainer}>
+                  {user?.profile?.avatar_url ? (
+                    <Image
+                      source={{ uri: user.profile.avatar_url }}
+                      style={styles.avatar}
+                    />
+                  ) : (
+                    <View style={styles.avatarPlaceholder}>
+                      <Text style={styles.avatarText}>
+                        {getInitials(user?.displayName || 'User')}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* User Info */}
+                <Text style={styles.userName}>
+                  {user?.displayName || 'Guest User'}
+                </Text>
+
+                <View style={styles.userDetails}>
+                  <Text style={styles.university}>
+                    {user?.university || 'University of Florida'}
+                  </Text>
+                  <Text style={styles.userType}>Student</Text>
+                  <Text style={styles.userStatus}>New Hustler</Text>
+                </View>
+
+                {/* Credits Display */}
+                <View style={styles.creditsContainer}>
+                  <Text style={styles.creditsAmount}>
+                    ${((user?.profile?.credits || 0) / 100).toFixed(0)}
+                  </Text>
+                </View>
+              </View>
+            </LinearGradient>
+
+            {/* Panel Body */}
+            <View style={styles.panelBody}>
+              {/* Verified Student Badge */}
+              <View style={styles.verifiedSection}>
+                <View style={styles.verifiedBadge}>
+                  <View style={styles.verifiedIconContainer}>
+                    <Shield size={16} color="#10B981" strokeWidth={2} />
+                  </View>
+                  <View style={styles.verifiedTextContainer}>
+                    <Text style={styles.verifiedTitle}>Verified Student</Text>
+                    <Text style={styles.verifiedSubtitle}>
+                      Full access to all features
                     </Text>
                   </View>
-                )}
-              </View>
-
-              {/* User Info */}
-              <Text style={styles.userName}>
-                {user?.displayName || 'Guest User'}
-              </Text>
-              
-              <View style={styles.userDetails}>
-                <Text style={styles.university}>
-                  {user?.university || 'University of Florida'}
-                </Text>
-                <Text style={styles.userType}>Student</Text>
-                <Text style={styles.userStatus}>New Hustler</Text>
-              </View>
-
-              {/* Credits Display */}
-              <View style={styles.creditsContainer}>
-                <Text style={styles.creditsAmount}>
-                  ${((user?.profile?.credits || 0) / 100).toFixed(0)}
-                </Text>
-              </View>
-            </View>
-          </LinearGradient>
-
-          {/* Panel Body */}
-          <View style={styles.panelBody}>
-            {/* Verified Student Badge */}
-            <View style={styles.verifiedSection}>
-              <View style={styles.verifiedBadge}>
-                <View style={styles.verifiedIconContainer}>
-                  <Shield size={16} color='#10B981' strokeWidth={2} />
-                </View>
-                <View style={styles.verifiedTextContainer}>
-                  <Text style={styles.verifiedTitle}>Verified Student</Text>
-                  <Text style={styles.verifiedSubtitle}>Full access to all features</Text>
                 </View>
               </View>
-            </View>
 
-            {/* Credits Card */}
-            <View style={styles.creditsSection}>
-              <View style={styles.creditsCard}>
-                <View style={styles.creditsIconContainer}>
-                  <CreditCard size={16} color={BrandColors.primary} strokeWidth={2} />
+              {/* Credits Card */}
+              <View style={styles.creditsSection}>
+                <View style={styles.creditsCard}>
+                  <View style={styles.creditsIconContainer}>
+                    <CreditCard
+                      size={16}
+                      color={BrandColors.primary}
+                      strokeWidth={2}
+                    />
+                  </View>
+                  <Text style={styles.creditsText}>
+                    {formatCredits(user?.profile?.credits || 0)}
+                  </Text>
                 </View>
-                <Text style={styles.creditsText}>
-                  {formatCredits(user?.profile?.credits || 0)}
-                </Text>
               </View>
-            </View>
 
+              {/* Menu Items */}
+              <ScrollView
+                style={styles.menuSection}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.menuContent}
+              >
+                {menuItems.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.menuItem}
+                    onPress={() => handleMenuPress(item.route)}
+                    activeOpacity={0.7}
+                    accessibilityLabel={item.title}
+                    accessibilityRole="button"
+                  >
+                    <View style={styles.menuItemLeft}>
+                      <View style={styles.menuItemIcon}>{item.icon}</View>
+                      <Text style={styles.menuItemText}>{item.title}</Text>
+                    </View>
+                    {item.showChevron && (
+                      <ChevronRight
+                        size={16}
+                        color={BrandColors.subtitle}
+                        strokeWidth={2}
+                      />
+                    )}
+                  </TouchableOpacity>
+                ))}
 
-            {/* Menu Items */}
-            <ScrollView 
-              style={styles.menuSection}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.menuContent}
-            >
-              {menuItems.map((item, index) => (
+                {/* Logout */}
                 <TouchableOpacity
-                  key={index}
-                  style={styles.menuItem}
-                  onPress={() => handleMenuPress(item.route)}
+                  style={[styles.menuItem, styles.logoutItem]}
+                  onPress={handleLogout}
                   activeOpacity={0.7}
-                  accessibilityLabel={item.title}
+                  accessibilityLabel="Logout"
                   accessibilityRole="button"
                 >
                   <View style={styles.menuItemLeft}>
                     <View style={styles.menuItemIcon}>
-                      {item.icon}
+                      <LogOut
+                        size={20}
+                        color={BrandColors.red}
+                        strokeWidth={2}
+                      />
                     </View>
-                    <Text style={styles.menuItemText}>{item.title}</Text>
+                    <Text
+                      style={[
+                        styles.menuItemText,
+                        { color: BrandColors.red, fontWeight: '600' },
+                      ]}
+                    >
+                      Logout
+                    </Text>
                   </View>
-                  {item.showChevron && (
-                    <ChevronRight size={16} color={BrandColors.subtitle} strokeWidth={2} />
-                  )}
+                  <ChevronRight
+                    size={16}
+                    color={BrandColors.subtitle}
+                    strokeWidth={2}
+                  />
                 </TouchableOpacity>
-              ))}
-
-              {/* Logout */}
-              <TouchableOpacity
-                style={[styles.menuItem, styles.logoutItem]}
-                onPress={handleLogout}
-                activeOpacity={0.7}
-                accessibilityLabel="Logout"
-                accessibilityRole="button"
-              >
-                <View style={styles.menuItemLeft}>
-                  <View style={styles.menuItemIcon}>
-                    <LogOut size={20} color={BrandColors.red} strokeWidth={2} />
-                  </View>
-                  <Text style={[styles.menuItemText, { color: BrandColors.red, fontWeight: '600' }]}>Logout</Text>
-                </View>
-                <ChevronRight size={16} color={BrandColors.subtitle} strokeWidth={2} />
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </SafeAreaView>
-      </Animated.View>
-    </Modal>
+              </ScrollView>
+            </View>
+          </SafeAreaView>
+        </Animated.View>
+      </Modal>
+    </>
   );
 }
 

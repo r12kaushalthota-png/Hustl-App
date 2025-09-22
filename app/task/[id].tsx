@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { Task } from '@/types/database';
 import Toast from '@/components/Toast';
+import { StripeConnect } from '@/lib/stripeConnect';
 
 export default function TaskDetailScreen() {
   const router = useRouter();
@@ -75,7 +76,14 @@ export default function TaskDetailScreen() {
     setIsUpdating(true);
     
     try {
-      const { data, error } = await TaskRepo.updateTaskStatus(task.id, newStatus, user.id);
+
+
+      const payout= await StripeConnect.postCompleteTransfer(task.id);
+      console.log('postCompleteTransfer response:', payout);
+      const { success, error, task:data } = payout;
+
+      console.log('data task', data);
+      // const { data, error } = await TaskRepo.updateTaskStatus(task.id, newStatus, user.id);
       
       if (error) {
         setToast({
@@ -85,7 +93,7 @@ export default function TaskDetailScreen() {
         });
         return;
       }
-      
+      if (!success) return;
       setTask(data);
       setToast({
         visible: true,
@@ -233,7 +241,7 @@ export default function TaskDetailScreen() {
             </View>
 
             {/* Action Buttons */}
-            {canUpdateStatus && (
+            {isTaskPoster && task.status === 'accepted' && (
               <View style={styles.actionButtons}>
                 <TouchableOpacity
                   style={[styles.actionButton, styles.completeButton]}

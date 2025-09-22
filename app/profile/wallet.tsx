@@ -1,12 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Wallet, CreditCard, TrendingUp, TrendingDown, Plus, Minus, DollarSign, Gift, Award } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Wallet,
+  CreditCard,
+  TrendingUp,
+  TrendingDown,
+  Plus,
+  Minus,
+  DollarSign,
+  Gift,
+  Award,
+} from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { GamificationRepo } from '@/lib/gamificationRepo';
+import { StripeConnect } from '@/lib/stripeConnect';
 
 // Exact brand colors from the logo
 const BrandColors = {
@@ -23,7 +43,12 @@ const BrandColors = {
 
 // Brand gradients
 const BrandGradients = {
-  primary: [BrandColors.primary, BrandColors.purple, BrandColors.red, BrandColors.orange],
+  primary: [
+    BrandColors.primary,
+    BrandColors.purple,
+    BrandColors.red,
+    BrandColors.orange,
+  ],
   button: [BrandColors.primary, '#3D6BFF'],
 };
 
@@ -44,7 +69,7 @@ const mockTransactions: Transaction[] = [
     amount: 500,
     description: 'Food delivery completed',
     date: '2025-01-15T10:30:00Z',
-    taskId: 'task-1'
+    taskId: 'task-1',
   },
   {
     id: '2',
@@ -52,14 +77,14 @@ const mockTransactions: Transaction[] = [
     amount: 300,
     description: 'Coffee run payment',
     date: '2025-01-14T15:45:00Z',
-    taskId: 'task-2'
+    taskId: 'task-2',
   },
   {
     id: '3',
     type: 'bonus',
     amount: 1000,
     description: 'Referral bonus',
-    date: '2025-01-13T09:15:00Z'
+    date: '2025-01-13T09:15:00Z',
   },
   {
     id: '4',
@@ -67,7 +92,7 @@ const mockTransactions: Transaction[] = [
     amount: 750,
     description: 'Grocery shopping completed',
     date: '2025-01-12T14:20:00Z',
-    taskId: 'task-3'
+    taskId: 'task-3',
   },
   {
     id: '5',
@@ -75,34 +100,51 @@ const mockTransactions: Transaction[] = [
     amount: 200,
     description: 'Study buddy session',
     date: '2025-01-11T11:00:00Z',
-    taskId: 'task-4'
-  }
+    taskId: 'task-4',
+  },
 ];
 
 export default function WalletScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [balance, setBalance] = useState(0);
+  const [balance, setBalance] = useState(0.0);
+  const [isBalanceLoading, setIsBalanceLoading] = useState(true);
 
   useEffect(() => {
+    loadOverview();
     loadWalletData();
   }, []);
 
+  const loadOverview = async () => {
+    const data = await StripeConnect.getConnectOverview();
+
+    const balanceAmount = data.overview?.balance?.available
+      ?data.overview.balance.available[0].amount
+      : 0;
+    setBalance(balanceAmount);
+    setIsBalanceLoading(false);
+  };
+
+
+  const formatCurrency = (cents: number): string => {
+    return `$${(cents / 100).toFixed(2)}`;
+  };
+
   const loadWalletData = async () => {
     setIsLoading(true);
-    
+
     try {
       // In a real app, load from API
       // For now, use mock data
       setTransactions(mockTransactions);
-      
+
       // Calculate balance from user profile or transactions
-      const userBalance = user?.profile?.credits || 0;
-      setBalance(userBalance);
+      // const userBalance = user?.profile?.credits || 0;
+      // setBalance(userBalance);
     } catch (error) {
       console.error('Failed to load wallet data:', error);
     } finally {
@@ -114,29 +156,31 @@ export default function WalletScreen() {
     router.back();
   };
 
-  const formatCurrency = (cents: number): string => {
-    return `$${(cents / 100).toFixed(2)}`;
-  };
-
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString([], { 
-      month: 'short', 
+    return date.toLocaleDateString([], {
+      month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   };
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'earned':
-        return <TrendingUp size={16} color={BrandColors.surface} strokeWidth={2} />;
+        return (
+          <TrendingUp size={16} color={BrandColors.surface} strokeWidth={2} />
+        );
       case 'spent':
-        return <TrendingDown size={16} color={BrandColors.surface} strokeWidth={2} />;
+        return (
+          <TrendingDown size={16} color={BrandColors.surface} strokeWidth={2} />
+        );
       case 'bonus':
         return <Gift size={16} color={BrandColors.surface} strokeWidth={2} />;
       default:
-        return <DollarSign size={16} color={BrandColors.surface} strokeWidth={2} />;
+        return (
+          <DollarSign size={16} color={BrandColors.surface} strokeWidth={2} />
+        );
     }
   };
 
@@ -156,25 +200,34 @@ export default function WalletScreen() {
   const renderTransaction = (transaction: Transaction) => (
     <View key={transaction.id} style={styles.transactionCard}>
       <View style={styles.transactionLeft}>
-        <View style={[
-          styles.transactionIcon,
-          { backgroundColor: getTransactionColor(transaction.type) }
-        ]}>
+        <View
+          style={[
+            styles.transactionIcon,
+            { backgroundColor: getTransactionColor(transaction.type) },
+          ]}
+        >
           {getTransactionIcon(transaction.type)}
         </View>
         <View style={styles.transactionInfo}>
-          <Text style={styles.transactionDescription}>{transaction.description}</Text>
-          <Text style={styles.transactionDate}>{formatDate(transaction.date)}</Text>
+          <Text style={styles.transactionDescription}>
+            {transaction.description}
+          </Text>
+          <Text style={styles.transactionDate}>
+            {formatDate(transaction.date)}
+          </Text>
         </View>
       </View>
-      
-      <Text style={[
-        styles.transactionAmount,
-        { 
-          color: transaction.type === 'spent' ? BrandColors.red : '#10B981'
-        }
-      ]}>
-        {transaction.type === 'spent' ? '-' : '+'}{formatCurrency(transaction.amount)}
+
+      <Text
+        style={[
+          styles.transactionAmount,
+          {
+            color: transaction.type === 'spent' ? BrandColors.red : '#10B981',
+          },
+        ]}
+      >
+        {transaction.type === 'spent' ? '-' : '+'}
+        {formatCurrency(transaction.amount)}
       </Text>
     </View>
   );
@@ -190,8 +243,8 @@ export default function WalletScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="never"
         contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
@@ -208,23 +261,31 @@ export default function WalletScreen() {
             >
               <View style={styles.balanceHeader}>
                 <View style={styles.balanceIconContainer}>
-                  <Wallet size={24} color={BrandColors.surface} strokeWidth={2} />
+                  <Wallet
+                    size={24}
+                    color={BrandColors.surface}
+                    strokeWidth={2}
+                  />
                 </View>
                 <Text style={styles.balanceLabel}>Available Balance</Text>
               </View>
-              
+
               <Text style={styles.balanceAmount}>
-                {formatCurrency(balance)}
+                {isBalanceLoading ? 'Load balance...' : formatCurrency(balance)}
               </Text>
-              
+
               <View style={styles.balanceActions}>
                 <TouchableOpacity style={styles.balanceActionButton}>
                   <Plus size={16} color={BrandColors.surface} strokeWidth={2} />
                   <Text style={styles.balanceActionText}>Add Funds</Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity style={styles.balanceActionButton}>
-                  <Minus size={16} color={BrandColors.surface} strokeWidth={2} />
+                  <Minus
+                    size={16}
+                    color={BrandColors.surface}
+                    strokeWidth={2}
+                  />
                   <Text style={styles.balanceActionText}>Withdraw</Text>
                 </TouchableOpacity>
               </View>
@@ -237,20 +298,24 @@ export default function WalletScreen() {
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
               <View style={styles.statIconContainer}>
-                <TrendingUp size={20} color='#10B981' strokeWidth={2} />
+                <TrendingUp size={20} color="#10B981" strokeWidth={2} />
               </View>
               <Text style={styles.statValue}>$24.50</Text>
               <Text style={styles.statLabel}>This Month</Text>
             </View>
-            
+
             <View style={styles.statCard}>
               <View style={styles.statIconContainer}>
-                <Award size={20} color={BrandColors.accentYellow} strokeWidth={2} />
+                <Award
+                  size={20}
+                  color={BrandColors.accentYellow}
+                  strokeWidth={2}
+                />
               </View>
               <Text style={styles.statValue}>12</Text>
               <Text style={styles.statLabel}>Tasks Done</Text>
             </View>
-            
+
             <View style={styles.statCard}>
               <View style={styles.statIconContainer}>
                 <Gift size={20} color={BrandColors.purple} strokeWidth={2} />
@@ -264,7 +329,7 @@ export default function WalletScreen() {
         {/* Transactions */}
         <View style={styles.transactionsSection}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
-          
+
           {isLoading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={BrandColors.primary} />

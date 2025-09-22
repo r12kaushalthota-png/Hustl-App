@@ -47,6 +47,24 @@ export class TaskRepo {
     }
   }
 
+  static async myTasks(userId: string): Promise<{ data: Task[] | null; error: string | null }> {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .or(`created_by.eq.${userId}`)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        return { data: null, error: error.message };
+      }
+
+      return { data: data || [], error: null };
+    } catch (error) {
+      return { data: null, error: 'Network error. Please check your connection.' };
+    }
+  }
+
   /**
    * List tasks user is doing (accepted by user)
    */
@@ -148,17 +166,21 @@ export class TaskRepo {
    * Update task status (for basic status changes)
    */
   static async updateTaskStatus(taskId: string, status: TaskStatus, userId: string): Promise<{ data: Task | null; error: string | null }> {
+    console.log('Updating task status:', { taskId, status, userId });
+
     try {
-      const { data, error } = await supabase
+      const response = await supabase
         .from('tasks')
         .update({
           status,
           updated_at: new Date().toISOString(),
         })
         .eq('id', taskId)
-        .eq('accepted_by', userId)
+        // .eq('accepted_by', userId)
         .select()
         .limit(1);
+      const { data, error } = response;
+
 
       if (error) {
         return { data: null, error: error.message };
