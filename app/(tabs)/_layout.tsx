@@ -1,30 +1,40 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Chrome as Home, List, Zap, MessageCircle, Gift, User } from 'lucide-react-native';
+import {
+  Chrome as Home,
+  List,
+  Zap,
+  MessageCircle,
+  Gift,
+  User,
+} from 'lucide-react-native';
 import { TouchableOpacity, View, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StripeConnect } from '@/lib/stripeConnect';
+import { useAuth } from '@/contexts/AuthContext';
+import KYCRequestModal from '@/components/KYCRequestModal';
 
 // Tab Icon Component
-const TabIcon = ({ 
-  IconComponent, 
-  size, 
-  color, 
-  focused 
-}: { 
-  IconComponent: any; 
-  size: number; 
-  color: string; 
+const TabIcon = ({
+  IconComponent,
+  size,
+  color,
+  focused,
+}: {
+  IconComponent: any;
+  size: number;
+  color: string;
   focused: boolean;
 }) => {
   return (
     <View style={styles.tabIconContainer}>
-      <IconComponent 
-        size={size} 
-        color={color} 
+      <IconComponent
+        size={size}
+        color={color}
         strokeWidth={focused ? 2.5 : 2}
       />
     </View>
@@ -34,8 +44,10 @@ const TabIcon = ({
 // Lightning Action Button Component
 const LightningActionButton = ({ focused }: { focused: boolean }) => {
   const router = useRouter();
+  const [showKYCModal, setShowKYCModal] = React.useState(false);
+  const { user } = useAuth();
 
-  const handlePress = () => {
+  const handlePress = async () => {
     if (Platform.OS !== 'web') {
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -43,32 +55,55 @@ const LightningActionButton = ({ focused }: { focused: boolean }) => {
         // Haptics not available, continue silently
       }
     }
+    const { error, payouts_enabled } = await StripeConnect.getIsPayoutsenabled(
+      user?.id || ''
+    );
+    if (error || !payouts_enabled) {
+      setShowKYCModal(true);
+      return;
+    }
     router.push('/(tabs)/post');
   };
 
   return (
-    <TouchableOpacity
-      style={styles.lightningButton}
-      onPress={handlePress}
-      activeOpacity={0.9}
-      accessibilityLabel="Post Task"
-      accessibilityRole="button"
-    >
-      <LinearGradient
-        colors={['#3B82F6', '#1D4ED8']}
-        style={styles.lightningGradient}
+    <>
+      <TouchableOpacity
+        style={styles.lightningButton}
+        onPress={handlePress}
+        activeOpacity={0.9}
+        accessibilityLabel="Post Task"
+        accessibilityRole="button"
       >
-        <Zap size={28} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
-      </LinearGradient>
-    </TouchableOpacity>
+        <LinearGradient
+          colors={['#3B82F6', '#1D4ED8']}
+          style={styles.lightningGradient}
+        >
+          <Zap
+            size={28}
+            color={Colors.white}
+            strokeWidth={2.5}
+            fill={Colors.white}
+          />
+        </LinearGradient>
+      </TouchableOpacity>
+      <KYCRequestModal
+        visible={showKYCModal}
+        onClose={() => setShowKYCModal(false)}
+        feature="Create task"
+      />
+    </>
   );
 };
 
 // Custom tab bar button for Lightning Action
 const LightningTabButton = (props: any) => {
   return (
-    <View style={[styles.lightningTabContainer, { backgroundColor: 'transparent' }]}>
-      <LightningActionButton focused={props.accessibilityState?.selected || false} />
+    <View
+      style={[styles.lightningTabContainer, { backgroundColor: 'transparent' }]}
+    >
+      <LightningActionButton
+        focused={props.accessibilityState?.selected || false}
+      />
     </View>
   );
 };
@@ -107,10 +142,10 @@ export default function TabLayout() {
           name="home"
           options={{
             tabBarIcon: ({ size, color, focused }) => (
-              <TabIcon 
-                IconComponent={Home} 
-                size={size} 
-                color={color} 
+              <TabIcon
+                IconComponent={Home}
+                size={size}
+                color={color}
                 focused={focused}
               />
             ),
@@ -120,10 +155,10 @@ export default function TabLayout() {
           name="tasks"
           options={{
             tabBarIcon: ({ size, color, focused }) => (
-              <TabIcon 
-                IconComponent={List} 
-                size={size} 
-                color={color} 
+              <TabIcon
+                IconComponent={List}
+                size={size}
+                color={color}
                 focused={focused}
               />
             ),
@@ -139,10 +174,10 @@ export default function TabLayout() {
           name="chats"
           options={{
             tabBarIcon: ({ size, color, focused }) => (
-              <TabIcon 
-                IconComponent={MessageCircle} 
-                size={size} 
-                color={color} 
+              <TabIcon
+                IconComponent={MessageCircle}
+                size={size}
+                color={color}
                 focused={focused}
               />
             ),
@@ -152,10 +187,10 @@ export default function TabLayout() {
           name="referrals"
           options={{
             tabBarIcon: ({ size, color, focused }) => (
-              <TabIcon 
-                IconComponent={Gift} 
-                size={size} 
-                color={color} 
+              <TabIcon
+                IconComponent={Gift}
+                size={size}
+                color={color}
                 focused={focused}
               />
             ),
@@ -165,10 +200,10 @@ export default function TabLayout() {
           name="profile"
           options={{
             tabBarIcon: ({ size, color, focused }) => (
-              <TabIcon 
-                IconComponent={User} 
-                size={size} 
-                color={color} 
+              <TabIcon
+                IconComponent={User}
+                size={size}
+                color={color}
                 focused={focused}
               />
             ),

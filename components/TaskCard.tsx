@@ -1,7 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Platform,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { StripeConnect } from '@/lib/stripeConnect';
+import { useAuth } from '@/contexts/AuthContext';
+import KYCRequestModal from './KYCRequestModal';
 
 // Exact brand colors from the logo
 const BrandColors = {
@@ -18,7 +28,12 @@ const BrandColors = {
 
 // Brand gradients
 const BrandGradients = {
-  primary: [BrandColors.primary, BrandColors.purple, BrandColors.red, BrandColors.orange],
+  primary: [
+    BrandColors.primary,
+    BrandColors.purple,
+    BrandColors.red,
+    BrandColors.orange,
+  ],
   button: [BrandColors.primary, '#3D6BFF'],
   iconChip: [BrandColors.primary, BrandColors.purple],
 };
@@ -40,8 +55,9 @@ export default function TaskCard({
   badge,
   icon,
   image,
-  onPress
+  onPress,
 }: TaskCardProps) {
+  const { user } = useAuth();
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
       try {
@@ -52,10 +68,17 @@ export default function TaskCard({
     }
   };
 
-  const handlePress = () => {
-    triggerHaptics();
-    onPress();
+  const handlePress = async () => {
+    const {error, payouts_enabled} = await StripeConnect.getIsPayoutsenabled(user?.id || '');
+    if (error || !payouts_enabled) {
+      setShowKYCModal(true);
+    } else {
+      triggerHaptics();
+      onPress();
+    }
   };
+
+  const [showKYCModal, setShowKYCModal] = React.useState(false);
 
   const getBadgeColor = () => {
     switch (badge) {
@@ -71,60 +94,67 @@ export default function TaskCard({
   };
 
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={handlePress}
-      activeOpacity={0.95}
-      accessibilityLabel={`${title}: ${subtitle}. ${ctaLabel}`}
-      accessibilityRole="button"
-    >
-      {/* Image Container */}
-      <View style={styles.imageContainer}>
-        <Image source={{ uri: image }} style={styles.image} />
-        
-        {/* Image Overlay Gradient */}
-        <LinearGradient
-          colors={['transparent', 'rgba(13, 45, 235, 0.08)']}
-          style={styles.imageOverlay}
-        />
-        
-        {/* Badge */}
-        {badge && (
-          <View style={[styles.badge, { backgroundColor: getBadgeColor() }]}>
-            <Text style={styles.badgeText}>{badge}</Text>
-          </View>
-        )}
-        
-        {/* Icon Chip */}
-        <View style={styles.iconChipContainer}>
-          <LinearGradient
-            colors={BrandGradients.iconChip}
-            style={styles.iconChip}
-          >
-            <Text style={styles.iconEmoji}>{icon}</Text>
-          </LinearGradient>
-        </View>
-      </View>
+    <>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={handlePress}
+        activeOpacity={0.95}
+        accessibilityLabel={`${title}: ${subtitle}. ${ctaLabel}`}
+        accessibilityRole="button"
+      >
+        {/* Image Container */}
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: image }} style={styles.image} />
 
-      {/* Content */}
-      <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={2}>
-          {title}
-        </Text>
-        <Text style={styles.subtitle} numberOfLines={2}>
-          {subtitle}
-        </Text>
-        
-        {/* CTA Button */}
-        <TouchableOpacity
-          style={styles.ctaButton}
-          onPress={handlePress}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.ctaButtonText}>{ctaLabel}</Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
+          {/* Image Overlay Gradient */}
+          <LinearGradient
+            colors={['transparent', 'rgba(13, 45, 235, 0.08)']}
+            style={styles.imageOverlay}
+          />
+
+          {/* Badge */}
+          {badge && (
+            <View style={[styles.badge, { backgroundColor: getBadgeColor() }]}>
+              <Text style={styles.badgeText}>{badge}</Text>
+            </View>
+          )}
+
+          {/* Icon Chip */}
+          <View style={styles.iconChipContainer}>
+            <LinearGradient
+              colors={BrandGradients.iconChip}
+              style={styles.iconChip}
+            >
+              <Text style={styles.iconEmoji}>{icon}</Text>
+            </LinearGradient>
+          </View>
+        </View>
+
+        {/* Content */}
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={2}>
+            {title}
+          </Text>
+          <Text style={styles.subtitle} numberOfLines={2}>
+            {subtitle}
+          </Text>
+
+          {/* CTA Button */}
+          <TouchableOpacity
+            style={styles.ctaButton}
+            onPress={handlePress}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.ctaButtonText}>{ctaLabel}</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+      <KYCRequestModal
+        visible={showKYCModal}
+        onClose={() => setShowKYCModal(false)}
+        feature='create tasks'
+      />
+    </>
   );
 }
 

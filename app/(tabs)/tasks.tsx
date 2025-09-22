@@ -9,9 +9,9 @@ import {
   Platform,
   ActivityIndicator,
   Dimensions,
-  Pressable
+  Pressable,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { router, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import {
@@ -23,7 +23,7 @@ import {
   Zap,
   User,
   Filter,
-  Search
+  Search,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -43,20 +43,24 @@ import GlobalHeader from '@/components/GlobalHeader';
 import Toast from '@/components/Toast';
 import AcceptanceSuccessModal from '@/components/AcceptanceSuccessModal';
 import MapViewComponent from '@/components/MapView';
+import { StripeConnect } from '@/lib/stripeConnect';
+import KYCRequestModal from '@/components/KYCRequestModal';
 
 const { width } = Dimensions.get('window');
 
-type ViewMode = 'list' | 'map';
+type ViewMode = 'myTasks' | 'list' | 'map';
 
 // Enhanced Task Card Component
 const TaskCard = ({
   task,
   onAccept,
-  isAccepting 
+  isAccepting,
+  showAcceptButton = true,
 }: {
   task: Task;
   onAccept: () => void;
   isAccepting: boolean;
+  showAcceptButton?: boolean;
 }) => {
   const scale = useSharedValue(1);
   const glowOpacity = useSharedValue(0);
@@ -81,20 +85,29 @@ const TaskCard = ({
 
   const getUrgencyColor = (urgency: string): string => {
     switch (urgency) {
-      case 'high': return '#EF4444';
-      case 'medium': return '#F59E0B';
-      case 'low': return '#10B981';
-      default: return '#6B7280';
+      case 'high':
+        return '#EF4444';
+      case 'medium':
+        return '#F59E0B';
+      case 'low':
+        return '#10B981';
+      default:
+        return '#6B7280';
     }
   };
 
   const getStatusColor = (status: string): string => {
     switch (status) {
-      case 'open': return '#3B82F6';
-      case 'accepted': return '#F59E0B';
-      case 'completed': return '#10B981';
-      case 'cancelled': return '#EF4444';
-      default: return '#6B7280';
+      case 'open':
+        return '#3B82F6';
+      case 'accepted':
+        return '#F59E0B';
+      case 'completed':
+        return '#10B981';
+      case 'cancelled':
+        return '#EF4444';
+      default:
+        return '#6B7280';
     }
   };
 
@@ -104,8 +117,9 @@ const TaskCard = ({
         styles.taskCard,
         animatedStyle,
         { shadowColor: getUrgencyColor(task.urgency) },
-      animatedGlowStyle
-    ]}>
+        animatedGlowStyle,
+      ]}
+    >
       <Pressable
         style={styles.taskCardContent}
         onPressIn={handlePressIn}
@@ -116,9 +130,11 @@ const TaskCard = ({
         {/* Header */}
         <View style={styles.taskHeader}>
           <View style={styles.taskTitleContainer}>
-            <Text style={styles.taskTitle} numberOfLines={2}>
-              {task.title}
-            </Text>
+            <TouchableOpacity onPress={() => router.push(`/task/${task.id}`)}>
+              <Text style={styles.taskTitle} numberOfLines={2}>
+                {task.title}
+              </Text>
+            </TouchableOpacity>
             <View style={styles.badgesContainer}>
               <View
                 style={[
@@ -137,15 +153,20 @@ const TaskCard = ({
                 </Text>
               </View>
 
-              <View style={[
+              <View
+                style={[
                   styles.statusBadge,
-                { backgroundColor: getStatusColor(task.status) + '20' }
-              ]}>
-                <Text style={[
+                  { backgroundColor: getStatusColor(task.status) + '20' },
+                ]}
+              >
+                <Text
+                  style={[
                     styles.statusText,
-                  { color: getStatusColor(task.status) }
-                ]}>
-                  {String(task.status).charAt(0).toUpperCase() + String(task.status).slice(1)}
+                    { color: getStatusColor(task.status) },
+                  ]}
+                >
+                  {String(task.status).charAt(0).toUpperCase() +
+                    String(task.status).slice(1)}
                 </Text>
               </View>
             </View>
@@ -200,6 +221,7 @@ const TaskCard = ({
         </View>
 
         {/* Actions */}
+        {showAcceptButton && (
         <View style={styles.taskActions}>
           <Pressable
             style={[
@@ -232,6 +254,7 @@ const TaskCard = ({
             )}
           </Pressable>
         </View>
+        )}
       </Pressable>
     </Animated.View>
   );
@@ -244,6 +267,7 @@ export default function TasksScreen() {
   const { user, isGuest } = useAuth();
 
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [myTasks, setMyTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -284,8 +308,12 @@ export default function TasksScreen() {
         if (isGuest) {
           // For guest users, show mock data or empty state
           setTasks([]);
+          setMyTasks([]);
         } else if (user) {
           const { data, error } = await TaskRepo.listOpenTasks(user.id);
+          const { data: myData, error: myError } = await TaskRepo.myTasks(
+            user.id
+          );
 
           if (error) {
             setToast({
@@ -297,6 +325,7 @@ export default function TasksScreen() {
           }
 
           setTasks(data || []);
+          setMyTasks(myData || []);
         }
       } catch (error) {
         setToast({
@@ -371,6 +400,14 @@ export default function TasksScreen() {
       return;
     }
 
+    const { error, payouts_enabled } = await StripeConnect.getIsPayoutsenabled(
+      user?.id || ''
+    );
+    if (error || !payouts_enabled) {
+      setShowKYCModal(true);
+      return;
+    }
+
     if (acceptingTaskId) return;
 
     triggerHaptics();
@@ -412,6 +449,8 @@ export default function TasksScreen() {
     }
   };
 
+  const [showKYCModal, setShowKYCModal] = React.useState(false);
+
   const hideToast = () => {
     setToast((prev) => ({ ...prev, visible: false }));
   };
@@ -434,6 +473,7 @@ export default function TasksScreen() {
       task={task}
       onAccept={() => handleAcceptTask(task.id)}
       isAccepting={acceptingTaskId === task.id}
+      showAcceptButton={viewMode !== 'myTasks'}
     />
   );
 
@@ -482,6 +522,33 @@ export default function TasksScreen() {
         {/* View Mode Toggle */}
         <View style={styles.viewModeContainer}>
           <View style={styles.viewModeToggle}>
+            <TouchableOpacity
+              style={[
+                styles.viewModeButton,
+                viewMode === 'myTasks' && styles.activeViewModeButton,
+              ]}
+              onPress={() => setViewMode('myTasks')}
+              accessibilityLabel="List view"
+              accessibilityRole="button"
+            >
+              <User
+                size={18}
+                color={
+                  viewMode === 'myTasks'
+                    ? Colors.white
+                    : Colors.semantic.tabInactive
+                }
+                strokeWidth={2}
+              />
+              <Text
+                style={[
+                  styles.viewModeButtonText,
+                  viewMode === 'myTasks' && styles.activeViewModeButtonText,
+                ]}
+              >
+                Created
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.viewModeButton,
@@ -564,7 +631,7 @@ export default function TasksScreen() {
                 }
                 contentContainerStyle={[
                   styles.tasksList,
-                  { paddingBottom: tabBarHeight + insets.bottom + 16 }
+                  { paddingBottom: tabBarHeight + insets.bottom + 16 },
                 ]}
                 removeClippedSubviews={true}
                 maxToRenderPerBatch={10}
@@ -573,16 +640,45 @@ export default function TasksScreen() {
             ) : (
               renderEmptyState()
             )
-          ) : (
+          ) : viewMode === 'map' ? (
             <MapViewComponent data={taskPins} />
-            // <View style={styles.mapPlaceholder}>
-            //   <MapViewComponent />
-            //   {/* <Text style={styles.mapPlaceholderText}>Map view coming soon</Text> */}
-            // </View>
+          ) : // <View style={styles.mapPlaceholder}>
+          //   <MapViewComponent />
+          //   {/* <Text style={styles.mapPlaceholderText}>Map view coming soon</Text> */}
+          // </View>
+          // My Tasks View
+          isLoading && !isRefreshing ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+              <Text style={styles.loadingText}>Loading tasks...</Text>
+            </View>
+          ) : myTasks.length > 0 ? (
+            <FlatList
+              data={myTasks}
+              renderItem={renderTaskItem}
+              keyExtractor={keyExtractor}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                  tintColor={Colors.primary}
+                  colors={[Colors.primary]}
+                />
+              }
+              contentContainerStyle={[
+                styles.tasksList,
+                { paddingBottom: tabBarHeight + insets.bottom + 16 },
+              ]}
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={10}
+              windowSize={10}
+            />
+          ) : (
+            renderEmptyState()
           )}
         </View>
       </View>
-
 
       {/* Toast */}
       <Toast
@@ -600,6 +696,12 @@ export default function TasksScreen() {
         taskCategory={acceptanceData.category}
         onMessagePoster={handleMessagePoster}
         onViewTask={handleViewTask}
+      />
+
+      <KYCRequestModal
+        visible={showKYCModal}
+        onClose={() => setShowKYCModal(false)}
+        feature="Accept tasks"
       />
     </>
   );
