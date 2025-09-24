@@ -3,6 +3,8 @@ export type TaskCategory = 'food' | 'grocery' | 'coffee';
 export type TaskUrgency = 'low' | 'medium' | 'high';
 
 export interface Task {
+  long_pickup: number;
+  lat_pickup: number;
   id: string;
   title: string;
   description: string;

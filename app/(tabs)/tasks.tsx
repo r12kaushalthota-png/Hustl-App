@@ -222,38 +222,38 @@ const TaskCard = ({
 
         {/* Actions */}
         {showAcceptButton && (
-        <View style={styles.taskActions}>
-          <Pressable
-            style={[
-              styles.acceptButton,
-              isAccepting && styles.acceptButtonDisabled,
-            ]}
-            onPress={onAccept}
-            disabled={isAccepting}
-            accessibilityLabel="Accept task"
-            accessibilityRole="button"
-          >
-            {isAccepting ? (
-              <View style={styles.acceptButtonContent}>
-                <ActivityIndicator size="small" color={Colors.white} />
-                <Text style={styles.acceptButtonText}>Accepting...</Text>
-              </View>
-            ) : (
-              <LinearGradient
-                colors={['#0047FF', '#0021A5']}
-                style={styles.acceptButtonGradient}
-              >
-                <Zap
-                  size={16}
-                  color={Colors.white}
-                  strokeWidth={2}
-                  fill={Colors.white}
-                />
-                <Text style={styles.acceptButtonText}>Accept Task</Text>
-              </LinearGradient>
-            )}
-          </Pressable>
-        </View>
+          <View style={styles.taskActions}>
+            <Pressable
+              style={[
+                styles.acceptButton,
+                isAccepting && styles.acceptButtonDisabled,
+              ]}
+              onPress={onAccept}
+              disabled={isAccepting}
+              accessibilityLabel="Accept task"
+              accessibilityRole="button"
+            >
+              {isAccepting ? (
+                <View style={styles.acceptButtonContent}>
+                  <ActivityIndicator size="small" color={Colors.white} />
+                  <Text style={styles.acceptButtonText}>Accepting...</Text>
+                </View>
+              ) : (
+                <LinearGradient
+                  colors={['#0047FF', '#0021A5']}
+                  style={styles.acceptButtonGradient}
+                >
+                  <Zap
+                    size={16}
+                    color={Colors.white}
+                    strokeWidth={2}
+                    fill={Colors.white}
+                  />
+                  <Text style={styles.acceptButtonText}>Accept Task</Text>
+                </LinearGradient>
+              )}
+            </Pressable>
+          </View>
         )}
       </Pressable>
     </Animated.View>
@@ -502,8 +502,8 @@ export default function TasksScreen() {
     reward: TaskRepo.formatReward(task.reward_cents),
     store: task.store,
     urgency: task.urgency,
-    latitude: 29.6436 + (Math.random() - 0.5) * 0.02, // Mock coordinates around UF
-    longitude: -82.3549 + (Math.random() - 0.5) * 0.02,
+    latitude: task.lat_pickup || 29.6436 + (Math.random() - 0.5) * 0.02, // Mock coordinates around UF
+    longitude: task.long_pickup || -82.3549 + (Math.random() - 0.5) * 0.02,
   }));
 
   return (

@@ -1,23 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  TextInput, 
-  Platform, 
-  KeyboardAvoidingView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Platform,
+  KeyboardAvoidingView,
   ActivityIndicator,
   Keyboard,
   Dimensions,
   SafeAreaView,
-  Modal
+  Modal,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { X, MapPin, Clock, Store, Package, Zap, CircleAlert as AlertCircle, Check } from 'lucide-react-native';
+import {
+  X,
+  MapPin,
+  Clock,
+  Store,
+  Package,
+  Zap,
+  CircleAlert as AlertCircle,
+  Check,
+} from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -28,6 +37,7 @@ import { TaskCategory, TaskUrgency } from '@/types/database';
 import { ModerationService } from '@/lib/moderation';
 import Toast from '@components/Toast';
 import CheckoutForm from '../../components/CheckoutForm';
+import SearchBoxApple from '@/components/SearchBoxApple';
 
 const { width } = Dimensions.get('window');
 
@@ -215,13 +225,15 @@ const getCategoryDefaults = (categoryId: string) => {
       urgency: 'medium' as const,
     },
   };
-  
-  return defaults[categoryId as keyof typeof defaults] || {
-    title: 'Custom task',
-    description: 'Describe what you need help with.',
-    estimatedMinutes: '20',
-    urgency: 'medium' as const,
-  };
+
+  return (
+    defaults[categoryId as keyof typeof defaults] || {
+      title: 'Custom task',
+      description: 'Describe what you need help with.',
+      estimatedMinutes: '20',
+      urgency: 'medium' as const,
+    }
+  );
 };
 
 export default function PostScreen() {
@@ -230,7 +242,7 @@ export default function PostScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { user, isGuest } = useAuth();
-  
+
   // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -240,28 +252,45 @@ export default function PostScreen() {
   const [dropoffInstructions, setDropoffInstructions] = useState('');
   const [urgency, setUrgency] = useState<string>('medium');
   const [estimatedMinutes, setEstimatedMinutes] = useState('');
-  const [prefilledCategory, setPrefilledCategory] = useState<string | null>(null);
-  
+  const [prefilledCategory, setPrefilledCategory] = useState<string | null>(
+    null
+  );
+  // const [store, setStore] = useState("");
+  const [storeCoords, setStoreCoords] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [dropoffCoords, setDropoffCoords] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
   // Computed pricing
-  const [computedPriceCents, setComputedPriceCents] = useState(BASE_PRICE_CENTS + 100); // Base + medium urgency
-  
+  const [computedPriceCents, setComputedPriceCents] = useState(
+    BASE_PRICE_CENTS + 100
+  ); // Base + medium urgency
+
   // Field validation errors
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  
+
   // UI state
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [isLoadingStore, setIsLoadingStore] = useState(false);
-  const [isLoadingDropoff, setIsLoadingDropoff] = useState(false);
+  // const [isLoadingStore, setIsLoadingStore] = useState(false);
+  // const [isLoadingDropoff, setIsLoadingDropoff] = useState(false);
   const [moderationError, setModerationError] = useState('');
   const [showStoreDropdown, setShowStoreDropdown] = useState(false);
   const [showDropoffDropdown, setShowDropoffDropdown] = useState(false);
 
   // Toast state
-  const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>({
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
     visible: false,
     message: '',
-    type: 'success'
+    type: 'success',
   });
 
   // Calculate footer height for ScrollView padding
@@ -273,8 +302,10 @@ export default function PostScreen() {
     const categoryParam = params.category as string;
     if (categoryParam && categoryParam !== prefilledCategory) {
       const defaults = getCategoryDefaults(categoryParam);
-      const categoryLabel = categories.find(c => c.value === categoryParam)?.label || categoryParam;
-      
+      const categoryLabel =
+        categories.find((c) => c.value === categoryParam)?.label ||
+        categoryParam;
+
       // Prefill form with category defaults
       setTitle(defaults.title);
       setDescription(defaults.description);
@@ -282,33 +313,34 @@ export default function PostScreen() {
       setEstimatedMinutes(defaults.estimatedMinutes);
       setUrgency(defaults.urgency);
       setPrefilledCategory(categoryParam);
-      
+
       // Clear other fields
       setStore('');
       setDropoffAddress('');
       setDropoffInstructions('');
       setFieldErrors({});
       setSubmitError('');
-      
+
       setToast({
         visible: true,
         message: `Prefilled from ${categoryLabel}`,
-        type: 'success'
+        type: 'success',
       });
     }
   }, [params.category, prefilledCategory]);
 
   // Calculate price whenever urgency changes
   useEffect(() => {
-    const urgencyPrice = urgencyOptions.find(opt => opt.value === urgency)?.price || 100;
+    const urgencyPrice =
+      urgencyOptions.find((opt) => opt.value === urgency)?.price || 100;
     let total = BASE_PRICE_CENTS + urgencyPrice;
-    
+
     // Round up to nearest $0.25 (25 cents)
     total = Math.ceil(total / 25) * 25;
-    
+
     // Clamp between min and max
     total = Math.max(MIN_PRICE_CENTS, Math.min(MAX_PRICE_CENTS, total));
-    
+
     setComputedPriceCents(total);
   }, [urgency, category]);
 
@@ -324,11 +356,12 @@ export default function PostScreen() {
 
   const updateFieldError = (field: string, value: string) => {
     const error = validateField(field, value);
-    setFieldErrors(prev => ({
+    console.log('Validate', field, value, '->', error);
+    setFieldErrors((prev) => ({
       ...prev,
-      [field]: error
+      [field]: error,
     }));
-    
+
     // Clear moderation error when user starts editing
     if (field === 'title' || field === 'description') {
       setModerationError('');
@@ -337,23 +370,31 @@ export default function PostScreen() {
 
   const isFormValid = (): boolean => {
     // Check basic required fields
-    const hasBasicFields = title.trim().length >= 3 &&
+    const hasBasicFields =
+      title.trim().length >= 3 &&
       category &&
       estimatedMinutes.trim() &&
       urgency;
-    
+
     // Check location fields for location-based categories
     const locationCategories = ['food', 'coffee', 'grocery'];
     const needsLocation = locationCategories.includes(category);
-    const hasLocationFields = !needsLocation || (store.trim() && dropoffAddress.trim());
-    
+    const hasLocationFields =
+      !needsLocation || (store.trim() && dropoffAddress.trim());
+
     // Check if any field has validation errors
-    const hasErrors = Object.values(fieldErrors).some(error => error);
-    
+    const hasErrors = Object.values(fieldErrors).some((error) => error);
+
     // Check for moderation errors
     const hasModerationError = moderationError.length > 0;
-    
-    return hasBasicFields && hasLocationFields && !hasErrors && !hasModerationError && !isLoading;
+
+    return (
+      hasBasicFields &&
+      hasLocationFields &&
+      !hasErrors &&
+      !hasModerationError &&
+      !isLoading
+    );
   };
 
   const handleStoreSelect = (location: string) => {
@@ -362,11 +403,11 @@ export default function PostScreen() {
     setShowStoreDropdown(false);
   };
 
-  const handleDropoffSelect = (location: string) => {
-    setDropoffAddress(location);
-    updateFieldError('dropoffAddress', location);
-    setShowDropoffDropdown(false);
-  };
+  // const handleDropoffSelect = (location: string) => {
+  //   setDropoffAddress(location);
+  //   updateFieldError('dropoffAddress', location);
+  //   setShowDropoffDropdown(false);
+  // };
 
   // Store Selection Modal Component
   const StoreSelectionModal = () => (
@@ -376,7 +417,7 @@ export default function PostScreen() {
       animationType="fade"
       onRequestClose={() => setShowStoreDropdown(false)}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.modalOverlay}
         activeOpacity={1}
         onPress={() => setShowStoreDropdown(false)}
@@ -384,32 +425,47 @@ export default function PostScreen() {
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Select Store</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.modalCloseButton}
               onPress={() => setShowStoreDropdown(false)}
             >
-              <X size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+              <X
+                size={20}
+                color={Colors.semantic.tabInactive}
+                strokeWidth={2}
+              />
             </TouchableOpacity>
           </View>
-          
-          <ScrollView style={styles.modalList} showsVerticalScrollIndicator={false}>
+
+          <ScrollView
+            style={styles.modalList}
+            showsVerticalScrollIndicator={false}
+          >
             {campusLocations.map((location) => (
               <TouchableOpacity
                 key={location}
                 style={[
                   styles.modalItem,
-                  (store && typeof store === 'string' && store === location) && styles.selectedModalItem
+                  store &&
+                    typeof store === 'string' &&
+                    store === location &&
+                    styles.selectedModalItem,
                 ]}
                 onPress={() => handleStoreSelect(location)}
                 activeOpacity={0.7}
               >
-                <Text style={[
-                  styles.modalItemText,
-                  (store && typeof store === 'string' && store === location) && styles.selectedModalItemText
-                ]}>
+                <Text
+                  style={[
+                    styles.modalItemText,
+                    store &&
+                      typeof store === 'string' &&
+                      store === location &&
+                      styles.selectedModalItemText,
+                  ]}
+                >
                   {location}
                 </Text>
-                {(store && typeof store === 'string' && store === location) && (
+                {store && typeof store === 'string' && store === location && (
                   <Check size={16} color={Colors.primary} strokeWidth={2} />
                 )}
               </TouchableOpacity>
@@ -428,7 +484,7 @@ export default function PostScreen() {
       animationType="fade"
       onRequestClose={() => setShowDropoffDropdown(false)}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.modalOverlay}
         activeOpacity={1}
         onPress={() => setShowDropoffDropdown(false)}
@@ -436,34 +492,51 @@ export default function PostScreen() {
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Select Drop-off Location</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.modalCloseButton}
               onPress={() => setShowDropoffDropdown(false)}
             >
-              <X size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
+              <X
+                size={20}
+                color={Colors.semantic.tabInactive}
+                strokeWidth={2}
+              />
             </TouchableOpacity>
           </View>
-          
-          <ScrollView style={styles.modalList} showsVerticalScrollIndicator={false}>
+
+          <ScrollView
+            style={styles.modalList}
+            showsVerticalScrollIndicator={false}
+          >
             {dropoffLocations.map((location) => (
               <TouchableOpacity
                 key={location}
                 style={[
                   styles.modalItem,
-                  (dropoffAddress && typeof dropoffAddress === 'string' && dropoffAddress === location) && styles.selectedModalItem
+                  dropoffAddress &&
+                    typeof dropoffAddress === 'string' &&
+                    dropoffAddress === location &&
+                    styles.selectedModalItem,
                 ]}
-                onPress={() => handleDropoffSelect(location)}
+                onPress={() => {}}
                 activeOpacity={0.7}
               >
-                <Text style={[
-                  styles.modalItemText,
-                  (dropoffAddress && typeof dropoffAddress === 'string' && dropoffAddress === location) && styles.selectedModalItemText
-                ]}>
+                <Text
+                  style={[
+                    styles.modalItemText,
+                    dropoffAddress &&
+                      typeof dropoffAddress === 'string' &&
+                      dropoffAddress === location &&
+                      styles.selectedModalItemText,
+                  ]}
+                >
                   {location}
                 </Text>
-                {(dropoffAddress && typeof dropoffAddress === 'string' && dropoffAddress === location) && (
-                  <Check size={16} color={Colors.primary} strokeWidth={2} />
-                )}
+                {dropoffAddress &&
+                  typeof dropoffAddress === 'string' &&
+                  dropoffAddress === location && (
+                    <Check size={16} color={Colors.primary} strokeWidth={2} />
+                  )}
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -481,7 +554,7 @@ export default function PostScreen() {
       setToast({
         visible: true,
         message: 'Please sign in to post tasks',
-        type: 'error'
+        type: 'error',
       });
       return;
     }
@@ -494,7 +567,10 @@ export default function PostScreen() {
     const errors: Record<string, string> = {};
     errors.title = validateField('title', title);
     errors.category = validateField('category', category);
-    errors.estimatedMinutes = validateField('estimatedMinutes', estimatedMinutes);
+    errors.estimatedMinutes = validateField(
+      'estimatedMinutes',
+      estimatedMinutes
+    );
     errors.urgency = validateField('urgency', urgency);
 
     // Only validate store and dropoff for location-based categories
@@ -505,7 +581,7 @@ export default function PostScreen() {
     }
 
     // Remove empty errors
-    Object.keys(errors).forEach(key => {
+    Object.keys(errors).forEach((key) => {
       if (!errors[key]) delete errors[key];
     });
 
@@ -533,6 +609,10 @@ export default function PostScreen() {
         description: description.trim(),
         category: mapCategoryToDatabase(category),
         store: store.trim(),
+        lat_pickup: storeCoords?.lat || null,
+        long_pickup: storeCoords?.lng || null,
+        lat_drop: dropoffCoords?.lat || null,
+        long_drop: dropoffCoords?.lng || null,
         dropoff_address: dropoffAddress.trim(),
         dropoff_instructions: dropoffInstructions.trim(),
         urgency: urgency as TaskUrgency,
@@ -540,7 +620,10 @@ export default function PostScreen() {
         reward_cents: computedPriceCents,
       };
 
-      const { data, error: createError } = await TaskRepo.createTask(taskData, user.id);
+      const { data, error: createError } = await TaskRepo.createTask(
+        taskData,
+        user.id
+      );
 
       if (createError) {
         setSubmitError("Couldn't post your task. Try again.");
@@ -556,9 +639,9 @@ export default function PostScreen() {
       setToast({
         visible: true,
         message: 'Task posted successfully!',
-        type: 'success'
+        type: 'success',
       });
-      
+
       // Clear form for next use
       clearForm();
 
@@ -610,7 +693,7 @@ export default function PostScreen() {
 
   // Hide toast
   const hideToast = () => {
-    setToast(prev => ({ ...prev, visible: false }));
+    setToast((prev) => ({ ...prev, visible: false }));
   };
 
   const formatPrice = (cents: number): string => {
@@ -626,7 +709,7 @@ export default function PostScreen() {
             key={cat.value}
             style={[
               styles.categoryPill,
-              category === cat.value && styles.activeCategoryPill
+              category === cat.value && styles.activeCategoryPill,
             ]}
             onPress={() => {
               triggerHaptics();
@@ -637,10 +720,13 @@ export default function PostScreen() {
             accessibilityLabel={`Select ${cat.label} category`}
             accessibilityRole="button"
           >
-            <Text style={[
-              styles.categoryPillText,
-              category === cat.value && styles.activeCategoryPillText
-            ]} numberOfLines={1}>
+            <Text
+              style={[
+                styles.categoryPillText,
+                category === cat.value && styles.activeCategoryPillText,
+              ]}
+              numberOfLines={1}
+            >
               {cat.label}
             </Text>
           </TouchableOpacity>
@@ -661,7 +747,7 @@ export default function PostScreen() {
             key={option.value}
             style={[
               styles.segment,
-              urgency === option.value && styles.activeSegment
+              urgency === option.value && styles.activeSegment,
             ]}
             onPress={() => {
               triggerHaptics();
@@ -672,10 +758,12 @@ export default function PostScreen() {
             accessibilityLabel={`Select ${option.label} urgency`}
             accessibilityRole="button"
           >
-            <Text style={[
-              styles.segmentText,
-              urgency === option.value && styles.activeSegmentText
-            ]}>
+            <Text
+              style={[
+                styles.segmentText,
+                urgency === option.value && styles.activeSegmentText,
+              ]}
+            >
               {option.label}
             </Text>
           </TouchableOpacity>
@@ -690,253 +778,383 @@ export default function PostScreen() {
   );
 
   const PricingBreakdown = () => {
-    const urgencyPrice = urgencyOptions.find(opt => opt.value === urgency)?.price || 100;
-    
+    const urgencyPrice =
+      urgencyOptions.find((opt) => opt.value === urgency)?.price || 100;
+
     return (
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Computed Total</Text>
         <View style={styles.pricingCard}>
           <View style={styles.pricingRow}>
             <Text style={styles.pricingLabel}>Base</Text>
-            <Text style={styles.pricingValue}>{formatPrice(BASE_PRICE_CENTS)}</Text>
+            <Text style={styles.pricingValue}>
+              {formatPrice(BASE_PRICE_CENTS)}
+            </Text>
           </View>
           <View style={styles.pricingRow}>
             <Text style={styles.pricingLabel}>Urgency ({urgency})</Text>
-            <Text style={styles.pricingValue}>+{formatPrice(urgencyPrice)}</Text>
+            <Text style={styles.pricingValue}>
+              +{formatPrice(urgencyPrice)}
+            </Text>
           </View>
           <View style={[styles.pricingRow, styles.pricingTotal]}>
             <Text style={styles.pricingTotalLabel}>Total</Text>
-            <Text style={styles.pricingTotalValue}>{formatPrice(computedPriceCents)}</Text>
+            <Text style={styles.pricingTotalValue}>
+              {formatPrice(computedPriceCents)}
+            </Text>
           </View>
         </View>
       </View>
     );
   };
 
-
   return (
     <>
       <SafeAreaView style={styles.container}>
-      <View style={[styles.innerContainer, { paddingTop: insets.top }]}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <X size={24} color={Colors.white} strokeWidth={2} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Task</Text>
-          <View style={styles.placeholder} />
+        <View style={[styles.innerContainer, { paddingTop: insets.top }]}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <X size={24} color={Colors.white} strokeWidth={2} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Create Task</Text>
+            <View style={styles.placeholder} />
+          </View>
+
+          <KeyboardAvoidingView
+            style={styles.keyboardView}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 20}
+          >
+            <ScrollView
+              style={styles.content}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.scrollContent,
+                { paddingBottom: TOTAL_BOTTOM_SPACE },
+              ]}
+              keyboardShouldPersistTaps="handled"
+              automaticallyAdjustKeyboardInsets={false}
+            >
+              <View style={styles.form}>
+                {/* Prefilled Category Chip */}
+                {prefilledCategory && (
+                  <View style={styles.prefilledChip}>
+                    <Text style={styles.prefilledChipText}>
+                      Prefilled from{' '}
+                      {
+                        categories.find((c) => c.value === prefilledCategory)
+                          ?.label
+                      }
+                    </Text>
+                  </View>
+                )}
+
+                {/* Submit Error */}
+                {submitError ? (
+                  <View style={styles.submitErrorContainer}>
+                    <AlertCircle
+                      size={20}
+                      color={Colors.semantic.errorAlert}
+                      strokeWidth={2}
+                    />
+                    <Text style={styles.submitErrorText}>{submitError}</Text>
+                  </View>
+                ) : null}
+
+                {/* Moderation Error */}
+                {moderationError ? (
+                  <View style={styles.moderationErrorContainer}>
+                    <AlertCircle
+                      size={20}
+                      color={Colors.semantic.errorAlert}
+                      strokeWidth={2}
+                    />
+                    <Text style={styles.moderationErrorText}>
+                      {moderationError}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {/* Task Details Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Task Details</Text>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Task Title *</Text>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        fieldErrors.title && styles.inputError,
+                      ]}
+                      value={title}
+                      onChangeText={(value) => {
+                        setTitle(value);
+                        updateFieldError('title', value);
+                      }}
+                      onBlur={() => updateFieldError('title', title)}
+                      placeholder="What do you need help with?"
+                      placeholderTextColor={Colors.semantic.tabInactive}
+                      editable={!isLoading}
+                      returnKeyType="done"
+                      accessibilityLabel="Task title"
+                    />
+                    {fieldErrors.title && (
+                      <Text style={styles.fieldError}>{fieldErrors.title}</Text>
+                    )}
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Description</Text>
+                    <TextInput
+                      style={[styles.input, styles.textArea]}
+                      value={description}
+                      onChangeText={setDescription}
+                      placeholder="Provide more details about the task..."
+                      placeholderTextColor={Colors.semantic.tabInactive}
+                      multiline
+                      numberOfLines={3}
+                      textAlignVertical="top"
+                      editable={!isLoading}
+                      returnKeyType="done"
+                      accessibilityLabel="Task description"
+                    />
+                  </View>
+
+                  <CategorySelector />
+
+                  {/* <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Store *</Text>
+                    <View
+                      style={[
+                        styles.inputWithIcon,
+                        fieldErrors.store && styles.inputError,
+                      ]}
+                    >
+                      <Store
+                        size={20}
+                        color={Colors.semantic.tabInactive}
+                        strokeWidth={2}
+                      />
+                      <TextInput
+                        style={styles.inputText}
+                        value={store}
+                        onChangeText={(value) => {
+                          setStore(value);
+                          updateFieldError('store', value);
+                        }}
+                        onBlur={() => updateFieldError('store', store)}
+                        placeholder="e.g. Chick-fil-A, Starbucks, Chipotle"
+                        placeholderTextColor={Colors.semantic.tabInactive}
+                        editable={!isLoading}
+                        returnKeyType="done"
+                        accessibilityLabel="Store name"
+                      />
+                    </View>
+
+                    {fieldErrors.store && (
+                      <Text style={styles.fieldError}>{fieldErrors.store}</Text>
+                    )}
+                  </View> */}
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Store *</Text>
+
+                    <SearchBoxApple
+                      icon={
+                        <Store
+                          size={20}
+                          color={Colors.semantic.tabInactive}
+                          strokeWidth={2}
+                        />
+                      }
+                      placeholder="e.g. Chick-fil-A, Starbucks, Chipotle"
+                      disabled={isLoading}
+                      biasRegion={{ lat: 29.648833, lon: -82.343289, span: 0.3 }} 
+                      initialText={store}
+                      setTextInput={(text: string) => {
+                        setStore(text);
+                        updateFieldError('store', text);
+                      }}
+                      onSelect={({ label, lat, lng }) => {
+                        setStore(label);
+                        setStoreCoords({ lat, lng });
+                        updateFieldError('store', label);
+                      }}
+                      onBlurInput={() => updateFieldError('store', store)}
+                      error={fieldErrors.store}
+                    />
+
+                    {fieldErrors.store && (
+                      <Text style={styles.fieldError}>{fieldErrors.store}</Text>
+                    )}
+                  </View>
+                </View>
+
+                {/* Drop-off Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Drop-off</Text>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Drop-off Address *</Text>
+
+                    <SearchBoxApple
+                      icon={
+                        <MapPin
+                          size={20}
+                          color={Colors.semantic.tabInactive}
+                          strokeWidth={2}
+                        />
+                      }
+                      placeholder="e.g. Broward Hall, Library West, Reitz Union"
+                      disabled={isLoading}
+                      biasRegion={{ lat: 29.648833, lon: -82.343289, span: 0.3 }} 
+                      initialText={dropoffAddress}
+                      setTextInput={(text: string) => {
+                        setDropoffAddress(text);
+                        updateFieldError('dropoffAddress', text);
+                      }}
+                      onSelect={({ label, lat, lng }) => {
+                        setDropoffAddress(label);
+                        setDropoffCoords({ lat, lng });
+                        updateFieldError('dropoffAddress', label);
+                      }}
+                      onBlurInput={() => updateFieldError('dropoffAddress', dropoffAddress)}
+                      error={fieldErrors.dropoffAddress}
+                    />
+
+                    {fieldErrors.dropoffAddress && (
+                      <Text style={styles.fieldError}>{fieldErrors.dropoffAddress}</Text>
+                    )}
+                  </View>
+                  {/* <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Drop-off Address *</Text>
+                    <View
+                      style={[
+                        styles.inputWithIcon,
+                        fieldErrors.dropoffAddress && styles.inputError,
+                      ]}
+                    >
+                      <MapPin
+                        size={20}
+                        color={Colors.semantic.tabInactive}
+                        strokeWidth={2}
+                      />
+                      <TextInput
+                        style={styles.inputText}
+                        value={dropoffAddress}
+                        onChangeText={(value) => {
+                          setDropoffAddress(value);
+                          updateFieldError('dropoffAddress', value);
+                        }}
+                        onBlur={() =>
+                          updateFieldError('dropoffAddress', dropoffAddress)
+                        }
+                        placeholder="e.g. Broward Hall, Library West, Reitz Union"
+                        placeholderTextColor={Colors.semantic.tabInactive}
+                        editable={!isLoading}
+                        returnKeyType="done"
+                        accessibilityLabel="Drop-off address"
+                      />
+                    </View>
+
+                    {fieldErrors.dropoffAddress && (
+                      <Text style={styles.fieldError}>
+                        {fieldErrors.dropoffAddress}
+                      </Text>
+                    )}
+                  </View> */}
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Drop-off Instructions</Text>
+                    <View style={styles.inputWithIcon}>
+                      <Package
+                        size={20}
+                        color={Colors.semantic.tabInactive}
+                        strokeWidth={2}
+                      />
+                      <TextInput
+                        style={styles.inputText}
+                        value={dropoffInstructions}
+                        onChangeText={setDropoffInstructions}
+                        placeholder="Any special delivery instructions?"
+                        placeholderTextColor={Colors.semantic.tabInactive}
+                        editable={!isLoading}
+                        returnKeyType="done"
+                        accessibilityLabel="Drop-off instructions"
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                {/* Timing & Urgency Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Timing & Urgency</Text>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Estimated Time *</Text>
+                    <View
+                      style={[
+                        styles.inputWithIcon,
+                        fieldErrors.estimatedMinutes && styles.inputError,
+                      ]}
+                    >
+                      <Clock
+                        size={20}
+                        color={Colors.semantic.tabInactive}
+                        strokeWidth={2}
+                      />
+                      <TextInput
+                        style={styles.inputText}
+                        value={estimatedMinutes}
+                        onChangeText={(value) => {
+                          setEstimatedMinutes(value);
+                          updateFieldError('estimatedMinutes', value);
+                        }}
+                        onBlur={() =>
+                          updateFieldError('estimatedMinutes', estimatedMinutes)
+                        }
+                        placeholder="30"
+                        placeholderTextColor={Colors.semantic.tabInactive}
+                        keyboardType="number-pad"
+                        editable={!isLoading}
+                        returnKeyType="done"
+                        accessibilityLabel="Estimated time in minutes"
+                      />
+                    </View>
+                    <Text style={styles.helperText}>in minutes</Text>
+                    {fieldErrors.estimatedMinutes && (
+                      <Text style={styles.fieldError}>
+                        {fieldErrors.estimatedMinutes}
+                      </Text>
+                    )}
+                  </View>
+
+                  <UrgencySelector />
+                </View>
+
+                {/* Pricing Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Pricing</Text>
+                  <PricingBreakdown />
+                </View>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
 
-        <KeyboardAvoidingView 
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 20}
+        {/* Fixed Footer - Always Visible Above Tab Bar */}
+        <View
+          style={[
+            styles.stickyFooter,
+            {
+              bottom: tabBarHeight + insets.bottom + 8,
+              paddingBottom: 16,
+            },
+          ]}
         >
-          <ScrollView 
-            style={styles.content} 
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={[
-              styles.scrollContent,
-              { paddingBottom: TOTAL_BOTTOM_SPACE }
-            ]}
-            keyboardShouldPersistTaps="handled"
-            automaticallyAdjustKeyboardInsets={false}
-          >
-            <View style={styles.form}>
-              {/* Prefilled Category Chip */}
-              {prefilledCategory && (
-                <View style={styles.prefilledChip}>
-                  <Text style={styles.prefilledChipText}>
-                    Prefilled from {categories.find(c => c.value === prefilledCategory)?.label}
-                  </Text>
-                </View>
-              )}
-
-              {/* Submit Error */}
-              {submitError ? (
-                <View style={styles.submitErrorContainer}>
-                  <AlertCircle size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
-                  <Text style={styles.submitErrorText}>{submitError}</Text>
-                </View>
-              ) : null}
-
-              {/* Moderation Error */}
-              {moderationError ? (
-                <View style={styles.moderationErrorContainer}>
-                  <AlertCircle size={20} color={Colors.semantic.errorAlert} strokeWidth={2} />
-                  <Text style={styles.moderationErrorText}>{moderationError}</Text>
-                </View>
-              ) : null}
-
-              {/* Task Details Section */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Task Details</Text>
-                
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Task Title *</Text>
-                  <TextInput
-                    style={[styles.input, fieldErrors.title && styles.inputError]}
-                    value={title}
-                    onChangeText={(value) => {
-                      setTitle(value);
-                      updateFieldError('title', value);
-                    }}
-                    onBlur={() => updateFieldError('title', title)}
-                    placeholder="What do you need help with?"
-                    placeholderTextColor={Colors.semantic.tabInactive}
-                    editable={!isLoading}
-                    returnKeyType="done"
-                    accessibilityLabel="Task title"
-                  />
-                  {fieldErrors.title && (
-                    <Text style={styles.fieldError}>{fieldErrors.title}</Text>
-                  )}
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Description</Text>
-                  <TextInput
-                    style={[styles.input, styles.textArea]}
-                    value={description}
-                    onChangeText={setDescription}
-                    placeholder="Provide more details about the task..."
-                    placeholderTextColor={Colors.semantic.tabInactive}
-                    multiline
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                    editable={!isLoading}
-                    returnKeyType="done"
-                    accessibilityLabel="Task description"
-                  />
-                </View>
-
-                <CategorySelector />
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Store *</Text>
-                  <View style={[styles.inputWithIcon, fieldErrors.store && styles.inputError]}>
-                    <Store size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-                    <TextInput
-                      style={styles.inputText}
-                      value={store}
-                      onChangeText={(value) => {
-                        setStore(value);
-                        updateFieldError('store', value);
-                      }}
-                      onBlur={() => updateFieldError('store', store)}
-                      placeholder="e.g. Chick-fil-A, Starbucks, Chipotle"
-                      placeholderTextColor={Colors.semantic.tabInactive}
-                      editable={!isLoading}
-                      returnKeyType="done"
-                      accessibilityLabel="Store name"
-                    />
-                  </View>
-                  
-                  {fieldErrors.store && (
-                    <Text style={styles.fieldError}>{fieldErrors.store}</Text>
-                  )}
-                </View>
-              </View>
-
-              {/* Drop-off Section */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Drop-off</Text>
-                
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Drop-off Address *</Text>
-                  <View style={[styles.inputWithIcon, fieldErrors.dropoffAddress && styles.inputError]}>
-                    <MapPin size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-                    <TextInput
-                      style={styles.inputText}
-                      value={dropoffAddress}
-                      onChangeText={(value) => {
-                        setDropoffAddress(value);
-                        updateFieldError('dropoffAddress', value);
-                      }}
-                      onBlur={() => updateFieldError('dropoffAddress', dropoffAddress)}
-                      placeholder="e.g. Broward Hall, Library West, Reitz Union"
-                      placeholderTextColor={Colors.semantic.tabInactive}
-                      editable={!isLoading}
-                      returnKeyType="done"
-                      accessibilityLabel="Drop-off address"
-                    />
-                  </View>
-                  
-                  {fieldErrors.dropoffAddress && (
-                    <Text style={styles.fieldError}>{fieldErrors.dropoffAddress}</Text>
-                  )}
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Drop-off Instructions</Text>
-                  <View style={styles.inputWithIcon}>
-                    <Package size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-                    <TextInput
-                      style={styles.inputText}
-                      value={dropoffInstructions}
-                      onChangeText={setDropoffInstructions}
-                      placeholder="Any special delivery instructions?"
-                      placeholderTextColor={Colors.semantic.tabInactive}
-                      editable={!isLoading}
-                      returnKeyType="done"
-                      accessibilityLabel="Drop-off instructions"
-                    />
-                  </View>
-                </View>
-              </View>
-
-              {/* Timing & Urgency Section */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Timing & Urgency</Text>
-                
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Estimated Time *</Text>
-                  <View style={[styles.inputWithIcon, fieldErrors.estimatedMinutes && styles.inputError]}>
-                    <Clock size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
-                    <TextInput
-                      style={styles.inputText}
-                      value={estimatedMinutes}
-                      onChangeText={(value) => {
-                        setEstimatedMinutes(value);
-                        updateFieldError('estimatedMinutes', value);
-                      }}
-                      onBlur={() => updateFieldError('estimatedMinutes', estimatedMinutes)}
-                      placeholder="30"
-                      placeholderTextColor={Colors.semantic.tabInactive}
-                      keyboardType="number-pad"
-                      editable={!isLoading}
-                      returnKeyType="done"
-                      accessibilityLabel="Estimated time in minutes"
-                    />
-                  </View>
-                  <Text style={styles.helperText}>in minutes</Text>
-                  {fieldErrors.estimatedMinutes && (
-                    <Text style={styles.fieldError}>{fieldErrors.estimatedMinutes}</Text>
-                  )}
-                </View>
-
-                <UrgencySelector />
-              </View>
-
-              {/* Pricing Section */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Pricing</Text>
-                <PricingBreakdown />
-              </View>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
-      
-      {/* Fixed Footer - Always Visible Above Tab Bar */}
-      <View style={[
-        styles.stickyFooter,
-        {
-          bottom: tabBarHeight + insets.bottom + 8,
-          paddingBottom: 16,
-        }
-      ]}>
-        {/* <TouchableOpacity
+          {/* <TouchableOpacity
           style={[
             styles.submitButton,
             (!isFormValid() || isLoading) && styles.submitButtonDisabled
@@ -964,23 +1182,26 @@ export default function PostScreen() {
             </View>
           )}
         </TouchableOpacity> */}
-        <CheckoutForm amount={computedPriceCents} isFormValid={isFormValid} submitTask={handleSubmit} />
-      </View>
+          <CheckoutForm
+            amount={computedPriceCents}
+            isFormValid={isFormValid}
+            submitTask={handleSubmit}
+          />
+        </View>
 
-      {/* Store Selection Modal */}
-      <StoreSelectionModal />
+        {/* Store Selection Modal */}
+        <StoreSelectionModal />
 
-      {/* Dropoff Selection Modal */}
-      <DropoffSelectionModal />
+        {/* Dropoff Selection Modal */}
+        <DropoffSelectionModal />
 
-
-      {/* Toast */}
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onHide={hideToast}
-      />
+        {/* Toast */}
+        <Toast
+          visible={toast.visible}
+          message={toast.message}
+          type={toast.type}
+          onHide={hideToast}
+        />
       </SafeAreaView>
     </>
   );
