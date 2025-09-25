@@ -53,7 +53,7 @@ export default function ReferralTermsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>How it works</Text>
             <Text style={styles.bodyText}>
-              Share your unique link. When a new user signs up with your link and completes their first task successfully (posted, accepted, completed, and not refunded), you earn $10 in Hustl credits.
+              Share your unique link. When a new user signs up with your link and completes their first task successfully (posted, accepted, completed, and not refunded), you earn one (1) free delivery.
             </Text>
           </View>
 
@@ -67,14 +67,14 @@ export default function ReferralTermsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Reward timing</Text>
             <Text style={styles.bodyText}>
-              Credits are applied within 24–72 hours after the friend's first task is successfully completed and payment clears review.
+              Free delivery reward is applied within 24–72 hours after the friend's first task is successfully completed and payment clears review.
             </Text>
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Credits</Text>
             <Text style={styles.bodyText}>
-              Non-transferable, have no cash value, and can only be used in-app where credits are accepted. Credits may expire 12 months after issuance.
+              Free delivery waives the delivery fee only on one eligible food/delivery order; does not discount items, taxes, service fees, or tips; one reward per order; auto-applies to next eligible order; consumed on successful completion; not consumed if fee already $0 or order fails/cancels; expires after 12 months unless otherwise stated.
             </Text>
           </View>
 
@@ -88,14 +88,14 @@ export default function ReferralTermsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Fraud & abuse</Text>
             <Text style={styles.bodyText}>
-              We may withhold, reverse, or revoke credits for suspected fraud, violation of these terms, chargebacks/refunds, or policy breaches.
+              We may withhold, reverse, or revoke free delivery rewards for suspected fraud, violation of these terms, chargebacks/refunds, or policy breaches.
             </Text>
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Taxes</Text>
             <Text style={styles.bodyText}>
-              You are responsible for any taxes resulting from rewards.
+              You are responsible for any taxes resulting from free delivery rewards.
             </Text>
           </View>
 
@@ -109,14 +109,14 @@ export default function ReferralTermsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Privacy</Text>
             <Text style={styles.bodyText}>
-              Use of the program is subject to our Privacy Policy. Minimal data is shared to attribute referrals.
+              Use of the program is subject to our Privacy Policy. Minimal data is shared to attribute referrals and free delivery rewards.
             </Text>
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Liability</Text>
             <Text style={styles.bodyText}>
-              Program provided "as is." Hustl isn't liable for indirect or incidental damages; our total liability is limited to the value of credits earned.
+              Program provided "as is." Hustl isn't liable for indirect or incidental damages; our total liability is limited to the value of free delivery rewards earned.
             </Text>
           </View>
 
