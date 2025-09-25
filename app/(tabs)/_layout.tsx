@@ -1,13 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import {
-  Home as Home,
-  List,
-  Zap,
-  MessageCircle,
-  Gift,
-  User,
-} from 'lucide-react-native';
+import { Chrome as Home, List, Zap, MessageCircle, Gift, User } from 'lucide-react-native';
 import { TouchableOpacity, View, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -219,28 +212,26 @@ const styles = StyleSheet.create({
     height: 44,
   },
   lightningTabContainer: {
-    position: 'absolute',
-    bottom: 18,
-    left: '50%',
-    marginLeft: -32,
-    backgroundColor: 'transparent',
-    pointerEvents: 'box-none',
-    zIndex: 10,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingTop: 8,
+    paddingBottom: 8,
   },
-  fabButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#3B82F6',
+  lightningButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: '#3B82F6',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  lightningGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
