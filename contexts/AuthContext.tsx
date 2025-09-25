@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { Session, User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { ReferralService } from '@/lib/referralService';
 import type { UserProfile } from '@/types/database';
 
 interface AuthUser {
@@ -124,6 +125,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (email: string, password: string, displayName: string): Promise<{ error?: string }> => {
     try {
       setIsLoading(true);
+      
+      // Extract referral code from URL if present
+      const urlParams = new URLSearchParams(window.location?.search || '');
+      const referralCode = urlParams.get('ref');
+      
       const { error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
@@ -131,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             display_name: displayName.trim(),
             university: 'University of Florida',
+            referral_code: referralCode,
           },
         },
       });
@@ -139,6 +146,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: formatAuthError(error) };
       }
 
+      // If there's a referral code, issue free delivery reward to referrer
+      if (referralCode) {
+        try {
+          const { error: rewardError } = await ReferralService.issueFreeDeliveryReward(referralCode, email);
+          if (rewardError) {
+            console.error('Failed to issue referral reward:', rewardError);
+            // Don't fail signup if reward issuance fails
+          }
+        } catch (error) {
+          console.error('Error issuing referral reward:', error);
+          // Don't fail signup if reward issuance fails
+        }
+      }
       setIsGuest(false);
       return {};
     } catch (error) {
