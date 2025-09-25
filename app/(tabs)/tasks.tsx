@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Pressable,
+  Alert,
 } from 'react-native';
 import { router, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -50,6 +51,41 @@ const { width } = Dimensions.get('window');
 
 type ViewMode = 'myTasks' | 'list' | 'map';
 
+// Tooltip helper functions
+const getStatusTooltip = (status: string): string => {
+  switch (status) {
+    case 'open':
+      return 'Available — no runner has accepted this task yet.';
+    case 'accepted':
+      return 'A runner accepted this task and is working on it.';
+    case 'completed':
+      return 'Task finished and closed.';
+    default:
+      return status;
+  }
+};
+
+const getUrgencyTooltip = (urgency: string): string => {
+  switch (urgency) {
+    case 'low':
+      return 'Flexible timing — later today is okay.';
+    case 'medium':
+      return 'Soon — within the next couple of hours.';
+    case 'high':
+      return 'ASAP — as quickly as possible.';
+    default:
+      return urgency;
+  }
+};
+
+const showTooltip = (message: string) => {
+  if (Platform.OS === 'web') {
+    // For web, we could implement a proper tooltip, but Alert works for now
+    Alert.alert('Info', message);
+  } else {
+    Alert.alert('Info', message);
+  }
+};
 // Enhanced Task Card Component
 const TaskCard = ({
   task,
@@ -111,6 +147,24 @@ const TaskCard = ({
     }
   };
 
+  const formatStatus = (status: string): string => {
+    switch (status) {
+      case 'open':
+        return 'Open';
+      case 'accepted':
+        return 'In Progress';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  };
+
+  const formatUrgency = (urgency: string): string => {
+    return urgency.charAt(0).toUpperCase() + urgency.slice(1);
+  };
   return (
     <Animated.View
       style={[
@@ -135,12 +189,20 @@ const TaskCard = ({
                 {task.title}
               </Text>
             </TouchableOpacity>
+            {/* Card subtitle */}
+            <Text style={styles.taskSubtitle}>
+              Status: {formatStatus(task.status)} • Urgency: {formatUrgency(task.urgency)}
+            </Text>
             <View style={styles.badgesContainer}>
-              <View
+              <TouchableOpacity
                 style={[
                   styles.urgencyBadge,
                   { backgroundColor: getUrgencyColor(task.urgency) + '20' },
                 ]}
+                onLongPress={() => showTooltip(getUrgencyTooltip(task.urgency))}
+                accessibilityLabel={`Urgency: ${formatUrgency(task.urgency)}. ${getUrgencyTooltip(task.urgency)}`}
+                accessibilityRole="button"
+                accessibilityHint="Long press for more information"
               >
                 <Text
                   style={[
@@ -148,16 +210,19 @@ const TaskCard = ({
                     { color: getUrgencyColor(task.urgency) },
                   ]}
                 >
-                  {String(task.urgency).charAt(0).toUpperCase() +
-                    String(task.urgency).slice(1)}
+                  {formatUrgency(task.urgency)}
                 </Text>
-              </View>
+              </TouchableOpacity>
 
-              <View
+              <TouchableOpacity
                 style={[
                   styles.statusBadge,
                   { backgroundColor: getStatusColor(task.status) + '20' },
                 ]}
+                onLongPress={() => showTooltip(getStatusTooltip(task.status))}
+                accessibilityLabel={`Status: ${formatStatus(task.status)}. ${getStatusTooltip(task.status)}`}
+                accessibilityRole="button"
+                accessibilityHint="Long press for more information"
               >
                 <Text
                   style={[
@@ -165,10 +230,9 @@ const TaskCard = ({
                     { color: getStatusColor(task.status) },
                   ]}
                 >
-                  {String(task.status).charAt(0).toUpperCase() +
-                    String(task.status).slice(1)}
+                  {formatStatus(task.status)}
                 </Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -810,6 +874,11 @@ const styles = StyleSheet.create({
     color: Colors.semantic.headingText,
     marginBottom: 8,
     lineHeight: 24,
+  },
+  taskSubtitle: {
+    fontSize: 12,
+    color: Colors.semantic.tabInactive,
+    marginBottom: 8,
   },
   badgesContainer: {
     flexDirection: 'row',
