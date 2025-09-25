@@ -60,21 +60,23 @@ const LightningActionButton = ({ focused }: { focused: boolean }) => {
 
   return (
     <>
-      <TouchableOpacity
-        style={styles.fabButton}
-        onPress={handlePress}
-        activeOpacity={0.9}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        accessibilityLabel="Post Task"
-        accessibilityRole="button"
-      >
-        <Zap
-          size={28}
-          color={Colors.white}
-          strokeWidth={2.5}
-          fill={Colors.white}
-        />
-      </TouchableOpacity>
+      <View style={styles.fabContainer}>
+        <TouchableOpacity
+          style={styles.fabButton}
+          onPress={handlePress}
+          activeOpacity={0.9}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel="Post a task"
+          accessibilityRole="button"
+        >
+          <Zap
+            size={24}
+            color={Colors.white}
+            strokeWidth={2.5}
+            fill={Colors.white}
+          />
+        </TouchableOpacity>
+      </View>
       <KYCRequestModal
         visible={showKYCModal}
         onClose={() => setShowKYCModal(false)}
@@ -87,11 +89,9 @@ const LightningActionButton = ({ focused }: { focused: boolean }) => {
 // Custom tab bar button for Lightning Action
 const LightningTabButton = (props: any) => {
   return (
-    <View style={styles.lightningTabContainer}>
-      <LightningActionButton
-        focused={props.accessibilityState?.selected || false}
-      />
-    </View>
+    <LightningActionButton
+      focused={props.accessibilityState?.selected || false}
+    />
   );
 };
 
@@ -115,6 +115,7 @@ export default function TabLayout() {
             left: 0,
             right: 0,
             elevation: 20,
+            overflow: 'visible',
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -8 },
             shadowOpacity: 0.12,
@@ -211,27 +212,27 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
   },
-  lightningTabContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 8,
-    paddingBottom: 8,
+  fabContainer: {
+    position: 'absolute',
+    left: '50%',
+    bottom: 10,
+    transform: [{ translateX: -24 }],
+    zIndex: 2,
+    backgroundColor: 'transparent',
+    pointerEvents: 'box-none',
   },
-  lightningButton: {
+  fabButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  lightningGradient: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });
