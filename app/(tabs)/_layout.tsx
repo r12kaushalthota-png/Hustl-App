@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import {
-  Chrome as Home,
+  Home as Home,
   List,
   Zap,
   MessageCircle,
