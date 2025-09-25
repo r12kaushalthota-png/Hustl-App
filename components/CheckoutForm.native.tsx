@@ -13,6 +13,8 @@ import { useStripe } from '@stripe/stripe-react-native';
 import * as Linking from 'expo-linking';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Zap } from 'lucide-react-native';
+import { CheckoutService } from '@/lib/checkoutService';
+import { useAuth } from '@/contexts/AuthContext';
 
 async function fetchPaymentSheetParams({ amount }: { amount: number }) {
   const response = await fetch(
@@ -34,18 +36,57 @@ const CheckoutForm = ({
   amount,
   isFormValid,
   submitTask,
+  category = 'food',
 }: {
   amount: number;
   isFormValid: () => boolean;
   submitTask: () => void;
+  category?: string;
 }) => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [orderTotals, setOrderTotals] = useState<any>(null);
+  const [rewardToConsume, setRewardToConsume] = useState<string | null>(null);
+
+  // Calculate totals with free delivery applied
+  useEffect(() => {
+    calculateTotals();
+  }, [amount, category, user]);
+
+  const calculateTotals = async () => {
+    if (!user) return;
+
+    try {
+      const subtotal = amount;
+      const baseDeliveryFee = Math.round(amount * 0.15); // 15% delivery fee
+      const serviceFee = Math.round(amount * 0.05); // 5% service fee
+      const tax = Math.round(amount * 0.08); // 8% tax
+      
+      const { data: totals, error } = await CheckoutService.calculateOrderTotals(
+        user.id,
+        category,
+        subtotal,
+        baseDeliveryFee,
+        serviceFee,
+        tax,
+        0 // tip
+      );
+
+      if (totals) {
+        setOrderTotals(totals);
+        setRewardToConsume(totals.rewardToConsume || null);
+      }
+    } catch (error) {
+      console.error('Error calculating totals:', error);
+    }
+  };
 
   const initializePaymentSheet = async () => {
-    console.log('Initializing payment sheet with amount:', amount);
+    const finalAmount = orderTotals?.total || amount;
+    console.log('Initializing payment sheet with amount:', finalAmount);
     const { paymentIntent, ephemeralKey, customer, mode } =
-      await fetchPaymentSheetParams({ amount });
+      await fetchPaymentSheetParams({ amount: finalAmount });
     console.log('Payment sheet params:', {
       paymentIntent,
       ephemeralKey,
@@ -84,54 +125,99 @@ const CheckoutForm = ({
       Alert.alert(`${error.message}`);
     } else {
       Alert.alert('Success', 'Your oder is confirmed!');
+      
+      // Consume free delivery reward if applied
+      if (rewardToConsume) {
+        try {
+          await ReferralService.consumeFreeDeliveryReward(rewardToConsume);
+        } catch (error) {
+          console.error('Failed to consume reward:', error);
+        }
+      }
+      
       submitTask();
     }
   };
-  return (
-    <TouchableOpacity
-      style={[
-        styles.submitButton,
-        (!isFormValid() || isLoading) && styles.submitButtonDisabled,
-      ]}
-      onPress={async () => {
-        setIsLoading(true);
-        await initializePaymentSheet();
-        await openPaymentSheet();
-        setIsLoading(false);
-      }}
-      disabled={!isFormValid() || isLoading}
-      accessibilityLabel="Post Task"
-      accessibilityRole="button"
-    >
-      {isFormValid() && !isLoading ? (
-        <LinearGradient
-          colors={['#0047FF', '#0021A5']}
-          style={styles.submitButtonGradient}
-        >
-          <Zap
-            size={18}
-            color={Colors.white}
-            strokeWidth={2.5}
-            fill={Colors.white}
-          />
-          <Text style={styles.submitButtonText}>Post Task</Text>
-        </LinearGradient>
-      ) : (
-        <View style={styles.disabledButtonContent}>
-          {isLoading ? (
-            <ActivityIndicator size="small" color={Colors.white} />
-          ) : (
-            <Text style={styles.disabledButtonText}>Post Task</Text>
-          )}
+
+  // Show delivery fee savings if free delivery is applied
+  const renderDeliveryInfo = () => {
+    if (!orderTotals) return null;
+
+    if (orderTotals.freeDeliveryApplied) {
+      return (
+        <View style={styles.deliveryInfo}>
+          <Text style={styles.deliveryInfoText}>
+            ✅ Free delivery applied! You saved {CheckoutService.formatCurrency(Math.round(amount * 0.15))}
+          </Text>
         </View>
-      )}
-    </TouchableOpacity>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <View>
+      {renderDeliveryInfo()}
+      <TouchableOpacity
+        style={[
+          styles.submitButton,
+          (!isFormValid() || isLoading) && styles.submitButtonDisabled,
+        ]}
+        onPress={async () => {
+          setIsLoading(true);
+          await initializePaymentSheet();
+          await openPaymentSheet();
+          setIsLoading(false);
+        }}
+        disabled={!isFormValid() || isLoading}
+        accessibilityLabel="Post Task"
+        accessibilityRole="button"
+      >
+        {isFormValid() && !isLoading ? (
+          <LinearGradient
+            colors={['#0047FF', '#0021A5']}
+            style={styles.submitButtonGradient}
+          >
+            <Zap
+              size={18}
+              color={Colors.white}
+              strokeWidth={2.5}
+              fill={Colors.white}
+            />
+            <Text style={styles.submitButtonText}>Post Task</Text>
+          </LinearGradient>
+        ) : (
+          <View style={styles.disabledButtonContent}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color={Colors.white} />
+            ) : (
+              <Text style={styles.disabledButtonText}>Post Task</Text>
+            )}
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 };
 
 export default CheckoutForm;
 
 const styles = StyleSheet.create({
+  deliveryInfo: {
+    backgroundColor: '#10B981' + '15',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#10B981' + '30',
+  },
+  deliveryInfoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#10B981',
+    textAlign: 'center',
+  },
   submitButton: {
     borderRadius: 16,
     overflow: 'hidden',

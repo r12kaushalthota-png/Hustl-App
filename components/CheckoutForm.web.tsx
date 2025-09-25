@@ -7,6 +7,8 @@ import { Colors } from '@/theme/colors';
 
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { CheckoutService } from '@/lib/checkoutService';
+import { useAuth } from '@/contexts/AuthContext';
 
 const stripePromise = loadStripe(process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -30,14 +32,52 @@ function CheckoutInner({
   amount,
   isFormValid,
   submitTask,
+  category = 'food',
 }: {
   amount: number;
   isFormValid: () => boolean;
   submitTask: () => void;
+  category?: string;
 }) {
   const stripe = useStripe();
   const elements = useElements();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [orderTotals, setOrderTotals] = useState<any>(null);
+  const [rewardToConsume, setRewardToConsume] = useState<string | null>(null);
+
+  // Calculate totals with free delivery applied
+  useEffect(() => {
+    calculateTotals();
+  }, [amount, category, user]);
+
+  const calculateTotals = async () => {
+    if (!user) return;
+
+    try {
+      const subtotal = amount;
+      const baseDeliveryFee = Math.round(amount * 0.15); // 15% delivery fee
+      const serviceFee = Math.round(amount * 0.05); // 5% service fee
+      const tax = Math.round(amount * 0.08); // 8% tax
+      
+      const { data: totals, error } = await CheckoutService.calculateOrderTotals(
+        user.id,
+        category,
+        subtotal,
+        baseDeliveryFee,
+        serviceFee,
+        tax,
+        0 // tip
+      );
+
+      if (totals) {
+        setOrderTotals(totals);
+        setRewardToConsume(totals.rewardToConsume || null);
+      }
+    } catch (error) {
+      console.error('Error calculating totals:', error);
+    }
+  };
 
   const handlePay = async () => {
     if (!stripe || !elements) return;
@@ -45,8 +85,10 @@ function CheckoutInner({
     try {
       setIsLoading(true);
 
+      const finalAmount = orderTotals?.total || amount;
+
       // 1) Minta server bikin PaymentIntent dan balikin client_secret
-      const { paymentIntent, mode } = await fetchPaymentSheetParams({ amount });
+      const { paymentIntent, mode } = await fetchPaymentSheetParams({ amount: finalAmount });
       if (!paymentIntent) {
         throw new Error('Client secret tidak ditemukan dari server.');
       }
@@ -73,6 +115,16 @@ function CheckoutInner({
 
       if (pi?.status === 'succeeded') {
         Alert.alert('Success', 'Your order is confirmed!');
+        
+        // Consume free delivery reward if applied
+        if (rewardToConsume) {
+          try {
+            await ReferralService.consumeFreeDeliveryReward(rewardToConsume);
+          } catch (error) {
+            console.error('Failed to consume reward:', error);
+          }
+        }
+        
         submitTask();
       } else {
         Alert.alert('Payment status', pi?.status ?? 'unknown');
@@ -86,8 +138,27 @@ function CheckoutInner({
 
   const disabled = !isFormValid() || isLoading || !stripe || !elements;
 
+  // Show delivery fee savings if free delivery is applied
+  const renderDeliveryInfo = () => {
+    if (!orderTotals) return null;
+
+    if (orderTotals.freeDeliveryApplied) {
+      return (
+        <View style={styles.deliveryInfo}>
+          <Text style={styles.deliveryInfoText}>
+            ✅ Free delivery applied! You saved {CheckoutService.formatCurrency(Math.round(amount * 0.15))}
+          </Text>
+        </View>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <View style={{ gap: 12 }}>
+      {renderDeliveryInfo()}
+      
       {/* Wrapper div agar CardElement (DOM) tampil rapi */}
       <View style={styles.cardElementWrapper}>
         <CardElement
@@ -132,6 +203,7 @@ export default function CheckoutForm(props: {
   amount: number;
   isFormValid: () => boolean;
   submitTask: () => void;
+  category?: string;
 }) {
   return (
     <Elements stripe={stripePromise}>
@@ -141,6 +213,20 @@ export default function CheckoutForm(props: {
 }
 
 const styles = StyleSheet.create({
+  deliveryInfo: {
+    backgroundColor: '#10B981' + '15',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#10B981' + '30',
+  },
+  deliveryInfoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#10B981',
+    textAlign: 'center',
+  },
   cardElementWrapper: {
     paddingVertical: 12,
     paddingHorizontal: 14,

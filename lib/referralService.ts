@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { NotificationService } from '@/services/notifications';
 
 export interface FreeDeliveryReward {
   id: string;
@@ -40,6 +41,13 @@ export class ReferralService {
         return { error: error.message };
       }
 
+      // Send notification to referrer
+      try {
+        await NotificationService.sendReferralRewardNotification(referrerId);
+      } catch (error) {
+        console.error('Failed to send referral notification:', error);
+        // Don't fail the reward issuance if notification fails
+      }
       return { error: null };
     } catch (error) {
       return { error: 'Failed to issue free delivery reward' };
@@ -184,6 +192,14 @@ export class ReferralService {
         return { error: updateError.message };
       }
 
+      // Send notification about free delivery applied
+      try {
+        const { count } = await this.countFreeDeliveries(reward.user_id);
+        await NotificationService.sendFreeDeliveryAppliedNotification(reward.user_id, count);
+      } catch (error) {
+        console.error('Failed to send free delivery applied notification:', error);
+        // Don't fail the consumption if notification fails
+      }
       return { error: null };
     } catch (error) {
       return { error: 'Failed to consume free delivery reward' };

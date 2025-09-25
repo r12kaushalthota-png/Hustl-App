@@ -238,6 +238,58 @@ export class NotificationService {
   }
 
   /**
+   * Send referral reward notification
+   */
+  static async sendReferralRewardNotification(userId: string): Promise<{ error: string | null }> {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: userId,
+          type: 'REFERRAL_REWARD',
+          title: '🎉 Referral Reward!',
+          body: 'Your friend joined! You earned 1 free delivery.',
+          meta: { reward_type: 'free_delivery' },
+          is_read: false,
+        });
+
+      if (error) {
+        return { error: error.message };
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { error: 'Failed to send referral notification' };
+    }
+  }
+
+  /**
+   * Send free delivery applied notification
+   */
+  static async sendFreeDeliveryAppliedNotification(userId: string, remainingCount: number): Promise<{ error: string | null }> {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: userId,
+          type: 'FREE_DELIVERY_APPLIED',
+          title: '✅ Free Delivery Applied',
+          body: `Free delivery applied. You have ${remainingCount} left.`,
+          meta: { remaining_count: remainingCount },
+          is_read: false,
+        });
+
+      if (error) {
+        return { error: error.message };
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { error: 'Failed to send free delivery notification' };
+    }
+  }
+
+  /**
    * Open device notification settings
    */
   static async openNotificationSettings(): Promise<void> {

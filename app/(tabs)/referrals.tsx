@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Platform, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Platform, SafeAreaView, ActivityIndicator } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +9,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { GamificationRepo } from '@/lib/gamificationRepo';
+import { ReferralService } from '@/lib/referralService';
 import GlobalHeader from '@/components/GlobalHeader';
 import Toast from '@components/Toast';
 
@@ -26,8 +26,8 @@ const howItWorksSteps = [
   },
   {
     icon: <DollarSign size={24} color={Colors.primary} strokeWidth={2} />,
-    title: 'Earn credits',
-    description: 'Get $10 in credits when your friend completes their first task successfully.',
+    title: 'Get free delivery',
+    description: 'Get 1 free delivery when your friend joins and verifies their account.',
   },
 ];
 
@@ -36,6 +36,8 @@ export default function ReferralsScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { user, isGuest } = useAuth();
+  const [freeDeliveryCount, setFreeDeliveryCount] = useState(0);
+  const [isLoadingRewards, setIsLoadingRewards] = useState(true);
   const [toast, setToast] = useState<{ visible: boolean; message: string }>({
     visible: false,
     message: ''
@@ -50,6 +52,32 @@ export default function ReferralsScreen() {
   };
 
   const referralLink = user ? `https://hustl.app/ref/${user.id}` : 'https://hustl.app/ref/demo';
+
+  // Load free delivery count
+  useEffect(() => {
+    loadFreeDeliveryCount();
+  }, [user]);
+
+  const loadFreeDeliveryCount = async () => {
+    if (!user) {
+      setIsLoadingRewards(false);
+      return;
+    }
+
+    try {
+      const { count, error } = await ReferralService.countFreeDeliveries(user.id);
+      
+      if (error) {
+        console.error('Failed to load free delivery count:', error);
+      } else {
+        setFreeDeliveryCount(count);
+      }
+    } catch (error) {
+      console.error('Error loading free delivery count:', error);
+    } finally {
+      setIsLoadingRewards(false);
+    }
+  };
 
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
@@ -137,12 +165,20 @@ export default function ReferralsScreen() {
           <View style={styles.balanceCard}>
             <View style={styles.balanceHeader}>
               <Gift size={32} color={Colors.primary} strokeWidth={2} />
-              <Text style={styles.balanceTitle}>Your Credits</Text>
+              <Text style={styles.balanceTitle}>Free Deliveries</Text>
             </View>
-            <Text style={styles.balanceAmount}>
-              {formatCurrency(referralStats.balance * 100)}
-            </Text>
-            <Text style={styles.balanceLabel}>Available Balance</Text>
+            {isLoadingRewards ? (
+              <ActivityIndicator size="large" color={Colors.primary} />
+            ) : (
+              <>
+                <Text style={styles.balanceAmount}>
+                  {freeDeliveryCount}
+                </Text>
+                <Text style={styles.balanceLabel}>
+                  {freeDeliveryCount === 1 ? 'Free Delivery Available' : 'Free Deliveries Available'}
+                </Text>
+              </>
+            )}
           </View>
 
           {/* Stats Row */}
@@ -162,9 +198,9 @@ export default function ReferralsScreen() {
             <View style={styles.statCard}>
               <DollarSign size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
               <Text style={styles.statValue}>
-                {user?.profile ? GamificationRepo.formatCredits(user.profile.credits) : '0 credits'}
+                {freeDeliveryCount}
               </Text>
-              <Text style={styles.statLabel}>Credits</Text>
+              <Text style={styles.statLabel}>Free Deliveries</Text>
             </View>
           </View>
 
@@ -211,6 +247,11 @@ export default function ReferralsScreen() {
           {/* How It Works */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>How It Works</Text>
+            <View style={styles.statusContainer}>
+              <Text style={styles.statusText}>
+                {ReferralService.formatFreeDeliveryStatus(freeDeliveryCount)}
+              </Text>
+            </View>
             <View style={styles.stepsContainer}>
               {howItWorksSteps.map((step, index) => (
                 <View key={index} style={styles.stepCard}>
@@ -438,6 +479,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.semantic.tabInactive,
     lineHeight: 20,
+  },
+  statusContainer: {
+    backgroundColor: Colors.primary + '15',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+  },
+  statusText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.primary,
+    textAlign: 'center',
   },
   termsButton: {
     flexDirection: 'row',

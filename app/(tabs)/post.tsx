@@ -577,6 +577,7 @@ export default function PostTaskScreen() {
               amount={rewardCents}
               isFormValid={isFormValid}
               submitTask={submitTask}
+              category={initialCategory}
             />
           </View>
         </ScrollView>
