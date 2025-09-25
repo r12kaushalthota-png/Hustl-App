@@ -14,15 +14,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import {
-  ArrowLeft,
-  MapPin,
-  Store,
-  Clock,
-  DollarSign,
-  Zap,
-  AlertTriangle,
-} from 'lucide-react-native';
+import { ArrowLeft, MapPin, Store, Clock, DollarSign, Zap, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
