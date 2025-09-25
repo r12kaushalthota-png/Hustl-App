@@ -264,9 +264,9 @@ const ReferralBanner = () => {
             <TrendingUp size={20} color={BrandColors.surface} strokeWidth={2.5} />
           </View>
           <View style={styles.referralText}>
-            <Text style={styles.referralTitle}>Earn $10 per referral</Text>
+            <Text style={styles.referralTitle}>Refer a friend, get 1 free delivery</Text>
             <Text style={styles.referralSubtitle}>
-              Invite friends • Get rewarded • Build your network
+              When your friend joins with your code, your next food/delivery order's delivery fee is on us.
             </Text>
           </View>
           <ChevronRight size={20} color={BrandColors.surface} strokeWidth={2.5} />
