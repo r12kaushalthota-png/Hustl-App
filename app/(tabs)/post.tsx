@@ -7,282 +7,125 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
-  KeyboardAvoidingView,
-  ActivityIndicator,
-  Keyboard,
-  Dimensions,
   SafeAreaView,
-  Modal,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import {
-  X,
+  ArrowLeft,
   MapPin,
-  Clock,
   Store,
-  Package,
+  Clock,
+  DollarSign,
   Zap,
-  CircleAlert as AlertCircle,
-  Check,
+  AlertTriangle,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
-import { TaskCategory, TaskUrgency } from '@/types/database';
 import { ModerationService } from '@/lib/moderation';
-import Toast from '@components/Toast';
-import CheckoutForm from '../../components/CheckoutForm';
 import SearchBoxApple from '@/components/SearchBoxApple';
+import Toast from '@/components/Toast';
+import CheckoutForm from '@/components/CheckoutForm';
 
-const { width } = Dimensions.get('window');
-
-// Extended categories to support all card types
-const categories: { value: string; label: string }[] = [
-  { value: 'food', label: 'Food Pickup' },
-  { value: 'coffee', label: 'Coffee Run' },
-  { value: 'grocery', label: 'Grocery Shopping' },
-  { value: 'study', label: 'Study Partner' },
-  { value: 'workout', label: 'Workout Buddy' },
-  { value: 'transport', label: 'Campus Rides' },
-  { value: 'gaming', label: 'Gaming Partner' },
-  { value: 'tutoring', label: 'Tutoring' },
-  { value: 'events', label: 'Event Buddy' },
-  { value: 'photography', label: 'Photography' },
-  { value: 'repair', label: 'Tech Repair' },
-  { value: 'laundry', label: 'Laundry Help' },
-];
-
-const urgencyOptions: { value: string; label: string; price: number }[] = [
-  { value: 'low', label: 'Low', price: 0 },
-  { value: 'medium', label: 'Medium', price: 100 }, // $1.00 in cents
-  { value: 'high', label: 'High', price: 250 }, // $2.50 in cents
-];
-
-// Common campus locations
-const campusLocations = [
-  // Food & Restaurants
-  'Chick-fil-A (Reitz Union)',
-  'Panda Express (Reitz Union)',
-  'Subway (Reitz Union)',
-  'Starbucks (Library West)',
-  'Starbucks (Reitz Union)',
-  'Dunkin\' (Turlington)',
-  'Chipotle (Midtown)',
-  'Taco Bell (Archer Road)',
-  'McDonald\'s (Archer Road)',
-  'Publix (Butler Plaza)',
-  'Target (Butler Plaza)',
-  'Walmart (Archer Road)',
-  'CVS Pharmacy (13th Street)',
-  'Walgreens (University Avenue)',
-  // Campus Buildings
-  'Reitz Union',
-  'Library West',
-  'Marston Science Library',
-  'Student Recreation Center',
-  'Plaza of the Americas',
-  'Turlington Hall',
-  'Little Hall',
-  'Gator Corner Dining Center',
-  'Fresh Food Company',
-  'Broward Dining',
-  // Off-Campus Popular
-  'Midtown Gainesville',
-  'Butler Plaza',
-  'Oaks Mall',
-  'Archer Road',
-  'University Avenue',
-];
-
-const dropoffLocations = [
-  // Residence Halls
-  'Broward Hall',
-  'Rawlings Hall',
-  'Jennings Hall',
-  'Yulee Hall',
-  'Reid Hall',
-  'Murphree Hall',
-  'Fletcher Hall',
-  'Sledd Hall',
-  'Thomas Hall',
-  'Buckman Hall',
-  'East Hall',
-  'Tolbert Hall',
-  'Weaver Hall',
-  'Keys Complex',
-  'Lakeside Complex',
-  'Springs Complex',
-  'Infinity Hall',
-  'Cypress Hall',
-  'Poplar Hall',
-  'Magnolia Hall',
-  'Palmetto Hall',
-  // Campus Buildings
-  'Reitz Union',
-  'Library West',
-  'Marston Science Library',
-  'Student Recreation Center',
-  'Plaza of the Americas',
-  'Turlington Hall',
-  'Little Hall',
-  'Gator Corner Dining Center',
-  'Fresh Food Company',
-  // Off-Campus Areas
-  'Midtown Gainesville',
-  'Butler Plaza',
-  'Archer Road Apartments',
-  'University Avenue',
-  'SW 20th Avenue',
-  'SW 34th Street',
-];
-
-const BASE_PRICE_CENTS = 150; // $1.50 base price
-const MIN_PRICE_CENTS = 200; // $2.00 minimum
-const MAX_PRICE_CENTS = 2500; // $25.00 maximum
-
-interface PlaceData {
-  place_id: string;
-  description: string;
-  latitude?: number;
-  longitude?: number;
-}
-
-// Validation schema
-const validateField = (field: string, value: string): string => {
-  switch (field) {
-    case 'title':
-      if (!value) return 'Task title is required';
-      if (value.trim().length < 3) return 'Title must be at least 3 characters';
-      return '';
-    case 'category':
-      return !value ? 'Please select a category' : '';
-    case 'store':
-      if (!value || !value.trim()) {
-        return 'Please select a store';
-      }
-      return '';
-    case 'dropoffAddress':
-      if (!value || !value.trim()) {
-        return 'Please select a dropoff location';
-      }
-      return '';
-    case 'estimatedMinutes':
-      if (!value) return 'Estimated time is required';
-      const minutes = Number(value);
-      if (isNaN(minutes)) return 'Please enter a valid number';
-      if (minutes < 5) return 'Minimum 5 minutes';
-      if (minutes > 180) return 'Maximum 180 minutes';
-      return '';
-    case 'urgency':
-      return !value ? 'Please select urgency level' : '';
-    default:
-      return '';
-  }
+// Exact brand colors from the logo
+const BrandColors = {
+  primary: '#0D2DEB', // Hustl Blue
+  purple: '#6B2BBF', // Hustl Purple
+  red: '#E53935', // Hustl Red
+  orange: '#FF5A1F', // Hustl Orange
+  accentYellow: '#FFC400', // Badge yellow
+  surface: '#FFFFFF',
+  title: '#0A0F1F',
+  subtitle: '#5B6475',
+  divider: '#E9EDF5',
 };
 
-// Category defaults for prefilling
-const getCategoryDefaults = (categoryId: string) => {
-  const defaults = {
-    food: {
-      title: 'Food pickup',
-      description: 'Pick up my order and drop it off.',
-      estimatedMinutes: '20',
-      urgency: 'medium' as const,
-    },
-    coffee: {
-      title: 'Coffee run',
-      description: 'Grab a coffee and drop it off.',
-      estimatedMinutes: '15',
-      urgency: 'medium' as const,
-    },
-    grocery: {
-      title: 'Grocery shopping',
-      description: 'Pick up groceries and deliver.',
-      estimatedMinutes: '30',
-      urgency: 'low' as const,
-    },
-    study: {
-      title: 'Study partner',
-      description: 'Study session—subject/topic flexible.',
-      estimatedMinutes: '60',
-      urgency: 'low' as const,
-    },
-    workout: {
-      title: 'Workout partner',
-      description: 'Looking for a gym/sports buddy.',
-      estimatedMinutes: '45',
-      urgency: 'low' as const,
-    },
-    transport: {
-      title: 'Need a ride',
-      description: 'Quick campus ride. Can split gas if needed.',
-      estimatedMinutes: '15',
-      urgency: 'medium' as const,
-    },
-  };
-
-  return (
-    defaults[categoryId as keyof typeof defaults] || {
-      title: 'Custom task',
-      description: 'Describe what you need help with.',
-      estimatedMinutes: '20',
-      urgency: 'medium' as const,
-    }
-  );
+// Brand gradients
+const BrandGradients = {
+  primary: [
+    BrandColors.primary,
+    BrandColors.purple,
+    BrandColors.red,
+    BrandColors.orange,
+  ],
+  button: [BrandColors.primary, '#3D6BFF'],
 };
 
-export default function PostScreen() {
+// Task categories with their details
+const TASK_CATEGORIES = {
+  food: {
+    title: 'Food Delivery',
+    description: 'Get food delivered from campus restaurants',
+    icon: '🍔',
+    defaultStore: 'Chipotle',
+    estimatedMinutes: 30,
+    rewardCents: 500,
+  },
+  coffee: {
+    title: 'Coffee Run',
+    description: 'Fresh coffee from campus cafés',
+    icon: '☕',
+    defaultStore: 'Starbucks',
+    estimatedMinutes: 15,
+    rewardCents: 300,
+  },
+  grocery: {
+    title: 'Grocery Shopping',
+    description: 'Essentials from nearby stores',
+    icon: '🛒',
+    defaultStore: 'Target',
+    estimatedMinutes: 45,
+    rewardCents: 800,
+  },
+};
+
+// Urgency levels
+const URGENCY_LEVELS = [
+  { value: 'low', label: 'Low', color: '#10B981', description: 'No rush' },
+  {
+    value: 'medium',
+    label: 'Medium',
+    color: '#F59E0B',
+    description: 'Within an hour',
+  },
+  {
+    value: 'high',
+    label: 'High',
+    color: '#EF4444',
+    description: 'ASAP',
+  },
+];
+
+export default function PostTaskScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { user, isGuest } = useAuth();
 
+  // Get category from params or default to food
+  const initialCategory = (params.category as string) || 'food';
+  const categoryData = TASK_CATEGORIES[initialCategory as keyof typeof TASK_CATEGORIES] || TASK_CATEGORIES.food;
+
   // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<string>('');
-  const [store, setStore] = useState('');
+  const [store, setStore] = useState(categoryData.defaultStore);
   const [dropoffAddress, setDropoffAddress] = useState('');
   const [dropoffInstructions, setDropoffInstructions] = useState('');
-  const [urgency, setUrgency] = useState<string>('medium');
-  const [estimatedMinutes, setEstimatedMinutes] = useState('');
-  const [prefilledCategory, setPrefilledCategory] = useState<string | null>(
-    null
-  );
-  // const [store, setStore] = useState("");
-  const [storeCoords, setStoreCoords] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  const [dropoffCoords, setDropoffCoords] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-
-  // Computed pricing
-  const [computedPriceCents, setComputedPriceCents] = useState(
-    BASE_PRICE_CENTS + 100
-  ); // Base + medium urgency
-
-  // Field validation errors
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [urgency, setUrgency] = useState<'low' | 'medium' | 'high'>('medium');
+  const [rewardCents, setRewardCents] = useState(categoryData.rewardCents);
+  const [estimatedMinutes, setEstimatedMinutes] = useState(categoryData.estimatedMinutes);
 
   // UI state
-  const [isLoading, setIsLoading] = useState(false);
-  const [submitError, setSubmitError] = useState('');
-  // const [isLoadingStore, setIsLoadingStore] = useState(false);
-  // const [isLoadingDropoff, setIsLoadingDropoff] = useState(false);
-  const [moderationError, setModerationError] = useState('');
-  const [showStoreDropdown, setShowStoreDropdown] = useState(false);
-  const [showDropoffDropdown, setShowDropoffDropdown] = useState(false);
-
-  // Toast state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [toast, setToast] = useState<{
     visible: boolean;
     message: string;
@@ -293,56 +136,12 @@ export default function PostScreen() {
     type: 'success',
   });
 
-  // Calculate footer height for ScrollView padding
-  const FOOTER_HEIGHT = 80; // Height of sticky footer
-  const TOTAL_BOTTOM_SPACE = FOOTER_HEIGHT + tabBarHeight + insets.bottom + 24;
-
-  // Handle category prefilling from navigation params
+  // Set initial title based on category
   useEffect(() => {
-    const categoryParam = params.category as string;
-    if (categoryParam && categoryParam !== prefilledCategory) {
-      const defaults = getCategoryDefaults(categoryParam);
-      const categoryLabel =
-        categories.find((c) => c.value === categoryParam)?.label ||
-        categoryParam;
-
-      // Prefill form with category defaults
-      setTitle(defaults.title);
-      setDescription(defaults.description);
-      setCategory(categoryParam);
-      setEstimatedMinutes(defaults.estimatedMinutes);
-      setUrgency(defaults.urgency);
-      setPrefilledCategory(categoryParam);
-
-      // Clear other fields
-      setStore('');
-      setDropoffAddress('');
-      setDropoffInstructions('');
-      setFieldErrors({});
-      setSubmitError('');
-
-      setToast({
-        visible: true,
-        message: `Prefilled from ${categoryLabel}`,
-        type: 'success',
-      });
+    if (!title) {
+      setTitle(categoryData.title);
     }
-  }, [params.category, prefilledCategory]);
-
-  // Calculate price whenever urgency changes
-  useEffect(() => {
-    const urgencyPrice =
-      urgencyOptions.find((opt) => opt.value === urgency)?.price || 100;
-    let total = BASE_PRICE_CENTS + urgencyPrice;
-
-    // Round up to nearest $0.25 (25 cents)
-    total = Math.ceil(total / 25) * 25;
-
-    // Clamp between min and max
-    total = Math.max(MIN_PRICE_CENTS, Math.min(MAX_PRICE_CENTS, total));
-
-    setComputedPriceCents(total);
-  }, [urgency, category]);
+  }, [categoryData]);
 
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
@@ -354,203 +153,71 @@ export default function PostScreen() {
     }
   };
 
-  const updateFieldError = (field: string, value: string) => {
-    const error = validateField(field, value);
-    console.log('Validate', field, value, '->', error);
-    setFieldErrors((prev) => ({
-      ...prev,
-      [field]: error,
-    }));
+  const handleBack = () => {
+    router.back();
+  };
 
-    // Clear moderation error when user starts editing
-    if (field === 'title' || field === 'description') {
-      setModerationError('');
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    // Title validation
+    if (!title.trim()) {
+      newErrors.title = 'Title is required';
+    } else if (title.trim().length < 3) {
+      newErrors.title = 'Title must be at least 3 characters';
+    } else if (title.trim().length > 100) {
+      newErrors.title = 'Title must be less than 100 characters';
     }
+
+    // Store validation
+    if (!store.trim()) {
+      newErrors.store = 'Store/restaurant is required';
+    }
+
+    // Dropoff address validation
+    if (!dropoffAddress.trim()) {
+      newErrors.dropoffAddress = 'Dropoff address is required';
+    }
+
+    // Reward validation
+    if (rewardCents < 100) {
+      newErrors.reward = 'Reward must be at least $1.00';
+    } else if (rewardCents > 10000) {
+      newErrors.reward = 'Reward must be less than $100.00';
+    }
+
+    // Estimated time validation
+    if (estimatedMinutes < 5) {
+      newErrors.estimatedMinutes = 'Estimated time must be at least 5 minutes';
+    } else if (estimatedMinutes > 480) {
+      newErrors.estimatedMinutes = 'Estimated time must be less than 8 hours';
+    }
+
+    // Content moderation
+    const moderationResult = ModerationService.moderateTask(title, description);
+    if (!moderationResult.isAllowed) {
+      newErrors.moderation = moderationResult.message || 'Content not allowed';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const isFormValid = (): boolean => {
-    // Check basic required fields
-    const hasBasicFields =
-      title.trim().length >= 3 &&
-      category &&
-      estimatedMinutes.trim() &&
-      urgency;
-
-    // Check location fields for location-based categories
-    const locationCategories = ['food', 'coffee', 'grocery'];
-    const needsLocation = locationCategories.includes(category);
-    const hasLocationFields =
-      !needsLocation || (store.trim() && dropoffAddress.trim());
-
-    // Check if any field has validation errors
-    const hasErrors = Object.values(fieldErrors).some((error) => error);
-
-    // Check for moderation errors
-    const hasModerationError = moderationError.length > 0;
-
     return (
-      hasBasicFields &&
-      hasLocationFields &&
-      !hasErrors &&
-      !hasModerationError &&
-      !isLoading
+      title.trim().length >= 3 &&
+      store.trim().length > 0 &&
+      dropoffAddress.trim().length > 0 &&
+      rewardCents >= 100 &&
+      rewardCents <= 10000 &&
+      estimatedMinutes >= 5 &&
+      estimatedMinutes <= 480 &&
+      Object.keys(errors).length === 0
     );
   };
 
-  const handleStoreSelect = (location: string) => {
-    setStore(location);
-    updateFieldError('store', location);
-    setShowStoreDropdown(false);
-  };
-
-  // const handleDropoffSelect = (location: string) => {
-  //   setDropoffAddress(location);
-  //   updateFieldError('dropoffAddress', location);
-  //   setShowDropoffDropdown(false);
-  // };
-
-  // Store Selection Modal Component
-  const StoreSelectionModal = () => (
-    <Modal
-      visible={showStoreDropdown}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setShowStoreDropdown(false)}
-    >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setShowStoreDropdown(false)}
-      >
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Store</Text>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setShowStoreDropdown(false)}
-            >
-              <X
-                size={20}
-                color={Colors.semantic.tabInactive}
-                strokeWidth={2}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            style={styles.modalList}
-            showsVerticalScrollIndicator={false}
-          >
-            {campusLocations.map((location) => (
-              <TouchableOpacity
-                key={location}
-                style={[
-                  styles.modalItem,
-                  store &&
-                    typeof store === 'string' &&
-                    store === location &&
-                    styles.selectedModalItem,
-                ]}
-                onPress={() => handleStoreSelect(location)}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.modalItemText,
-                    store &&
-                      typeof store === 'string' &&
-                      store === location &&
-                      styles.selectedModalItemText,
-                  ]}
-                >
-                  {location}
-                </Text>
-                {store && typeof store === 'string' && store === location && (
-                  <Check size={16} color={Colors.primary} strokeWidth={2} />
-                )}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-
-  // Dropoff Selection Modal Component
-  const DropoffSelectionModal = () => (
-    <Modal
-      visible={showDropoffDropdown}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setShowDropoffDropdown(false)}
-    >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setShowDropoffDropdown(false)}
-      >
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Drop-off Location</Text>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setShowDropoffDropdown(false)}
-            >
-              <X
-                size={20}
-                color={Colors.semantic.tabInactive}
-                strokeWidth={2}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            style={styles.modalList}
-            showsVerticalScrollIndicator={false}
-          >
-            {dropoffLocations.map((location) => (
-              <TouchableOpacity
-                key={location}
-                style={[
-                  styles.modalItem,
-                  dropoffAddress &&
-                    typeof dropoffAddress === 'string' &&
-                    dropoffAddress === location &&
-                    styles.selectedModalItem,
-                ]}
-                onPress={() => {}}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.modalItemText,
-                    dropoffAddress &&
-                      typeof dropoffAddress === 'string' &&
-                      dropoffAddress === location &&
-                      styles.selectedModalItemText,
-                  ]}
-                >
-                  {location}
-                </Text>
-                {dropoffAddress &&
-                  typeof dropoffAddress === 'string' &&
-                  dropoffAddress === location && (
-                    <Check size={16} color={Colors.primary} strokeWidth={2} />
-                  )}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-
-  const handleSubmit = async () => {
-    triggerHaptics();
-    Keyboard.dismiss();
-
-    // Check authentication
-    if (isGuest || !user) {
+  const submitTask = async () => {
+    if (!user || isGuest) {
       setToast({
         visible: true,
         message: 'Please sign in to post tasks',
@@ -559,650 +226,376 @@ export default function PostScreen() {
       return;
     }
 
-    // Clear previous errors
-    setSubmitError('');
-    setModerationError('');
-
-    // Final validation of all fields
-    const errors: Record<string, string> = {};
-    errors.title = validateField('title', title);
-    errors.category = validateField('category', category);
-    errors.estimatedMinutes = validateField(
-      'estimatedMinutes',
-      estimatedMinutes
-    );
-    errors.urgency = validateField('urgency', urgency);
-
-    // Only validate store and dropoff for location-based categories
-    const locationCategories = ['food', 'coffee', 'grocery'];
-    if (locationCategories.includes(category)) {
-      errors.store = validateField('store', store);
-      errors.dropoffAddress = validateField('dropoffAddress', dropoffAddress);
-    }
-
-    // Remove empty errors
-    Object.keys(errors).forEach((key) => {
-      if (!errors[key]) delete errors[key];
-    });
-
-    setFieldErrors(errors);
-
-    if (Object.keys(errors).length > 0) {
+    if (!validateForm()) {
+      setToast({
+        visible: true,
+        message: 'Please fix the errors above',
+        type: 'error',
+      });
       return;
     }
 
-    // Content moderation check
-    const moderationResult = ModerationService.moderateTask(title, description);
-    if (!moderationResult.isAllowed) {
-      setModerationError(moderationResult.message || 'Content not allowed');
-      return;
-    }
-
-    // Prevent double submits
-    if (isLoading) return;
-
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       const taskData = {
         title: title.trim(),
         description: description.trim(),
-        category: mapCategoryToDatabase(category),
+        category: initialCategory as 'food' | 'coffee' | 'grocery',
         store: store.trim(),
-        lat_pickup: storeCoords?.lat || null,
-        long_pickup: storeCoords?.lng || null,
-        lat_drop: dropoffCoords?.lat || null,
-        long_drop: dropoffCoords?.lng || null,
         dropoff_address: dropoffAddress.trim(),
         dropoff_instructions: dropoffInstructions.trim(),
-        urgency: urgency as TaskUrgency,
-        estimated_minutes: Number(estimatedMinutes),
-        reward_cents: computedPriceCents,
+        urgency,
+        reward_cents: rewardCents,
+        estimated_minutes: estimatedMinutes,
       };
 
-      const { data, error: createError } = await TaskRepo.createTask(
-        taskData,
-        user.id
-      );
+      const { data, error } = await TaskRepo.createTask(taskData, user.id);
 
-      if (createError) {
-        setSubmitError("Couldn't post your task. Try again.");
+      if (error) {
+        setToast({
+          visible: true,
+          message: error,
+          type: 'error',
+        });
         return;
       }
 
-      if (!data || !data.id) {
-        setSubmitError("Couldn't post your task. Try again.");
-        return;
-      }
+      if (data) {
+        setToast({
+          visible: true,
+          message: 'Task posted successfully!',
+          type: 'success',
+        });
 
-      // Success
+        // Navigate to task detail after short delay
+        setTimeout(() => {
+          router.replace(`/task/${data.id}`);
+        }, 1500);
+      }
+    } catch (error) {
       setToast({
         visible: true,
-        message: 'Task posted successfully!',
-        type: 'success',
+        message: 'Failed to post task. Please try again.',
+        type: 'error',
       });
-
-      // Clear form for next use
-      clearForm();
-
-      // Navigate back to tasks
-      setTimeout(() => {
-        router.push('/(tabs)/tasks');
-      }, 1500);
-    } catch (error) {
-      setSubmitError("Couldn't post your task. Try again.");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const clearForm = () => {
-    setTitle('');
-    setDescription('');
-    setCategory('');
-    setStore('');
-    setDropoffAddress('');
-    setDropoffInstructions('');
-    setUrgency('medium');
-    setEstimatedMinutes('');
-    setFieldErrors({});
-    setSubmitError('');
-    setModerationError('');
-    setShowStoreDropdown(false);
-    setShowDropoffDropdown(false);
+  const handleRewardChange = (text: string) => {
+    const numericValue = text.replace(/[^0-9.]/g, '');
+    const dollars = parseFloat(numericValue) || 0;
+    const cents = Math.round(dollars * 100);
+    setRewardCents(Math.min(10000, Math.max(0, cents)));
   };
 
-  // Map UI categories to database categories
-  const mapCategoryToDatabase = (uiCategory: string): TaskCategory => {
-    const mapping: Record<string, TaskCategory> = {
-      food: 'food',
-      coffee: 'coffee',
-      grocery: 'grocery',
-      study: 'food', // Map to existing category for now
-      workout: 'food', // Map to existing category for now
-      transport: 'food', // Map to existing category for now
-      gaming: 'food', // Map to existing category for now
-      tutoring: 'food', // Map to existing category for now
-      events: 'food', // Map to existing category for now
-      photography: 'food', // Map to existing category for now
-      repair: 'food', // Map to existing category for now
-      laundry: 'food', // Map to existing category for now
-    };
-    return mapping[uiCategory] || 'food';
+  const handleEstimatedTimeChange = (text: string) => {
+    const minutes = parseInt(text) || 0;
+    setEstimatedMinutes(Math.min(480, Math.max(0, minutes)));
   };
 
-  // Hide toast
   const hideToast = () => {
     setToast((prev) => ({ ...prev, visible: false }));
   };
 
-  const formatPrice = (cents: number): string => {
-    return `$${(cents / 100).toFixed(2)}`;
-  };
-
-  const CategorySelector = () => (
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>Category *</Text>
-      <View style={styles.categoryGrid}>
-        {categories.map((cat) => (
-          <TouchableOpacity
-            key={cat.value}
-            style={[
-              styles.categoryPill,
-              category === cat.value && styles.activeCategoryPill,
-            ]}
-            onPress={() => {
-              triggerHaptics();
-              setCategory(cat.value);
-              updateFieldError('category', cat.value);
-            }}
-            disabled={isLoading}
-            accessibilityLabel={`Select ${cat.label} category`}
-            accessibilityRole="button"
-          >
-            <Text
-              style={[
-                styles.categoryPillText,
-                category === cat.value && styles.activeCategoryPillText,
-              ]}
-              numberOfLines={1}
-            >
-              {cat.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      {fieldErrors.category && (
-        <Text style={styles.fieldError}>{fieldErrors.category}</Text>
-      )}
-    </View>
-  );
-
-  const UrgencySelector = () => (
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>Urgency *</Text>
-      <View style={styles.segmentedControl}>
-        {urgencyOptions.map((option) => (
-          <TouchableOpacity
-            key={option.value}
-            style={[
-              styles.segment,
-              urgency === option.value && styles.activeSegment,
-            ]}
-            onPress={() => {
-              triggerHaptics();
-              setUrgency(option.value);
-              updateFieldError('urgency', option.value);
-            }}
-            disabled={isLoading}
-            accessibilityLabel={`Select ${option.label} urgency`}
-            accessibilityRole="button"
-          >
-            <Text
-              style={[
-                styles.segmentText,
-                urgency === option.value && styles.activeSegmentText,
-              ]}
-            >
-              {option.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      {fieldErrors.urgency && (
-        <View>
-          <Text style={styles.fieldError}>{fieldErrors.urgency}</Text>
-        </View>
-      )}
-    </View>
-  );
-
-  const PricingBreakdown = () => {
-    const urgencyPrice =
-      urgencyOptions.find((opt) => opt.value === urgency)?.price || 100;
-
-    return (
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Computed Total</Text>
-        <View style={styles.pricingCard}>
-          <View style={styles.pricingRow}>
-            <Text style={styles.pricingLabel}>Base</Text>
-            <Text style={styles.pricingValue}>
-              {formatPrice(BASE_PRICE_CENTS)}
-            </Text>
-          </View>
-          <View style={styles.pricingRow}>
-            <Text style={styles.pricingLabel}>Urgency ({urgency})</Text>
-            <Text style={styles.pricingValue}>
-              +{formatPrice(urgencyPrice)}
-            </Text>
-          </View>
-          <View style={[styles.pricingRow, styles.pricingTotal]}>
-            <Text style={styles.pricingTotalLabel}>Total</Text>
-            <Text style={styles.pricingTotalValue}>
-              {formatPrice(computedPriceCents)}
-            </Text>
-          </View>
-        </View>
-      </View>
-    );
+  const formatReward = (cents: number): string => {
+    return (cents / 100).toFixed(2);
   };
 
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <View style={[styles.innerContainer, { paddingTop: insets.top }]}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <ArrowLeft size={24} color={BrandColors.surface} strokeWidth={2} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Post Task</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        <ScrollView
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="never"
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + tabBarHeight + 100,
+          }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Category Header */}
+          <View style={styles.categoryHeader}>
+            <LinearGradient
+              colors={BrandGradients.primary}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              locations={[0, 0.4, 0.7, 1]}
+              style={styles.categoryGradient}
             >
-              <X size={24} color={Colors.white} strokeWidth={2} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Create Task</Text>
-            <View style={styles.placeholder} />
-          </View>
-
-          <KeyboardAvoidingView
-            style={styles.keyboardView}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 20}
-          >
-            <ScrollView
-              style={styles.content}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.scrollContent,
-                { paddingBottom: TOTAL_BOTTOM_SPACE },
-              ]}
-              keyboardShouldPersistTaps="handled"
-              automaticallyAdjustKeyboardInsets={false}
-            >
-              <View style={styles.form}>
-                {/* Prefilled Category Chip */}
-                {prefilledCategory && (
-                  <View style={styles.prefilledChip}>
-                    <Text style={styles.prefilledChipText}>
-                      Prefilled from{' '}
-                      {
-                        categories.find((c) => c.value === prefilledCategory)
-                          ?.label
-                      }
-                    </Text>
-                  </View>
-                )}
-
-                {/* Submit Error */}
-                {submitError ? (
-                  <View style={styles.submitErrorContainer}>
-                    <AlertCircle
-                      size={20}
-                      color={Colors.semantic.errorAlert}
-                      strokeWidth={2}
-                    />
-                    <Text style={styles.submitErrorText}>{submitError}</Text>
-                  </View>
-                ) : null}
-
-                {/* Moderation Error */}
-                {moderationError ? (
-                  <View style={styles.moderationErrorContainer}>
-                    <AlertCircle
-                      size={20}
-                      color={Colors.semantic.errorAlert}
-                      strokeWidth={2}
-                    />
-                    <Text style={styles.moderationErrorText}>
-                      {moderationError}
-                    </Text>
-                  </View>
-                ) : null}
-
-                {/* Task Details Section */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Task Details</Text>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Task Title *</Text>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        fieldErrors.title && styles.inputError,
-                      ]}
-                      value={title}
-                      onChangeText={(value) => {
-                        setTitle(value);
-                        updateFieldError('title', value);
-                      }}
-                      onBlur={() => updateFieldError('title', title)}
-                      placeholder="What do you need help with?"
-                      placeholderTextColor={Colors.semantic.tabInactive}
-                      editable={!isLoading}
-                      returnKeyType="done"
-                      accessibilityLabel="Task title"
-                    />
-                    {fieldErrors.title && (
-                      <Text style={styles.fieldError}>{fieldErrors.title}</Text>
-                    )}
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Description</Text>
-                    <TextInput
-                      style={[styles.input, styles.textArea]}
-                      value={description}
-                      onChangeText={setDescription}
-                      placeholder="Provide more details about the task..."
-                      placeholderTextColor={Colors.semantic.tabInactive}
-                      multiline
-                      numberOfLines={3}
-                      textAlignVertical="top"
-                      editable={!isLoading}
-                      returnKeyType="done"
-                      accessibilityLabel="Task description"
-                    />
-                  </View>
-
-                  <CategorySelector />
-
-                  {/* <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Store *</Text>
-                    <View
-                      style={[
-                        styles.inputWithIcon,
-                        fieldErrors.store && styles.inputError,
-                      ]}
-                    >
-                      <Store
-                        size={20}
-                        color={Colors.semantic.tabInactive}
-                        strokeWidth={2}
-                      />
-                      <TextInput
-                        style={styles.inputText}
-                        value={store}
-                        onChangeText={(value) => {
-                          setStore(value);
-                          updateFieldError('store', value);
-                        }}
-                        onBlur={() => updateFieldError('store', store)}
-                        placeholder="e.g. Chick-fil-A, Starbucks, Chipotle"
-                        placeholderTextColor={Colors.semantic.tabInactive}
-                        editable={!isLoading}
-                        returnKeyType="done"
-                        accessibilityLabel="Store name"
-                      />
-                    </View>
-
-                    {fieldErrors.store && (
-                      <Text style={styles.fieldError}>{fieldErrors.store}</Text>
-                    )}
-                  </View> */}
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Store *</Text>
-
-                    <SearchBoxApple
-                      icon={
-                        <Store
-                          size={20}
-                          color={Colors.semantic.tabInactive}
-                          strokeWidth={2}
-                        />
-                      }
-                      placeholder="e.g. Chick-fil-A, Starbucks, Chipotle"
-                      disabled={isLoading}
-                      biasRegion={{ lat: 29.648833, lon: -82.343289, span: 0.3 }} 
-                      initialText={store}
-                      setTextInput={(text: string) => {
-                        setStore(text);
-                        updateFieldError('store', text);
-                      }}
-                      onSelect={({ label, lat, lng }) => {
-                        setStore(label);
-                        setStoreCoords({ lat, lng });
-                        updateFieldError('store', label);
-                      }}
-                      onBlurInput={() => updateFieldError('store', store)}
-                      error={fieldErrors.store}
-                    />
-
-                    {fieldErrors.store && (
-                      <Text style={styles.fieldError}>{fieldErrors.store}</Text>
-                    )}
-                  </View>
-                </View>
-
-                {/* Drop-off Section */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Drop-off</Text>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Drop-off Address *</Text>
-
-                    <SearchBoxApple
-                      icon={
-                        <MapPin
-                          size={20}
-                          color={Colors.semantic.tabInactive}
-                          strokeWidth={2}
-                        />
-                      }
-                      placeholder="e.g. Broward Hall, Library West, Reitz Union"
-                      disabled={isLoading}
-                      biasRegion={{ lat: 29.648833, lon: -82.343289, span: 0.3 }} 
-                      initialText={dropoffAddress}
-                      setTextInput={(text: string) => {
-                        setDropoffAddress(text);
-                        updateFieldError('dropoffAddress', text);
-                      }}
-                      onSelect={({ label, lat, lng }) => {
-                        setDropoffAddress(label);
-                        setDropoffCoords({ lat, lng });
-                        updateFieldError('dropoffAddress', label);
-                      }}
-                      onBlurInput={() => updateFieldError('dropoffAddress', dropoffAddress)}
-                      error={fieldErrors.dropoffAddress}
-                    />
-
-                    {fieldErrors.dropoffAddress && (
-                      <Text style={styles.fieldError}>{fieldErrors.dropoffAddress}</Text>
-                    )}
-                  </View>
-                  {/* <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Drop-off Address *</Text>
-                    <View
-                      style={[
-                        styles.inputWithIcon,
-                        fieldErrors.dropoffAddress && styles.inputError,
-                      ]}
-                    >
-                      <MapPin
-                        size={20}
-                        color={Colors.semantic.tabInactive}
-                        strokeWidth={2}
-                      />
-                      <TextInput
-                        style={styles.inputText}
-                        value={dropoffAddress}
-                        onChangeText={(value) => {
-                          setDropoffAddress(value);
-                          updateFieldError('dropoffAddress', value);
-                        }}
-                        onBlur={() =>
-                          updateFieldError('dropoffAddress', dropoffAddress)
-                        }
-                        placeholder="e.g. Broward Hall, Library West, Reitz Union"
-                        placeholderTextColor={Colors.semantic.tabInactive}
-                        editable={!isLoading}
-                        returnKeyType="done"
-                        accessibilityLabel="Drop-off address"
-                      />
-                    </View>
-
-                    {fieldErrors.dropoffAddress && (
-                      <Text style={styles.fieldError}>
-                        {fieldErrors.dropoffAddress}
-                      </Text>
-                    )}
-                  </View> */}
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Drop-off Instructions</Text>
-                    <View style={styles.inputWithIcon}>
-                      <Package
-                        size={20}
-                        color={Colors.semantic.tabInactive}
-                        strokeWidth={2}
-                      />
-                      <TextInput
-                        style={styles.inputText}
-                        value={dropoffInstructions}
-                        onChangeText={setDropoffInstructions}
-                        placeholder="Any special delivery instructions?"
-                        placeholderTextColor={Colors.semantic.tabInactive}
-                        editable={!isLoading}
-                        returnKeyType="done"
-                        accessibilityLabel="Drop-off instructions"
-                      />
-                    </View>
-                  </View>
-                </View>
-
-                {/* Timing & Urgency Section */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Timing & Urgency</Text>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Estimated Time *</Text>
-                    <View
-                      style={[
-                        styles.inputWithIcon,
-                        fieldErrors.estimatedMinutes && styles.inputError,
-                      ]}
-                    >
-                      <Clock
-                        size={20}
-                        color={Colors.semantic.tabInactive}
-                        strokeWidth={2}
-                      />
-                      <TextInput
-                        style={styles.inputText}
-                        value={estimatedMinutes}
-                        onChangeText={(value) => {
-                          setEstimatedMinutes(value);
-                          updateFieldError('estimatedMinutes', value);
-                        }}
-                        onBlur={() =>
-                          updateFieldError('estimatedMinutes', estimatedMinutes)
-                        }
-                        placeholder="30"
-                        placeholderTextColor={Colors.semantic.tabInactive}
-                        keyboardType="number-pad"
-                        editable={!isLoading}
-                        returnKeyType="done"
-                        accessibilityLabel="Estimated time in minutes"
-                      />
-                    </View>
-                    <Text style={styles.helperText}>in minutes</Text>
-                    {fieldErrors.estimatedMinutes && (
-                      <Text style={styles.fieldError}>
-                        {fieldErrors.estimatedMinutes}
-                      </Text>
-                    )}
-                  </View>
-
-                  <UrgencySelector />
-                </View>
-
-                {/* Pricing Section */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Pricing</Text>
-                  <PricingBreakdown />
+              <View style={styles.categoryContent}>
+                <Text style={styles.categoryIcon}>{categoryData.icon}</Text>
+                <View style={styles.categoryInfo}>
+                  <Text style={styles.categoryTitle}>{categoryData.title}</Text>
+                  <Text style={styles.categoryDescription}>
+                    {categoryData.description}
+                  </Text>
                 </View>
               </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </View>
-
-        {/* Fixed Footer - Always Visible Above Tab Bar */}
-        <View
-          style={[
-            styles.stickyFooter,
-            {
-              bottom: tabBarHeight + insets.bottom + 8,
-              paddingBottom: 16,
-            },
-          ]}
-        >
-          {/* <TouchableOpacity
-          style={[
-            styles.submitButton,
-            (!isFormValid() || isLoading) && styles.submitButtonDisabled
-          ]}
-          onPress={handleSubmit}
-          disabled={!isFormValid() || isLoading}
-          accessibilityLabel="Post Task"
-          accessibilityRole="button"
-        >
-          {isFormValid() && !isLoading ? (
-            <LinearGradient
-              colors={['#0047FF', '#0021A5']}
-              style={styles.submitButtonGradient}
-            >
-              <Zap size={18} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
-              <Text style={styles.submitButtonText}>Post Task</Text>
             </LinearGradient>
-          ) : (
-            <View style={styles.disabledButtonContent}>
-              {isLoading ? (
-                <ActivityIndicator size="small" color={Colors.white} />
-              ) : (
-                <Text style={styles.disabledButtonText}>Post Task</Text>
+          </View>
+
+          {/* Form */}
+          <View style={styles.form}>
+            {/* Title */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                What do you need? <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={[styles.input, errors.title && styles.inputError]}
+                value={title}
+                onChangeText={setTitle}
+                placeholder="e.g., Chipotle bowl with extra guac"
+                placeholderTextColor={BrandColors.subtitle}
+                multiline
+                numberOfLines={2}
+                textAlignVertical="top"
+                editable={!isSubmitting}
+              />
+              {errors.title && (
+                <Text style={styles.errorText}>{errors.title}</Text>
               )}
             </View>
-          )}
-        </TouchableOpacity> */}
-          <CheckoutForm
-            amount={computedPriceCents}
-            isFormValid={isFormValid}
-            submitTask={handleSubmit}
-          />
-        </View>
 
-        {/* Store Selection Modal */}
-        <StoreSelectionModal />
+            {/* Description */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Additional Details</Text>
+              <TextInput
+                style={styles.textArea}
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Any specific preferences, dietary restrictions, or special requests..."
+                placeholderTextColor={BrandColors.subtitle}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                editable={!isSubmitting}
+              />
+            </View>
 
-        {/* Dropoff Selection Modal */}
-        <DropoffSelectionModal />
+            {/* Store */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Store/Restaurant <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={styles.inputWithIcon}>
+                <Store
+                  size={20}
+                  color={BrandColors.subtitle}
+                  strokeWidth={2}
+                />
+                <TextInput
+                  style={[
+                    styles.inputText,
+                    errors.store && styles.inputTextError,
+                  ]}
+                  value={store}
+                  onChangeText={setStore}
+                  placeholder="e.g., Chipotle, Starbucks, Target"
+                  placeholderTextColor={BrandColors.subtitle}
+                  editable={!isSubmitting}
+                />
+              </View>
+              {errors.store && (
+                <Text style={styles.errorText}>{errors.store}</Text>
+              )}
+            </View>
 
-        {/* Toast */}
-        <Toast
-          visible={toast.visible}
-          message={toast.message}
-          type={toast.type}
-          onHide={hideToast}
-        />
+            {/* Dropoff Address */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Dropoff Address <Text style={styles.required}>*</Text>
+              </Text>
+              <SearchBoxApple
+                placeholder="Enter your dorm, building, or address"
+                onSelect={(location) => {
+                  setDropoffAddress(location.label);
+                }}
+                biasRegion={{ lat: 29.6436, lon: -82.3549, span: 0.05 }}
+                initialText={dropoffAddress}
+                setTextInput={setDropoffAddress}
+                onBlurInput={() => {}}
+                error={!!errors.dropoffAddress}
+                icon={
+                  <MapPin
+                    size={20}
+                    color={BrandColors.subtitle}
+                    strokeWidth={2}
+                  />
+                }
+              />
+              {errors.dropoffAddress && (
+                <Text style={styles.errorText}>{errors.dropoffAddress}</Text>
+              )}
+            </View>
+
+            {/* Dropoff Instructions */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Dropoff Instructions</Text>
+              <TextInput
+                style={styles.input}
+                value={dropoffInstructions}
+                onChangeText={setDropoffInstructions}
+                placeholder="e.g., Leave at front desk, Room 302, etc."
+                placeholderTextColor={BrandColors.subtitle}
+                multiline
+                numberOfLines={2}
+                textAlignVertical="top"
+                editable={!isSubmitting}
+              />
+            </View>
+
+            {/* Urgency */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Urgency</Text>
+              <View style={styles.urgencyContainer}>
+                {URGENCY_LEVELS.map((level) => (
+                  <TouchableOpacity
+                    key={level.value}
+                    style={[
+                      styles.urgencyOption,
+                      urgency === level.value && styles.activeUrgencyOption,
+                      { borderColor: level.color + '40' },
+                      urgency === level.value && {
+                        backgroundColor: level.color + '20',
+                      },
+                    ]}
+                    onPress={() => setUrgency(level.value as any)}
+                    disabled={isSubmitting}
+                  >
+                    <Text
+                      style={[
+                        styles.urgencyLabel,
+                        urgency === level.value && {
+                          color: level.color,
+                          fontWeight: '700',
+                        },
+                      ]}
+                    >
+                      {level.label}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.urgencyDescription,
+                        urgency === level.value && { color: level.color },
+                      ]}
+                    >
+                      {level.description}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Reward */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Reward <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={styles.inputWithIcon}>
+                <DollarSign
+                  size={20}
+                  color={BrandColors.subtitle}
+                  strokeWidth={2}
+                />
+                <TextInput
+                  style={[
+                    styles.inputText,
+                    errors.reward && styles.inputTextError,
+                  ]}
+                  value={formatReward(rewardCents)}
+                  onChangeText={handleRewardChange}
+                  placeholder="5.00"
+                  placeholderTextColor={BrandColors.subtitle}
+                  keyboardType="decimal-pad"
+                  editable={!isSubmitting}
+                />
+              </View>
+              {errors.reward && (
+                <Text style={styles.errorText}>{errors.reward}</Text>
+              )}
+              <Text style={styles.helperText}>
+                How much will you pay the helper?
+              </Text>
+            </View>
+
+            {/* Estimated Time */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Estimated Time <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={styles.inputWithIcon}>
+                <Clock
+                  size={20}
+                  color={BrandColors.subtitle}
+                  strokeWidth={2}
+                />
+                <TextInput
+                  style={[
+                    styles.inputText,
+                    errors.estimatedMinutes && styles.inputTextError,
+                  ]}
+                  value={estimatedMinutes.toString()}
+                  onChangeText={handleEstimatedTimeChange}
+                  placeholder="30"
+                  placeholderTextColor={BrandColors.subtitle}
+                  keyboardType="number-pad"
+                  editable={!isSubmitting}
+                />
+                <Text style={styles.inputSuffix}>minutes</Text>
+              </View>
+              {errors.estimatedMinutes && (
+                <Text style={styles.errorText}>{errors.estimatedMinutes}</Text>
+              )}
+              <Text style={styles.helperText}>
+                How long do you think this will take?
+              </Text>
+            </View>
+
+            {/* Moderation Error */}
+            {errors.moderation && (
+              <View style={styles.moderationError}>
+                <AlertTriangle
+                  size={20}
+                  color={BrandColors.red}
+                  strokeWidth={2}
+                />
+                <Text style={styles.moderationErrorText}>
+                  {errors.moderation}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Submit Button */}
+          <View style={styles.submitSection}>
+            <CheckoutForm
+              amount={rewardCents}
+              isFormValid={isFormValid}
+              submitTask={submitTask}
+            />
+          </View>
+        </ScrollView>
       </SafeAreaView>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
     </>
   );
 }
@@ -1210,10 +603,7 @@ export default function PostScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  innerContainer: {
-    flex: 1,
-    backgroundColor: Colors.semantic.screen,
+    backgroundColor: BrandColors.surface,
   },
   header: {
     flexDirection: 'row',
@@ -1221,45 +611,66 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Colors.primary,
+    backgroundColor: BrandColors.primary,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.white + '33',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.white,
+    color: BrandColors.surface,
   },
   placeholder: {
     width: 40,
   },
-  keyboardView: {
-    flex: 1,
-  },
   content: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+  categoryHeader: {
+    marginBottom: 24,
+    overflow: 'hidden',
   },
-  form: {
-    gap: 24,
+  categoryGradient: {
+    paddingHorizontal: 24,
+    paddingVertical: 24,
   },
-  section: {
+  categoryContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 16,
   },
-  sectionTitle: {
-    fontSize: 20,
+  categoryIcon: {
+    fontSize: 32,
+  },
+  categoryInfo: {
+    flex: 1,
+  },
+  categoryTitle: {
+    fontSize: 24,
     fontWeight: '700',
-    color: Colors.semantic.headingText,
+    color: BrandColors.surface,
     marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  categoryDescription: {
+    fontSize: 16,
+    color: BrandColors.surface,
+    opacity: 0.9,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  form: {
+    paddingHorizontal: 24,
+    gap: 24,
   },
   inputGroup: {
     gap: 8,
@@ -1267,445 +678,117 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.semantic.bodyText,
+    color: BrandColors.title,
+  },
+  required: {
+    color: BrandColors.red,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: BrandColors.divider,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 16,
-    color: Colors.semantic.inputText,
-    backgroundColor: Colors.white,
-    minHeight: 44,
+    color: BrandColors.title,
+    backgroundColor: BrandColors.surface,
+    minHeight: 56,
   },
   inputError: {
-    borderColor: Colors.semantic.errorAlert,
+    borderColor: BrandColors.red,
   },
   textArea: {
-    height: 80,
-    paddingTop: 16,
+    borderWidth: 1,
+    borderColor: BrandColors.divider,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontSize: 16,
+    color: BrandColors.title,
+    backgroundColor: BrandColors.surface,
+    minHeight: 80,
+    textAlignVertical: 'top',
   },
   inputWithIcon: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: BrandColors.divider,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 16,
+    backgroundColor: BrandColors.surface,
     gap: 12,
-    minHeight: 44,
-    backgroundColor: Colors.white,
+    minHeight: 56,
   },
   inputText: {
     flex: 1,
     fontSize: 16,
-    color: Colors.semantic.inputText,
+    color: BrandColors.title,
   },
-  inputIcon: {
-    paddingHorizontal: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+  inputTextError: {
+    color: BrandColors.red,
+  },
+  inputSuffix: {
+    fontSize: 16,
+    color: BrandColors.subtitle,
+    fontWeight: '500',
+  },
+  errorText: {
+    fontSize: 14,
+    color: BrandColors.red,
+    marginTop: 4,
   },
   helperText: {
     fontSize: 14,
-    color: Colors.semantic.tabInactive,
+    color: BrandColors.subtitle,
     marginTop: 4,
   },
-  fieldError: {
-    fontSize: 14,
-    color: Colors.semantic.errorAlert,
-    marginTop: 4,
-  },
-  
-  // Category Pills Grid
-  categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  urgencyContainer: {
     gap: 12,
   },
-  categoryPill: {
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minWidth: (width - 64) / 3 - 8, // 3 columns with gaps
-    maxWidth: (width - 64) / 2 - 6, // 2 columns fallback
-  },
-  activeCategoryPill: {
-    backgroundColor: '#0021A5',
-    borderColor: '#0021A5',
-  },
-  categoryPillText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.semantic.bodyText,
-    textAlign: 'center',
-  },
-  activeCategoryPillText: {
-    color: Colors.white,
-    fontWeight: '600',
-  },
-
-  // Google Places Autocomplete
-  autocompleteContainer: {
-    position: 'relative',
-    zIndex: 1,
-  },
-  placesContainer: {
-    flex: 0,
-  },
-  placesInputContainer: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+  urgencyOption: {
+    borderWidth: 2,
     borderRadius: 16,
-    backgroundColor: Colors.white,
-    paddingHorizontal: 0,
-  },
-  placesInput: {
-    fontSize: 16,
-    color: Colors.semantic.inputText,
-    backgroundColor: 'transparent',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 16,
-    minHeight: 44,
+    backgroundColor: BrandColors.surface,
   },
-  placesList: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    backgroundColor: Colors.white,
-    maxHeight: 200,
-  },
-  placesRow: {
-    backgroundColor: Colors.white,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  placesDescription: {
-    fontSize: 14,
-    color: Colors.semantic.bodyText,
-  },
-  placesLoader: {
-    backgroundColor: Colors.white,
-    paddingVertical: 16,
-  },
-  placesEmpty: {
-    backgroundColor: Colors.white,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  placesEmptyText: {
-    fontSize: 14,
-    color: Colors.semantic.tabInactive,
-    textAlign: 'center',
-  },
-  manualStoreButton: {
-    backgroundColor: Colors.muted,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginTop: 8,
-  },
-  manualStoreText: {
-    fontSize: 12,
-    color: Colors.primary,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  manualDropoffButton: {
-    backgroundColor: Colors.muted,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginTop: 8,
-  },
-  manualDropoffText: {
-    fontSize: 12,
-    color: Colors.primary,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-
-  segmentedControl: {
-    flexDirection: 'row',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  segment: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 12,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  activeSegment: {
-    backgroundColor: Colors.white,
+  activeUrgencyOption: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
-  segmentText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.semantic.tabInactive,
-  },
-  activeSegmentText: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  pricingCard: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    padding: 16,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  pricingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  pricingLabel: {
-    fontSize: 14,
-    color: Colors.semantic.tabInactive,
-  },
-  pricingValue: {
-    fontSize: 14,
-    color: Colors.semantic.bodyText,
-    fontWeight: '500',
-  },
-  pricingTotal: {
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingTop: 8,
-    marginTop: 4,
-  },
-  pricingTotalLabel: {
+  urgencyLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.semantic.bodyText,
+    color: BrandColors.title,
+    marginBottom: 4,
   },
-  pricingTotalValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.primary,
-  },
-  submitErrorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: 16,
-    padding: 16,
-    gap: 12,
-  },
-  submitErrorText: {
-    flex: 1,
+  urgencyDescription: {
     fontSize: 14,
-    fontWeight: '500',
-    color: Colors.semantic.errorAlert,
-    lineHeight: 20,
+    color: BrandColors.subtitle,
   },
-  prefilledChip: {
-    backgroundColor: Colors.primary + '15',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  prefilledChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-
-  // Fixed Footer - Always Above Tab Bar
-  stickyFooter: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.white,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(229, 231, 235, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 100,
-    zIndex: 100,
-  },
-  submitButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    minHeight: 56,
-    shadowColor: '#0021A5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  submitButtonGradient: {
+  moderationError: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    gap: 10,
-    minHeight: 56,
-  },
-  submitButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.white,
-    letterSpacing: 0.5,
-  },
-  submitButtonDisabled: {
-    backgroundColor: '#E5E7EB',
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  disabledButtonContent: {
-    paddingVertical: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 56,
-  },
-  disabledButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#9CA3AF',
-  },
-  moderationErrorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: BrandColors.red + '15',
     borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: 16,
+    borderColor: BrandColors.red + '30',
+    borderRadius: 12,
     padding: 16,
     gap: 12,
-    marginBottom: 16,
   },
   moderationErrorText: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.semantic.errorAlert,
-    lineHeight: 20,
-  },
-  dropdownButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    gap: 12,
-    minHeight: 44,
-    backgroundColor: Colors.white,
-  },
-  dropdownButtonActive: {
-    borderColor: Colors.primary + '40',
-  },
-  dropdownButtonText: {
-    flex: 1,
     fontSize: 16,
-    color: Colors.semantic.inputText,
-  },
-  placeholderText: {
-    color: Colors.semantic.tabInactive,
-  },
-  dropdownArrow: {
-    fontSize: 12,
-    color: Colors.semantic.tabInactive,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  modalContent: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 400,
-    maxHeight: '70%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.semantic.divider,
-  },
-  modalTitle: {
-    fontSize: 18,
+    color: BrandColors.red,
     fontWeight: '600',
-    color: Colors.semantic.headingText,
   },
-  modalCloseButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.muted,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalList: {
-    maxHeight: 400,
-  },
-  modalItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.semantic.divider,
-  },
-  selectedModalItem: {
-    backgroundColor: Colors.primary + '10',
-  },
-  modalItemText: {
-    fontSize: 16,
-    color: Colors.semantic.bodyText,
-    flex: 1,
-  },
-  selectedModalItemText: {
-    color: Colors.primary,
-    fontWeight: '600',
+  submitSection: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
   },
 });
