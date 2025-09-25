@@ -68,23 +68,19 @@ const LightningActionButton = ({ focused }: { focused: boolean }) => {
   return (
     <>
       <TouchableOpacity
-        style={styles.lightningButton}
+        style={styles.fabButton}
         onPress={handlePress}
         activeOpacity={0.9}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         accessibilityLabel="Post Task"
         accessibilityRole="button"
       >
-        <LinearGradient
-          colors={['#3B82F6', '#1D4ED8']}
-          style={styles.lightningGradient}
-        >
-          <Zap
-            size={28}
-            color={Colors.white}
-            strokeWidth={2.5}
-            fill={Colors.white}
-          />
-        </LinearGradient>
+        <Zap
+          size={28}
+          color={Colors.white}
+          strokeWidth={2.5}
+          fill={Colors.white}
+        />
       </TouchableOpacity>
       <KYCRequestModal
         visible={showKYCModal}
@@ -98,9 +94,7 @@ const LightningActionButton = ({ focused }: { focused: boolean }) => {
 // Custom tab bar button for Lightning Action
 const LightningTabButton = (props: any) => {
   return (
-    <View
-      style={[styles.lightningTabContainer, { backgroundColor: 'transparent' }]}
-    >
+    <View style={styles.lightningTabContainer}>
       <LightningActionButton
         focused={props.accessibilityState?.selected || false}
       />
@@ -225,26 +219,28 @@ const styles = StyleSheet.create({
     height: 44,
   },
   lightningTabContainer: {
-    flex: 1,
+    position: 'absolute',
+    bottom: 18,
+    left: '50%',
+    marginLeft: -32,
+    backgroundColor: 'transparent',
+    pointerEvents: 'box-none',
+    zIndex: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 8,
-    paddingBottom: 8,
   },
-  lightningButton: {
+  fabButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#3B82F6',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#3B82F6',
+    overflow: 'hidden',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  lightningGradient: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });
