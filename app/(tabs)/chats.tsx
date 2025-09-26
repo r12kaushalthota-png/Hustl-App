@@ -10,7 +10,8 @@ import {
   TextInput,
   Platform,
   ActivityIndicator,
-  Dimensions
+  Dimensions,
+  SafeAreaView
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -93,7 +94,7 @@ const EmptyState = () => {
   };
 
   return (
-    <View style={styles.emptyState}>
+    <View style={[styles.emptyState, { paddingBottom: insets.bottom + 16 }]}>
       <View style={styles.emptyIconContainer}>
         <MessageSquare size={48} color={Colors.semantic.tabInactive} strokeWidth={1.5} />
       </View>
@@ -574,14 +575,14 @@ export default function ChatsScreen() {
 
   if (isGuest) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <ChatsHeader 
           onSearchToggle={handleSearchToggle}
           showSearch={showSearch}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
-        <View style={styles.guestContainer}>
+        <View style={[styles.guestContainer, { paddingBottom: insets.bottom + 16 }]}>
           <View style={styles.guestIconContainer}>
             <User size={48} color={Colors.semantic.tabInactive} strokeWidth={1.5} />
           </View>
@@ -593,13 +594,12 @@ export default function ChatsScreen() {
             <Text style={styles.signInButtonText}>Sign In</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <>
-      <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <ChatsHeader 
           onSearchToggle={handleSearchToggle}
           showSearch={showSearch}
@@ -653,7 +653,7 @@ export default function ChatsScreen() {
             />
           )}
         </View>
-      </View>
+    </SafeAreaView>
 
       {/* Profile Sheet */}
       <ProfileSheet
@@ -901,8 +901,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingVertical: 80,
+    paddingHorizontal: 16,
+    paddingVertical: 60,
     gap: 20,
   },
   emptyIconContainer: {
@@ -935,6 +935,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 24,
     paddingVertical: 14,
+    marginTop: 8,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -951,7 +952,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 16,
     gap: 20,
   },
   guestIconContainer: {
