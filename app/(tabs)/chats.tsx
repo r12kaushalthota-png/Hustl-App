@@ -81,6 +81,7 @@ const SkeletonRow = ({ index }: { index: number }) => {
 // Empty state component
 const EmptyState = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const handleFindTasks = () => {
     if (Platform.OS !== 'web') {
