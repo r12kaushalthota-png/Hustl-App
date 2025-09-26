@@ -599,6 +599,7 @@ export default function ChatsScreen() {
   }
 
   return (
+    <>
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <ChatsHeader 
           onSearchToggle={handleSearchToggle}
@@ -664,6 +665,7 @@ export default function ChatsScreen() {
         }}
         userId={selectedUserId}
       />
+    </>
     </>
   );
 }
