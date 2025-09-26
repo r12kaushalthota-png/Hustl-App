@@ -11,6 +11,7 @@ import {
   Platform
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MessageSquare } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, { 
@@ -64,6 +65,7 @@ const SkeletonRow = ({ index }: { index: number }) => {
 // Empty state component
 const EmptyState = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const handleFindTasks = () => {
     router.push('/(tabs)/tasks');
