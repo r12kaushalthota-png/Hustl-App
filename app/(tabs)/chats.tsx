@@ -666,7 +666,6 @@ export default function ChatsScreen() {
         userId={selectedUserId}
       />
     </>
-    </>
   );
 }
 
