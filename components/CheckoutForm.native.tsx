@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { Colors } from '@/theme/colors';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStripe } from '@stripe/stripe-react-native';
 import * as Linking from 'expo-linking';
 import { LinearGradient } from 'expo-linear-gradient';
