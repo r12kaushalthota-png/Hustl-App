@@ -1,18 +1,30 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Dimensions, SafeAreaView, StatusBar, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  Alert,
+  Dimensions,
+  SafeAreaView,
+  StatusBar,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Eye, EyeOff, User, Mail, Lock } from 'lucide-react-native';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring, 
-  withTiming, 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
   withSequence,
   withDelay,
   interpolate,
   withRepeat,
-  Easing
+  Easing,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,7 +45,12 @@ const BrandColors = {
 
 // Brand gradients
 const BrandGradients = {
-  primary: [BrandColors.primary, BrandColors.purple, BrandColors.red, BrandColors.orange],
+  primary: [
+    BrandColors.primary,
+    BrandColors.purple,
+    BrandColors.red,
+    BrandColors.orange,
+  ],
   button: [BrandColors.primary, '#3D6BFF'],
 };
 
@@ -104,7 +121,15 @@ export default function AuthScreen() {
       }
 
       // Success - navigate to home
-      router.replace('/(tabs)/home');
+      if (!isLogin) {
+        Alert.alert(
+          'Success',
+          'You have successfully signed up!. Check your email to verify your account before logging in.'
+        );
+        setIsLogin(true);
+      } else {
+        router.replace('/(tabs)/home');
+      }
     } catch (error) {
       setError('An unexpected error occurred. Please try again.');
     }
@@ -119,12 +144,17 @@ export default function AuthScreen() {
     router.back();
   };
 
-  const isFormValid = email.trim() && password.trim() && (isLogin || displayName.trim());
+  const isFormValid =
+    email.trim() && password.trim() && (isLogin || displayName.trim());
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
+      />
+
       {/* Gradient background */}
       <LinearGradient
         colors={BrandGradients.primary}
@@ -134,9 +164,12 @@ export default function AuthScreen() {
         style={styles.backgroundGradient}
       />
 
-      <ScrollView 
-        style={styles.content} 
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20 }]}
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 20 },
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -153,18 +186,16 @@ export default function AuthScreen() {
 
         {/* Logo and Title */}
         <Animated.View style={[styles.authHeader, animatedHeaderStyle]}>
-          <HustlLogo 
-            size="large" 
-            animated={true} 
-            showGlow={true}
-          />
-          
+          <HustlLogo size="large" animated={true} showGlow={true} />
+
           <View style={styles.titleContainer}>
             <Text style={styles.title}>
               {isLogin ? 'Sign In' : 'Create Account'}
             </Text>
             <Text style={styles.subtitle}>
-              {isLogin ? 'Continue to your campus network' : 'Join your campus community'}
+              {isLogin
+                ? 'Continue to your campus network'
+                : 'Join your campus community'}
             </Text>
           </View>
         </Animated.View>
@@ -235,7 +266,11 @@ export default function AuthScreen() {
                 disabled={isLoading}
               >
                 {showPassword ? (
-                  <EyeOff size={20} color={BrandColors.subtitle} strokeWidth={2} />
+                  <EyeOff
+                    size={20}
+                    color={BrandColors.subtitle}
+                    strokeWidth={2}
+                  />
                 ) : (
                   <Eye size={20} color={BrandColors.subtitle} strokeWidth={2} />
                 )}
@@ -247,17 +282,23 @@ export default function AuthScreen() {
           <TouchableOpacity
             style={[
               styles.primaryButton,
-              (!isFormValid || isLoading) && styles.disabledButton
+              (!isFormValid || isLoading) && styles.disabledButton,
             ]}
             onPress={handleAuth}
             disabled={!isFormValid || isLoading}
             activeOpacity={0.9}
           >
-            {(!isFormValid || isLoading) ? (
+            {!isFormValid || isLoading ? (
               <View style={styles.disabledButtonContent}>
-                {isLoading && <ActivityIndicator size="small" color={BrandColors.surface} />}
+                {isLoading && (
+                  <ActivityIndicator size="small" color={BrandColors.surface} />
+                )}
                 <Text style={styles.disabledButtonText}>
-                  {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+                  {isLoading
+                    ? 'Please wait...'
+                    : isLogin
+                    ? 'Sign In'
+                    : 'Create Account'}
                 </Text>
               </View>
             ) : (
@@ -282,7 +323,9 @@ export default function AuthScreen() {
             activeOpacity={0.9}
           >
             <Text style={styles.secondaryButtonText}>
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+              {isLogin
+                ? "Don't have an account? Sign up"
+                : 'Already have an account? Sign in'}
             </Text>
           </TouchableOpacity>
         </Animated.View>

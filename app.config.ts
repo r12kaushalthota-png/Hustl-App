@@ -10,7 +10,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: "1.0.0",
   orientation: "portrait",
   userInterfaceStyle: "automatic",
-  icon: "./src/assets/images/icon.png",
+  icon: "./src/assets/images/1024.png",
 
   ios: {
     bundleIdentifier: "com.hustl.app",
