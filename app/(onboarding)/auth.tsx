@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import {
   View,
   Text,
@@ -29,6 +30,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
 import HustlLogo from '@/components/HustlLogo';
+
 
 // Exact brand colors from the logo
 const BrandColors = {
@@ -66,6 +68,19 @@ export default function AuthScreen() {
   const [displayName, setDisplayName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+
+const params = useLocalSearchParams();
+
+  useEffect(() => {
+    if (!params?.isverify) return;
+    if (params?.isverify === 'true') {
+      Alert.alert(
+        'Email Verified',
+        'Your email has been successfully verified. You can now sign in.'
+      );
+      setIsLogin(true);
+    }
+  }, [params?.isverify]);
 
   // Animation values
   const fadeIn = useSharedValue(0);
@@ -168,7 +183,6 @@ export default function AuthScreen() {
         style={styles.content}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 20 },
         ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
