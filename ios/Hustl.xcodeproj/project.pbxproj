@@ -13,6 +13,8 @@
 		9C447C4C8CA34E9C60DE1A1C /* libPods-Hustl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F4AF86B7CF2A56579ADCC31 /* libPods-Hustl.a */; };
 		A4E9413A75EB43AC9CC6B188 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFDD47FC4C994046AC8236C5 /* noop-file.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		D7B62BD92E8A3CF500D0AAB8 /* LocalSearchModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7B62BD82E8A3CF500D0AAB8 /* LocalSearchModule.swift */; };
+		D7B62BDB2E8A3D2300D0AAB8 /* LocalSearchModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D7B62BDA2E8A3D2300D0AAB8 /* LocalSearchModule.m */; };
 		E15F15D9E8176F13C8509309 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E1228602D60635D8095C7170 /* PrivacyInfo.xcprivacy */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
@@ -27,7 +29,9 @@
 		8F4AF86B7CF2A56579ADCC31 /* libPods-Hustl.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Hustl.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Hustl/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		E1228602D60635D8095C7170 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Hustl/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D7B62BD82E8A3CF500D0AAB8 /* LocalSearchModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalSearchModule.swift; sourceTree = "<group>"; };
+		D7B62BDA2E8A3D2300D0AAB8 /* LocalSearchModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LocalSearchModule.m; sourceTree = "<group>"; };
+		E1228602D60635D8095C7170 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Hustl/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Hustl/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* Hustl-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Hustl-Bridging-Header.h"; path = "Hustl/Hustl-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -49,6 +53,8 @@
 		13B07FAE1A68108700A75B9A /* Hustl */ = {
 			isa = PBXGroup;
 			children = (
+				D7B62BDA2E8A3D2300D0AAB8 /* LocalSearchModule.m */,
+				D7B62BD82E8A3CF500D0AAB8 /* LocalSearchModule.swift */,
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
 				F11748442D0722820044C1D9 /* Hustl-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
@@ -84,7 +90,6 @@
 				0A024373EB38C31C6ED9EFE9 /* Pods-Hustl.debug.xcconfig */,
 				10734C2D5BC2845EA206A3EA /* Pods-Hustl.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -352,6 +357,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
+				D7B62BDB2E8A3D2300D0AAB8 /* LocalSearchModule.m in Sources */,
+				D7B62BD92E8A3CF500D0AAB8 /* LocalSearchModule.swift in Sources */,
 				A4E9413A75EB43AC9CC6B188 /* noop-file.swift in Sources */,
 				5F52105229B3BED256315DEB /* ExpoModulesProvider.swift in Sources */,
 			);

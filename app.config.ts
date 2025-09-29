@@ -1,5 +1,7 @@
 // app.config.ts
 import { ConfigContext, ExpoConfig } from "expo/config";
+const fs = require("fs");
+const path = require("path");
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -41,6 +43,34 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
 
   plugins: [
+     (config) => {
+        return {
+          ...config,
+          mods: {
+            ios: {
+              dangerous: [
+                (config) => {
+                  const filesToCopy = ["LocalSearchModule.swift", "LocalSearchModule.m"];
+
+                  filesToCopy.forEach((file) => {
+                    const src = path.resolve(__dirname, "custom/ios", file);
+                    const dest = path.resolve(__dirname, "ios", file);
+
+                    if (fs.existsSync(src)) {
+                      fs.copyFileSync(src, dest);
+                      console.log(`[custom-ios] Copied ${file} -> ios/`);
+                    } else {
+                      console.warn(`[custom-ios] File not found: ${src}`);
+                    }
+                  });
+
+                  return config;
+                },
+              ],
+            },
+          },
+        };
+      },
     "expo-router",
     "expo-dev-client", // required for Bolt device preview
     [
