@@ -154,30 +154,37 @@ export default function EditProfileScreen() {
         'Unsaved Changes',
         'You have unsaved changes. What would you like to do?',
         [
-          { text: 'Discard', style: 'destructive', onPress: () => router.back() },
+          {
+            text: 'Discard',
+            style: 'destructive',
+            onPress: () => {
+              handleDiscard();
+              router.replace('/profile');
+            }
+          },
           { text: 'Save', onPress: handleSaveAndBack },
           { text: 'Cancel', style: 'cancel' }
         ]
       );
     } else {
-      router.back();
+      router.replace('/profile');
     }
   };
 
   const handleSaveAndBack = async () => {
     triggerHaptics();
-    
+
     const result = await handleSave();
-    
+
     if (result.success) {
       setToast({
         visible: true,
         message: 'Profile updated successfully!',
         type: 'success'
       });
-      
+
       setTimeout(() => {
-        router.back();
+        router.replace('/profile');
       }, 1500);
     } else {
       setToast({
