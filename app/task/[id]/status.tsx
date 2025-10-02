@@ -9,7 +9,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, CheckCircle2, Clock, MapPin, Package, Truck } from 'lucide-react-native';
+import { ArrowLeft, CircleCheck as CheckCircle2, Clock, MapPin, Package, Truck } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
