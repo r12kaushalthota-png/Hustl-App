@@ -243,7 +243,15 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.placeholder} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => {
+            triggerHaptics();
+            router.replace('/(tabs)/home');
+          }}
+        >
+          <ArrowLeft size={20} color={BrandColors.surface} strokeWidth={2} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
         <View style={styles.placeholder} />
       </View>
