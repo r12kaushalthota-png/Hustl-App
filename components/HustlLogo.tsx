@@ -116,7 +116,7 @@ export default function HustlLogo({
             {
               width: logoSize + 40,
               height: logoSize + 40,
-              borderRadius: logoSize * 0.2
+              borderRadius: (logoSize + 40) / 2
             },
             animatedHaloStyle
           ]} />
@@ -127,7 +127,7 @@ export default function HustlLogo({
           {
             width: logoSize,
             height: logoSize,
-            borderRadius: logoSize * 0.2,
+            borderRadius: logoSize / 2,
             shadowColor: BrandColors.red
           },
           animatedGlowStyle
@@ -139,7 +139,7 @@ export default function HustlLogo({
             style={[styles.logoCircle, {
               width: logoSize,
               height: logoSize,
-              borderRadius: logoSize * 0.2
+              borderRadius: logoSize / 2
             }]}
           >
             <Text style={[styles.logoText, { fontSize: logoSize * 0.5, fontWeight: '900' }]}>H</Text>
@@ -159,7 +159,7 @@ export default function HustlLogo({
             {
               width: logoSize + 40,
               height: logoSize + 40,
-              borderRadius: logoSize * 0.2
+              borderRadius: (logoSize + 40) / 2
             },
             animatedHaloStyle
           ]} />
@@ -171,7 +171,7 @@ export default function HustlLogo({
           {
             width: logoSize,
             height: logoSize,
-            borderRadius: logoSize * 0.2,
+            borderRadius: logoSize / 2,
             shadowColor: BrandColors.red
           },
           animatedGlowStyle
@@ -183,7 +183,7 @@ export default function HustlLogo({
             style={[styles.logoCircle, {
               width: logoSize,
               height: logoSize,
-              borderRadius: logoSize * 0.2
+              borderRadius: logoSize / 2
             }]}
           >
             <Text style={[styles.logoText, { fontSize: logoSize * 0.5, fontWeight: '900' }]}>H</Text>
