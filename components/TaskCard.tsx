@@ -42,10 +42,12 @@ interface TaskCardProps {
   title: string;
   subtitle: string;
   ctaLabel: string;
-  badge?: 'Popular' | 'New' | 'Trending';
+  badge?: 'Popular' | 'New' | 'Trending' | 'Free';
   icon: string; // Emoji icon
   image: string;
   onPress: () => void;
+  isFree?: boolean;
+  price?: number;
 }
 
 export default function TaskCard({
@@ -56,6 +58,8 @@ export default function TaskCard({
   icon,
   image,
   onPress,
+  isFree = false,
+  price,
 }: TaskCardProps) {
   const { user } = useAuth();
   const triggerHaptics = () => {
@@ -88,9 +92,17 @@ export default function TaskCard({
         return '#10B981';
       case 'Trending':
         return BrandColors.orange;
+      case 'Free':
+        return '#10B981';
       default:
         return BrandColors.accentYellow;
     }
+  };
+
+  const displayBadge = isFree ? 'Free' : badge;
+  const formatPrice = (cents?: number) => {
+    if (cents === undefined || cents === null || cents === 0) return '$0';
+    return `$${(cents / 100).toFixed(2)}`;
   };
 
   return (
@@ -113,9 +125,9 @@ export default function TaskCard({
           />
 
           {/* Badge */}
-          {badge && (
+          {displayBadge && (
             <View style={[styles.badge, { backgroundColor: getBadgeColor() }]}>
-              <Text style={styles.badgeText}>{badge}</Text>
+              <Text style={styles.badgeText}>{displayBadge}</Text>
             </View>
           )}
 

@@ -107,9 +107,10 @@ export default function PostTaskScreen() {
   // Get category from params or default to food
   const initialCategory = (params.category as string) || 'food';
   const categoryData = TASK_CATEGORIES[initialCategory as keyof typeof TASK_CATEGORIES] || TASK_CATEGORIES.food;
+  const initialTitle = (params.title as string) || categoryData.title;
 
   // Form state
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState('');
   const [store, setStore] = useState(categoryData.defaultStore);
   const [dropoffAddress, setDropoffAddress] = useState('');
@@ -131,12 +132,12 @@ export default function PostTaskScreen() {
     type: 'success',
   });
 
-  // Set initial title based on category
+  // Set initial title based on category or param
   useEffect(() => {
     if (!title) {
-      setTitle(categoryData.title);
+      setTitle(initialTitle);
     }
-  }, [categoryData]);
+  }, [categoryData, initialTitle]);
 
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {

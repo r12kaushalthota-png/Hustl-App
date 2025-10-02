@@ -52,16 +52,20 @@ const taskCards = [
     icon: '🍔',
     image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400',
     category: 'food',
+    isFree: false,
+    price: 500,
   },
   {
     id: 'coffee-runs',
-    title: 'Coffee Runs',
+    title: 'Coffee Run',
     subtitle: 'Fresh coffee delivered from campus cafés.',
     ctaLabel: 'Request',
     badge: 'Popular' as const,
     icon: '☕',
     image: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=400',
     category: 'coffee',
+    isFree: false,
+    price: 300,
   },
   {
     id: 'library-pickup',
@@ -71,16 +75,20 @@ const taskCards = [
     icon: '📚',
     image: 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=400',
     category: 'study',
+    isFree: true,
+    price: 0,
   },
   {
     id: 'grocery-sprint',
-    title: 'Grocery Sprint',
+    title: 'Grocery Shopping',
     subtitle: 'Essentials from Target/Publix fast.',
     ctaLabel: 'Order',
     badge: 'Trending' as const,
     icon: '🛒',
     image: 'https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg?auto=compress&cs=tinysrgb&w=400',
     category: 'grocery',
+    isFree: false,
+    price: 800,
   },
   {
     id: 'study-buddy',
@@ -90,6 +98,8 @@ const taskCards = [
     icon: '🧠',
     image: 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=400',
     category: 'study',
+    isFree: true,
+    price: 0,
   },
   {
     id: 'print-drop',
@@ -99,6 +109,8 @@ const taskCards = [
     icon: '🖨️',
     image: 'https://images.pexels.com/photos/4050315/pexels-photo-4050315.jpeg?auto=compress&cs=tinysrgb&w=400',
     category: 'study',
+    isFree: true,
+    price: 0,
   },
   {
     id: 'package-pickup',
@@ -108,6 +120,8 @@ const taskCards = [
     icon: '📦',
     image: 'https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?auto=compress&cs=tinysrgb&w=400',
     category: 'transport',
+    isFree: true,
+    price: 0,
   },
   {
     id: 'campus-ride',
@@ -117,6 +131,8 @@ const taskCards = [
     icon: '🚲',
     image: 'https://images.pexels.com/photos/100582/pexels-photo-100582.jpeg?auto=compress&cs=tinysrgb&w=400',
     category: 'transport',
+    isFree: true,
+    price: 0,
   },
   {
     id: 'dorm-essentials',
@@ -126,6 +142,8 @@ const taskCards = [
     icon: '🔧',
     image: 'https://images.pexels.com/photos/271816/pexels-photo-271816.jpeg?auto=compress&cs=tinysrgb&w=400',
     category: 'grocery',
+    isFree: false,
+    price: 800,
   },
   {
     id: 'lost-found',
@@ -135,6 +153,8 @@ const taskCards = [
     icon: '🔄',
     image: 'https://images.pexels.com/photos/1181467/pexels-photo-1181467.jpeg?auto=compress&cs=tinysrgb&w=400',
     category: 'events',
+    isFree: true,
+    price: 0,
   },
 ];
 // Top Header Component
@@ -293,11 +313,11 @@ export default function HomeScreen() {
     }
   };
 
-  const handleTaskCardPress = (category: string) => {
+  const handleTaskCardPress = (category: string, title: string) => {
     triggerHaptics();
     router.push({
       pathname: '/(tabs)/post',
-      params: { category }
+      params: { category, title }
     });
   };
 
@@ -334,7 +354,9 @@ export default function HomeScreen() {
                   badge={card.badge}
                   icon={card.icon}
                   image={card.image}
-                  onPress={() => handleTaskCardPress(card.category)}
+                  isFree={card.isFree}
+                  price={card.price}
+                  onPress={() => handleTaskCardPress(card.category, card.title)}
                 />
               </View>
             ))}
