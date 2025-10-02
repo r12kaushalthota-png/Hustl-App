@@ -14,6 +14,8 @@ import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import Toast from '@/components/Toast';
+import ReviewModal from '@/components/ReviewModal';
+import { ReviewRepo } from '@/lib/reviewRepo';
 
 type TaskStatus = 'accepted' | 'en_route' | 'arrived' | 'picked_up' | 'delivered' | 'completed' | 'cancelled';
 
@@ -31,6 +33,12 @@ interface Task {
   status: string;
   created_by: string;
   accepted_by: string | null;
+  created_by_profile?: {
+    full_name: string | null;
+  };
+  accepted_by_profile?: {
+    full_name: string | null;
+  };
 }
 
 const STATUS_CONFIG: Record<TaskStatus, { label: string; icon: any; color: string }> = {
@@ -64,6 +72,8 @@ export default function TaskStatusScreen() {
   const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [canLeaveReview, setCanLeaveReview] = useState(false);
 
   const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>({
     visible: false,
@@ -115,7 +125,16 @@ export default function TaskStatusScreen() {
     try {
       const { data: taskData, error: taskError } = await supabase
         .from('tasks')
-        .select('id, title, current_status, status, created_by, accepted_by')
+        .select(`
+          id,
+          title,
+          current_status,
+          status,
+          created_by,
+          accepted_by,
+          created_by_profile:profiles!tasks_created_by_fkey(full_name),
+          accepted_by_profile:profiles!tasks_accepted_by_fkey(full_name)
+        `)
         .eq('id', taskId)
         .maybeSingle();
 
@@ -131,6 +150,13 @@ export default function TaskStatusScreen() {
       if (historyError) throw historyError;
 
       setStatusHistory(historyData || []);
+
+      if (user && taskData.current_status === 'completed') {
+        const reviewCheck = await ReviewRepo.canUserReviewTask(taskId, user.id);
+        setCanLeaveReview(reviewCheck.canReview);
+      } else {
+        setCanLeaveReview(false);
+      }
     } catch (error: any) {
       setToast({
         visible: true,
@@ -166,7 +192,16 @@ export default function TaskStatusScreen() {
         type: 'success',
       });
 
-      loadTaskStatus();
+      await loadTaskStatus();
+
+      if (newStatus === 'completed' && user) {
+        const reviewCheck = await ReviewRepo.canUserReviewTask(task.id, user.id);
+        if (reviewCheck.canReview) {
+          setTimeout(() => {
+            setShowReviewModal(true);
+          }, 1000);
+        }
+      }
     } catch (error: any) {
       setToast({
         visible: true,
@@ -184,6 +219,36 @@ export default function TaskStatusScreen() {
 
   const hideToast = () => {
     setToast((prev) => ({ ...prev, visible: false }));
+  };
+
+  const handleReviewSubmit = () => {
+    setShowReviewModal(false);
+    setToast({
+      visible: true,
+      message: 'Review submitted successfully!',
+      type: 'success',
+    });
+    setCanLeaveReview(false);
+  };
+
+  const getRevieweeInfo = () => {
+    if (!task || !user) return null;
+
+    if (task.created_by === user.id && task.accepted_by) {
+      return {
+        id: task.accepted_by,
+        name: task.accepted_by_profile?.full_name || 'Task Doer',
+      };
+    }
+
+    if (task.accepted_by === user.id && task.created_by) {
+      return {
+        id: task.created_by,
+        name: task.created_by_profile?.full_name || 'Task Poster',
+      };
+    }
+
+    return null;
   };
 
   const formatTimestamp = (timestamp: string): string => {
@@ -288,6 +353,15 @@ export default function TaskStatusScreen() {
                 <Text style={styles.actionButtonText}>{isUpdating ? 'Cancelling...' : 'Cancel Task'}</Text>
               </TouchableOpacity>
             )}
+
+            {canLeaveReview && (
+              <TouchableOpacity
+                style={[styles.actionButton, styles.reviewButton]}
+                onPress={() => setShowReviewModal(true)}
+              >
+                <Text style={styles.actionButtonText}>Leave a Review</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.card}>
@@ -330,6 +404,19 @@ export default function TaskStatusScreen() {
       </SafeAreaView>
 
       <Toast visible={toast.visible} message={toast.message} type={toast.type} onHide={hideToast} />
+
+      {user && task && getRevieweeInfo() && (
+        <ReviewModal
+          visible={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          onSubmit={handleReviewSubmit}
+          taskId={task.id}
+          taskTitle={task.title}
+          raterId={user.id}
+          rateeId={getRevieweeInfo()!.id}
+          rateeName={getRevieweeInfo()!.name}
+        />
+      )}
     </>
   );
 }
@@ -440,6 +527,9 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: Colors.semantic.errorAlert,
+  },
+  reviewButton: {
+    backgroundColor: '#FFC107',
   },
   actionButtonText: {
     fontSize: 16,
