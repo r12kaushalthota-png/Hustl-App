@@ -184,6 +184,8 @@ export default function TaskDetailScreen() {
   const isTaskPoster = user && task.created_by === user.id;
   const isTaskAccepted = task.status === 'accepted' && task.accepted_by;
   const canMessage = user && isTaskAccepted && (isTaskPoster || task.accepted_by === user.id);
+  const isTaskCompleted = task.status === 'completed' || task.current_status === 'completed';
+  const isTaskInvolved = user && (task.created_by === user.id || task.accepted_by === user.id);
 
   return (
     <>
@@ -288,6 +290,17 @@ export default function TaskDetailScreen() {
                   <Text style={styles.statusButtonText}>View Status</Text>
                 </TouchableOpacity>
               </View>
+            )}
+
+            {/* Timeline Button for Completed Tasks */}
+            {isTaskCompleted && isTaskInvolved && !canMessage && (
+              <TouchableOpacity
+                style={[styles.actionButton, styles.timelineButton]}
+                onPress={handleViewStatus}
+              >
+                <Timeline size={20} color={Colors.white} strokeWidth={2} />
+                <Text style={styles.actionButtonText}>View Timeline</Text>
+              </TouchableOpacity>
             )}
 
             {/* Action Buttons */}
@@ -500,6 +513,12 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: Colors.semantic.errorAlert,
+  },
+  timelineButton: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: Colors.primary,
+    marginBottom: 16,
   },
   actionButtonText: {
     fontSize: 16,

@@ -26,14 +26,30 @@ export default function TaskHistoryScreen() {
     }
 
     try {
-      // For now, we'll show completed tasks the user has done
-      // In a real app, you'd have a separate endpoint for task history
-      const result = await TaskRepo.listUserDoingTasks(user.id);
-      if (result.data) {
-        // Filter for completed tasks only
-        const completed = result.data.filter(task => task.status === 'completed');
-        setCompletedTasks(completed);
-      }
+      const createdResult = await TaskRepo.listUserCreatedTasks(user.id);
+      const doingResult = await TaskRepo.listUserDoingTasks(user.id);
+
+      const allTasks = [
+        ...(createdResult.data || []),
+        ...(doingResult.data || [])
+      ];
+
+      const completed = allTasks
+        .filter(task => task.status === 'completed' || task.current_status === 'completed')
+        .sort((a, b) => {
+          const dateA = new Date(a.updated_at).getTime();
+          const dateB = new Date(b.updated_at).getTime();
+          return dateB - dateA;
+        });
+
+      const uniqueTasks = completed.reduce((acc, task) => {
+        if (!acc.find(t => t.id === task.id)) {
+          acc.push(task);
+        }
+        return acc;
+      }, [] as Task[]);
+
+      setCompletedTasks(uniqueTasks);
     } catch (error) {
       console.error('Error loading task history:', error);
     } finally {
@@ -45,8 +61,17 @@ export default function TaskHistoryScreen() {
     router.back();
   };
 
+  const handleTaskPress = (taskId: string) => {
+    router.push(`/task/${taskId}`);
+  };
+
   const renderTaskCard = (task: Task) => (
-    <View key={task.id} style={styles.taskCard}>
+    <TouchableOpacity
+      key={task.id}
+      style={styles.taskCard}
+      onPress={() => handleTaskPress(task.id)}
+      activeOpacity={0.7}
+    >
       <View style={styles.taskHeader}>
         <View style={styles.taskTitleContainer}>
           <Text style={styles.taskTitle}>{task.title}</Text>
@@ -86,7 +111,7 @@ export default function TaskHistoryScreen() {
           </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
