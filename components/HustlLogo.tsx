@@ -116,7 +116,7 @@ export default function HustlLogo({
             {
               width: logoSize + 40,
               height: logoSize + 40,
-              borderRadius: (logoSize + 40) / 2
+              borderRadius: logoSize * 0.2
             },
             animatedHaloStyle
           ]} />
@@ -127,62 +127,66 @@ export default function HustlLogo({
           {
             width: logoSize,
             height: logoSize,
-            borderRadius: logoSize / 2,
+            borderRadius: logoSize * 0.2,
             shadowColor: BrandColors.red
           },
           animatedGlowStyle
         ]}>
           <LinearGradient
             colors={BrandGradients.primary}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={[styles.logoCircle, {
               width: logoSize,
               height: logoSize,
-              borderRadius: logoSize / 2
+              borderRadius: logoSize * 0.2
             }]}
           >
-            <Text style={[styles.logoText, { fontSize: logoSize * 0.5 }]}>H</Text>
+            <Text style={[styles.logoText, { fontSize: logoSize * 0.5, fontWeight: '900' }]}>H</Text>
           </LinearGradient>
         </Animated.View>
       </View>
     );
   }
 
-  // For other variants, use gradient circle with H
+  // For other variants, use the same gradient logo
   return (
     <View style={[styles.container, { width: containerSize, height: containerSize }, style]}>
         {/* Rotating halo for animated version */}
         {animated && (
           <Animated.View style={[
-            styles.halo, 
-            { 
-              width: logoSize + 40, 
+            styles.halo,
+            {
+              width: logoSize + 40,
               height: logoSize + 40,
-              borderRadius: (logoSize + 40) / 2 
+              borderRadius: logoSize * 0.2
             },
             animatedHaloStyle
           ]} />
         )}
-        
+
         {/* Main logo with glow */}
         <Animated.View style={[
           styles.logoWrapper,
           {
             width: logoSize,
             height: logoSize,
-            borderRadius: logoSize / 2,
+            borderRadius: logoSize * 0.2,
             shadowColor: BrandColors.red
           },
           animatedGlowStyle
         ]}>
           <LinearGradient
             colors={BrandGradients.primary}
-            style={[styles.logoCircle, { 
-              width: logoSize, 
-              height: logoSize, 
-              borderRadius: logoSize / 2 
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.logoCircle, {
+              width: logoSize,
+              height: logoSize,
+              borderRadius: logoSize * 0.2
             }]}
           >
-            <Text style={[styles.logoText, { fontSize: logoSize * 0.35 }]}>H</Text>
+            <Text style={[styles.logoText, { fontSize: logoSize * 0.5, fontWeight: '900' }]}>H</Text>
           </LinearGradient>
         </Animated.View>
       </View>
@@ -211,10 +215,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  logoImage: {
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
+  logoImage: {},
   logoText: {
     fontWeight: '700',
     color: BrandColors.surface,
