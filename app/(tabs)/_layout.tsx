@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StripeConnect } from '@/lib/stripeConnect';
 import { useAuth } from '@/contexts/AuthContext';
 import KYCRequestModal from '@/components/KYCRequestModal';
+import { Tokens } from '@/constants/Tokens';
 
 // Tab Icon Component
 const TabIcon = ({
@@ -65,7 +66,7 @@ const LightningActionButton = ({ focused }: { focused: boolean }) => {
           style={styles.fabButton}
           onPress={handlePress}
           activeOpacity={0.9}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          hitSlop={Tokens.hitSlop.medium}
           accessibilityLabel="Post a task"
           accessibilityRole="button"
         >
@@ -98,6 +99,8 @@ const LightningTabButton = (props: any) => {
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
 
+  const tabBarHeight = Tokens.tabBarHeight + Math.max(insets.bottom, Tokens.spacing.sm);
+
   return (
     <View style={styles.container}>
       <Tabs
@@ -107,14 +110,14 @@ export default function TabLayout() {
             backgroundColor: Colors.white,
             borderTopColor: 'rgba(229, 231, 235, 0.2)',
             borderTopWidth: 0.5,
-            height: 64 + insets.bottom,
-            paddingBottom: insets.bottom + 8,
-            paddingTop: 8,
+            height: tabBarHeight,
+            paddingBottom: Math.max(insets.bottom, Tokens.spacing.sm),
+            paddingTop: Tokens.spacing.sm,
             position: 'absolute',
             bottom: 0,
             left: 0,
             right: 0,
-            elevation: 20,
+            elevation: Tokens.elevation.xl,
             overflow: 'visible',
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -8 },
@@ -202,22 +205,22 @@ const styles = StyleSheet.create({
   tabIconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 44,
-    height: 44,
+    width: Tokens.minTouchTarget,
+    height: Tokens.minTouchTarget,
   },
   fabContainer: {
     position: 'absolute',
     left: '50%',
-    bottom: 6,
-    transform: [{ translateX: -22 }],
+    bottom: Tokens.spacing.sm,
+    transform: [{ translateX: -Tokens.minTouchTarget / 2 }],
     zIndex: 2,
     backgroundColor: 'transparent',
     pointerEvents: 'box-none',
   },
   fabButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: Tokens.minTouchTarget,
+    height: Tokens.minTouchTarget,
+    borderRadius: Tokens.minTouchTarget / 2,
     backgroundColor: '#4DA3FF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -226,6 +229,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
     shadowRadius: 6,
-    elevation: 4,
+    elevation: Tokens.elevation.md,
   },
 });

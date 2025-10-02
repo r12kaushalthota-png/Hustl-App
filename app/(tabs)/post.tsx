@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
-  SafeAreaView,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -19,6 +21,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { Tokens } from '@/constants/Tokens';
 import { TaskRepo } from '@/lib/taskRepo';
 import { ModerationService } from '@/lib/moderation';
 import SearchBoxApple from '@/components/SearchBoxApple';
@@ -298,25 +301,38 @@ export default function PostTaskScreen() {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar barStyle="light-content" />
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleBack}
+            hitSlop={Tokens.hitSlop.medium}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
             <ArrowLeft size={24} color={BrandColors.surface} strokeWidth={2} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Post Task</Text>
+          <Text style={styles.headerTitle} allowFontScaling={false}>Post Task</Text>
           <View style={styles.placeholder} />
         </View>
 
-        <ScrollView
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-          contentInsetAdjustmentBehavior="never"
-          contentContainerStyle={{
-            paddingBottom: insets.bottom + tabBarHeight + 100,
-          }}
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={true}
+            contentInsetAdjustmentBehavior="automatic"
+            contentContainerStyle={{
+              paddingBottom: Math.max(insets.bottom, Tokens.spacing.sm) + tabBarHeight + Tokens.spacing.jumbo,
+            }}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+          >
           {/* Category Header */}
           <View style={styles.categoryHeader}>
             <LinearGradient
@@ -581,6 +597,7 @@ export default function PostTaskScreen() {
             />
           </View>
         </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
 
       <Toast

@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform, Dimensions, SafeAreaView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform, useWindowDimensions, StatusBar } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
+import { Tokens } from '@/constants/Tokens';
 import { 
   Search, 
   TrendingUp, 
@@ -19,7 +20,6 @@ import { useGlobalProfile } from '@/contexts/GlobalProfileContext';
 import HustlLogo from '@/components/HustlLogo';
 import TaskCard from '@/components/TaskCard';
 
-const { width } = Dimensions.get('window');
 
 // Exact brand colors from the logo
 const BrandColors = {

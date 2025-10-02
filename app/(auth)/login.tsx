@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ScrollView, StatusBar } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { Colors } from '@constants/Colors';
+import { Tokens } from '@/constants/Tokens';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -31,14 +32,37 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="dark-content" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={true}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+        >
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleBack}
+            hitSlop={Tokens.hitSlop.medium}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
             <ArrowLeft size={24} color={Colors.semantic.bodyText} strokeWidth={2} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleSkip}>
-            <Text style={styles.skipText}>Skip</Text>
+          <TouchableOpacity
+            onPress={handleSkip}
+            hitSlop={Tokens.hitSlop.medium}
+            accessibilityLabel="Skip login"
+            accessibilityRole="button"
+          >
+            <Text style={styles.skipText} allowFontScaling={true}>Skip</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -60,6 +84,10 @@ export default function LoginScreen() {
               placeholderTextColor={Colors.semantic.tabInactive}
               keyboardType="email-address"
               autoCapitalize="none"
+              allowFontScaling={true}
+              autoCorrect={false}
+              returnKeyType="next"
+              accessibilityLabel="Email input"
             />
           </View>
 
@@ -74,10 +102,18 @@ export default function LoginScreen() {
                 placeholderTextColor={Colors.semantic.tabInactive}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
+                allowFontScaling={true}
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
+                accessibilityLabel="Password input"
               />
               <TouchableOpacity
                 style={styles.eyeButton}
                 onPress={() => setShowPassword(!showPassword)}
+                hitSlop={Tokens.hitSlop.medium}
+                accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                accessibilityRole="button"
               >
                 {showPassword ? (
                   <EyeOff size={20} color={Colors.semantic.tabInactive} strokeWidth={2} />
@@ -90,16 +126,29 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Sign In</Text>
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={handleLogin}
+            accessibilityLabel="Sign in"
+            accessibilityRole="button"
+          >
+            <Text style={styles.loginButtonText} allowFontScaling={true}>Sign In</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-            <Text style={styles.signUpButtonText}>Don't have an account? Sign up</Text>
+          <TouchableOpacity
+            style={styles.signUpButton}
+            onPress={handleSignUp}
+            hitSlop={Tokens.hitSlop.medium}
+            accessibilityLabel="Go to sign up"
+            accessibilityRole="button"
+          >
+            <Text style={styles.signUpButtonText} allowFontScaling={true}>Don't have an account? Sign up</Text>
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -107,6 +156,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.semantic.screen,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
     paddingHorizontal: 24,
@@ -119,9 +171,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: Tokens.minTouchTarget,
+    height: Tokens.minTouchTarget,
+    borderRadius: Tokens.minTouchTarget / 2,
     backgroundColor: Colors.muted,
     justifyContent: 'center',
     alignItems: 'center',
