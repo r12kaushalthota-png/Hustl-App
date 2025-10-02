@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Clock, MapPin, Store, User, MessageCircle, Baseline as Timeline } from 'lucide-react-native';
+import { ArrowLeft, Clock, MapPin, Store, User, MessageCircle, Baseline as Timeline, Star } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
@@ -10,6 +10,9 @@ import { Task } from '@/types/database';
 import Toast from '@/components/Toast';
 import { StripeConnect } from '@/lib/stripeConnect';
 import { ChatService } from '@/lib/chat';
+import TaskStatusTimeline from '@/components/TaskStatusTimeline';
+import ReviewModal from '@/components/ReviewModal';
+import { supabase } from '@/lib/supabase';
 
 export default function TaskDetailScreen() {
   const router = useRouter();
@@ -22,7 +25,9 @@ export default function TaskDetailScreen() {
   const [task, setTask] = useState<Task | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [canLeaveReview, setCanLeaveReview] = useState(false);
+
   const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>({
     visible: false,
     message: '',
@@ -32,6 +37,10 @@ export default function TaskDetailScreen() {
   useEffect(() => {
     loadTaskDetails();
   }, [taskId]);
+
+  useEffect(() => {
+    checkCanLeaveReview();
+  }, [task, user]);
 
   const loadTaskDetails = async () => {
     if (!taskId) return;
@@ -143,6 +152,41 @@ export default function TaskDetailScreen() {
   const handleViewStatus = () => {
     if (!task) return;
     router.push(`/task/${task.id}/status`);
+  };
+
+  const checkCanLeaveReview = async () => {
+    if (!task || !user) {
+      setCanLeaveReview(false);
+      return;
+    }
+
+    // Only check if task is completed and user is involved
+    if (task.status === 'completed' && (task.created_by === user.id || task.accepted_by === user.id)) {
+      try {
+        const { data: canReview } = await supabase.rpc('can_leave_review', {
+          p_task_id: task.id
+        });
+        setCanLeaveReview(canReview || false);
+      } catch (err) {
+        setCanLeaveReview(false);
+      }
+    } else {
+      setCanLeaveReview(false);
+    }
+  };
+
+  const handleLeaveReview = () => {
+    setShowReviewModal(true);
+  };
+
+  const handleReviewSubmit = () => {
+    setShowReviewModal(false);
+    setCanLeaveReview(false);
+    setToast({
+      visible: true,
+      message: 'Review submitted successfully!',
+      type: 'success'
+    });
   };
 
   if (isLoading) {
@@ -328,8 +372,44 @@ export default function TaskDetailScreen() {
               </View>
             )}
           </View>
+
+          {/* Task Status Timeline */}
+          {isTaskInvolved && task.accepted_by && (
+            <TaskStatusTimeline
+              taskId={task.id}
+              taskStatus={task.current_status || task.status}
+              createdBy={task.created_by}
+              acceptedBy={task.accepted_by}
+              isTaskPoster={!!isTaskPoster}
+            />
+          )}
+
+          {/* Leave Review Button */}
+          {canLeaveReview && (
+            <TouchableOpacity
+              style={styles.reviewButton}
+              onPress={handleLeaveReview}
+            >
+              <Star size={20} color={Colors.white} strokeWidth={2} fill={Colors.white} />
+              <Text style={styles.reviewButtonText}>Leave a Review</Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       </SafeAreaView>
+
+      {/* Review Modal */}
+      {task && user && showReviewModal && (
+        <ReviewModal
+          visible={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          onSubmit={handleReviewSubmit}
+          taskId={task.id}
+          taskTitle={task.title}
+          raterId={user.id}
+          rateeId={task.created_by === user.id ? task.accepted_by! : task.created_by}
+          rateeName={task.created_by === user.id ? 'Helper' : 'Poster'}
+        />
+      )}
 
       <Toast
         visible={toast.visible}
@@ -558,5 +638,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.primary,
+  },
+  reviewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FFA500',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  reviewButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.white,
   },
 });
