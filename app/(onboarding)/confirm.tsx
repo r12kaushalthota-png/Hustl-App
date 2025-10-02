@@ -28,11 +28,9 @@ export default function ConfirmScreen() {
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <ArrowLeft size={24} color={Colors.semantic.bodyText} strokeWidth={2} />
           </TouchableOpacity>
-          <Image
-            source={require('@assets/images/image.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <View style={styles.logo}>
+            <Text style={styles.logoText}>HUSTL</Text>
+          </View>
           <TouchableOpacity onPress={handleSkip}>
             <Text style={styles.skipText}>Skip</Text>
           </TouchableOpacity>

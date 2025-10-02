@@ -109,7 +109,19 @@ export default function HustlLogo({
   if (variant === 'icon') {
     return (
       <View style={[styles.container, { width: containerSize, height: containerSize }, style]}>
-        {/* Use the actual logo image */}
+        {/* Rotating halo for animated version */}
+        {animated && (
+          <Animated.View style={[
+            styles.halo,
+            {
+              width: logoSize + 40,
+              height: logoSize + 40,
+              borderRadius: (logoSize + 40) / 2
+            },
+            animatedHaloStyle
+          ]} />
+        )}
+
         <Animated.View style={[
           styles.logoWrapper,
           {
@@ -120,15 +132,16 @@ export default function HustlLogo({
           },
           animatedGlowStyle
         ]}>
-          <Image
-            source={require('@/src/assets/images/image copy copy.png')}
-            style={[styles.logoImage, { 
-              width: logoSize, 
-              height: logoSize, 
-              borderRadius: logoSize / 2 
+          <LinearGradient
+            colors={BrandGradients.primary}
+            style={[styles.logoCircle, {
+              width: logoSize,
+              height: logoSize,
+              borderRadius: logoSize / 2
             }]}
-            resizeMode="contain"
-          />
+          >
+            <Text style={[styles.logoText, { fontSize: logoSize * 0.5 }]}>H</Text>
+          </LinearGradient>
         </Animated.View>
       </View>
     );

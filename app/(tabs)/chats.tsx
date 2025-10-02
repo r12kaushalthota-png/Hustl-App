@@ -391,11 +391,7 @@ const ChatsHeader = ({
             </Animated.View>
           ) : (
             <View style={styles.appIconContainer}>
-              <Image
-                source={require('@assets/images/image.png')}
-                style={styles.appIcon}
-                resizeMode="contain"
-              />
+              <Text style={styles.appIconText}>H</Text>
             </View>
           )}
         </View>
