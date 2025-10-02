@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
 import { acceptTask } from '@/services/tasks';
+import { ChatService } from '@/lib/chat';
 import type { Task } from '@/services/tasks';
 
 interface UseAcceptTaskOptions {
@@ -10,9 +12,9 @@ interface UseAcceptTaskOptions {
 export function useAcceptTask(options: UseAcceptTaskOptions = {}) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const run = async (taskId: string): Promise<Task | null> => {
-    // Prevent double-tap
     if (pendingId) {
       return null;
     }
@@ -22,18 +24,22 @@ export function useAcceptTask(options: UseAcceptTaskOptions = {}) {
 
     try {
       const task = await acceptTask(taskId);
-      
-      // Call success callback
+
+      const { data: chatRoom, error: chatError } = await ChatService.ensureRoomForTask(taskId);
+
+      if (chatRoom && !chatError) {
+        router.push(`/chat/${chatRoom.id}`);
+      }
+
       options.onSuccess?.(task);
-      
+
       return task;
     } catch (e: any) {
       const errorMessage = e?.message ?? 'Could not accept task. Please try again.';
       setError(errorMessage);
-      
-      // Call error callback
+
       options.onError?.(errorMessage);
-      
+
       throw e;
     } finally {
       setPendingId(null);

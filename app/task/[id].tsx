@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Clock, MapPin, Store, User } from 'lucide-react-native';
+import { ArrowLeft, Clock, MapPin, Store, User, MessageCircle, Timeline } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskRepo } from '@/lib/taskRepo';
 import { Task } from '@/types/database';
 import Toast from '@/components/Toast';
 import { StripeConnect } from '@/lib/stripeConnect';
+import { ChatService } from '@/lib/chat';
 
 export default function TaskDetailScreen() {
   const router = useRouter();
@@ -120,6 +121,30 @@ export default function TaskDetailScreen() {
     setToast(prev => ({ ...prev, visible: false }));
   };
 
+  const handleMessageUser = async () => {
+    if (!task || !user) return;
+
+    const { data: chatRoom, error: chatError } = await ChatService.ensureRoomForTask(task.id);
+
+    if (chatError) {
+      setToast({
+        visible: true,
+        message: chatError,
+        type: 'error'
+      });
+      return;
+    }
+
+    if (chatRoom) {
+      router.push(`/chat/${chatRoom.id}`);
+    }
+  };
+
+  const handleViewStatus = () => {
+    if (!task) return;
+    router.push(`/task/${task.id}/status`);
+  };
+
   if (isLoading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -157,6 +182,8 @@ export default function TaskDetailScreen() {
 
   const canUpdateStatus = user && task.accepted_by === user.id && task.status === 'accepted';
   const isTaskPoster = user && task.created_by === user.id;
+  const isTaskAccepted = task.status === 'accepted' && task.accepted_by;
+  const canMessage = user && isTaskAccepted && (isTaskPoster || task.accepted_by === user.id);
 
   return (
     <>
@@ -240,6 +267,29 @@ export default function TaskDetailScreen() {
               </View>
             </View>
 
+            {/* Message and Status Buttons */}
+            {canMessage && (
+              <View style={styles.messageStatusButtons}>
+                <TouchableOpacity
+                  style={[styles.messageButton]}
+                  onPress={handleMessageUser}
+                >
+                  <MessageCircle size={20} color={Colors.white} strokeWidth={2} />
+                  <Text style={styles.messageButtonText}>
+                    {isTaskPoster ? 'Message the helper' : 'Message the poster'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.statusButton]}
+                  onPress={handleViewStatus}
+                >
+                  <Timeline size={20} color={Colors.primary} strokeWidth={2} />
+                  <Text style={styles.statusButtonText}>View Status</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Action Buttons */}
             {isTaskPoster && task.status === 'accepted' && (
               <View style={styles.actionButtons}>
@@ -252,7 +302,7 @@ export default function TaskDetailScreen() {
                     {isUpdating ? 'Updating...' : 'Mark Complete'}
                   </Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   style={[styles.actionButton, styles.cancelButton]}
                   onPress={() => handleStatusUpdate('cancelled')}
@@ -455,5 +505,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.white,
+  },
+  messageStatusButtons: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  messageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+  },
+  messageButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.white,
+  },
+  statusButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+  },
+  statusButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.primary,
   },
 });

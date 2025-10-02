@@ -26,6 +26,7 @@ import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatService } from '@/lib/chat';
 import { ProfileService } from '@/services/profileService';
+import { supabase } from '@/lib/supabase';
 import type { InboxItem } from '@/types/chat';
 
 const { width } = Dimensions.get('window');
@@ -255,7 +256,39 @@ export default function ChatsList({ onChatPress, onProfilePress }: ChatsListProp
 
   useEffect(() => {
     loadChatInbox();
-  }, [loadChatInbox]);
+
+    if (!user) return;
+
+    const channel = supabase
+      .channel('chat_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat_messages'
+        },
+        () => {
+          loadChatInbox();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat_rooms'
+        },
+        () => {
+          loadChatInbox();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [loadChatInbox, user]);
 
   const handleRefresh = () => {
     loadChatInbox(true);
