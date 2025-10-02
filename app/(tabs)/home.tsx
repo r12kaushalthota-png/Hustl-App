@@ -281,6 +281,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
+  const { width } = useWindowDimensions();
 
   const triggerHaptics = () => {
     if (Platform.OS !== 'web') {
