@@ -12,8 +12,29 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSignUp = () => {
+    setError('');
+
+    // Validate @ufl.edu email
+    if (!email.toLowerCase().endsWith('@ufl.edu')) {
+      setError('Only @ufl.edu email addresses are allowed');
+      return;
+    }
+
+    // Validate display name
+    if (!displayName.trim()) {
+      setError('Please enter your display name');
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     // TODO: Implement Supabase signup
     console.log('SignUp:', { displayName, email, password });
     router.replace('/(tabs)/home');
@@ -52,6 +73,12 @@ export default function SignUpScreen() {
         </View>
 
         <View style={styles.form}>
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Display Name</Text>
             <TextInput
@@ -65,16 +92,17 @@ export default function SignUpScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>UF Email</Text>
             <TextInput
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder="Enter your email"
+              placeholder="yourname@ufl.edu"
               placeholderTextColor={Colors.semantic.tabInactive}
               keyboardType="email-address"
               autoCapitalize="none"
             />
+            <Text style={styles.helperText}>Only @ufl.edu emails are allowed</Text>
           </View>
 
           <View style={styles.inputContainer}>
@@ -231,5 +259,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.semantic.bodyText,
+  },
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  helperText: {
+    fontSize: 12,
+    color: Colors.semantic.tabInactive,
+    marginTop: 4,
   },
 });

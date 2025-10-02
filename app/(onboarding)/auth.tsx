@@ -112,6 +112,12 @@ const params = useLocalSearchParams();
       return;
     }
 
+    // Validate @ufl.edu email for signup
+    if (!isLogin && !email.toLowerCase().endsWith('@ufl.edu')) {
+      setError('Only @ufl.edu email addresses are allowed for signup.');
+      return;
+    }
+
     if (!password.trim()) {
       setError('Please enter your password.');
       return;
@@ -119,6 +125,11 @@ const params = useLocalSearchParams();
 
     if (!isLogin && !displayName.trim()) {
       setError('Please enter your display name.');
+      return;
+    }
+
+    if (!isLogin && password.length < 6) {
+      setError('Password must be at least 6 characters.');
       return;
     }
 
@@ -249,7 +260,7 @@ const params = useLocalSearchParams();
                 style={styles.input}
                 value={email}
                 onChangeText={setEmail}
-                placeholder="Enter your email"
+                placeholder={isLogin ? "Enter your email" : "yourname@ufl.edu"}
                 placeholderTextColor={BrandColors.subtitle}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -257,6 +268,9 @@ const params = useLocalSearchParams();
                 editable={!isLoading}
               />
             </View>
+            {!isLogin && (
+              <Text style={styles.helperText}>Only @ufl.edu emails are allowed</Text>
+            )}
           </View>
 
           <View style={styles.inputContainer}>
@@ -536,6 +550,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: BrandColors.surface,
     opacity: 0.9,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  helperText: {
+    fontSize: 12,
+    color: BrandColors.surface,
+    opacity: 0.8,
+    marginTop: 4,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
