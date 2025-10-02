@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ProfileRepo } from '@/lib/profileRepo';
 import { MediaUtils } from '@/lib/media';
 import Toast from '@/components/Toast';
+import { Colors } from '@/theme/colors';
 
 // Exact brand colors from the logo
 const BrandColors = {
@@ -220,10 +221,6 @@ export default function ProfileScreen() {
       setIsUploadingAvatar(false);
     }
   };
-  const handleBack = () => {
-    router.back();
-  };
-
   const hideToast = () => {
     setToast(prev => ({ ...prev, visible: false }));
   };
@@ -246,9 +243,7 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <ArrowLeft size={24} color={BrandColors.surface} strokeWidth={2} />
-        </TouchableOpacity>
+        <View style={styles.placeholder} />
         <Text style={styles.headerTitle}>Profile</Text>
         <View style={styles.placeholder} />
       </View>
