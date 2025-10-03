@@ -28,7 +28,14 @@ export default function MyTasksScreen() {
     try {
       const result = await TaskRepo.listUserPostedTasks(user.id);
       if (result.data) {
-        setTasks(result.data);
+        const sortedTasks = result.data.sort((a, b) => {
+          const aIsActive = a.status === 'open' || a.status === 'accepted';
+          const bIsActive = b.status === 'open' || b.status === 'accepted';
+          if (aIsActive && !bIsActive) return -1;
+          if (!aIsActive && bIsActive) return 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+        setTasks(sortedTasks);
       }
     } catch (error) {
       console.error('Error loading tasks:', error);
@@ -41,8 +48,17 @@ export default function MyTasksScreen() {
     router.back();
   };
 
+  const handleTaskPress = (taskId: string) => {
+    router.push(`/task/${taskId}` as any);
+  };
+
   const renderTaskCard = (task: Task) => (
-    <View key={task.id} style={styles.taskCard}>
+    <TouchableOpacity
+      key={task.id}
+      style={styles.taskCard}
+      onPress={() => handleTaskPress(task.id)}
+      activeOpacity={0.7}
+    >
       <View style={styles.taskHeader}>
         <View style={styles.taskTitleContainer}>
           <Text style={styles.taskTitle}>{task.title}</Text>
@@ -56,26 +72,26 @@ export default function MyTasksScreen() {
           {TaskRepo.formatReward(task.reward_cents)}
         </Text>
       </View>
-      
+
       {task.description ? (
         <Text style={styles.taskDescription} numberOfLines={2}>
           {task.description}
         </Text>
       ) : null}
-      
+
       <View style={styles.taskDetails}>
         <View style={styles.detailRow}>
           <Store size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
           <Text style={styles.detailText}>{task.store}</Text>
         </View>
-        
+
         <View style={styles.detailRow}>
           <MapPin size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
           <Text style={styles.detailText} numberOfLines={1}>
             {task.dropoff_address}
           </Text>
         </View>
-        
+
         <View style={styles.detailRow}>
           <Clock size={16} color={Colors.semantic.tabInactive} strokeWidth={2} />
           <Text style={styles.detailText}>
@@ -83,7 +99,7 @@ export default function MyTasksScreen() {
           </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const getStatusStyle = (status: string) => {
@@ -148,13 +164,34 @@ export default function MyTasksScreen() {
         contentInsetAdjustmentBehavior="never"
         contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       >
-        {isLoading ? (
+{isLoading ? (
           <View style={styles.loadingState}>
             <Text style={styles.loadingText}>Loading your tasks...</Text>
           </View>
         ) : tasks.length > 0 ? (
           <View style={styles.tasksList}>
-            {tasks.map(renderTaskCard)}
+            {(() => {
+              const activeTasks = tasks.filter(t => t.status === 'open' || t.status === 'accepted');
+              const completedTasks = tasks.filter(t => t.status === 'completed' || t.status === 'cancelled');
+
+              return (
+                <>
+                  {activeTasks.length > 0 && (
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>Active Tasks ({activeTasks.length})</Text>
+                      {activeTasks.map(renderTaskCard)}
+                    </View>
+                  )}
+
+                  {completedTasks.length > 0 && (
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>Past Tasks</Text>
+                      {completedTasks.map(renderTaskCard)}
+                    </View>
+                  )}
+                </>
+              );
+            })()}
           </View>
         ) : (
           <View style={styles.emptyState}>
@@ -294,5 +331,15 @@ const styles = StyleSheet.create({
     color: Colors.semantic.tabInactive,
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.semantic.headingText,
+    marginBottom: 12,
+    paddingLeft: 4,
   },
 });
