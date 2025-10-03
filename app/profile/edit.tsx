@@ -159,7 +159,7 @@ export default function EditProfileScreen() {
             style: 'destructive',
             onPress: () => {
               handleDiscard();
-              router.replace('/profile');
+              router.back();
             }
           },
           { text: 'Save', onPress: handleSaveAndBack },
@@ -167,7 +167,7 @@ export default function EditProfileScreen() {
         ]
       );
     } else {
-      router.replace('/profile');
+      router.back();
     }
   };
 
@@ -184,7 +184,7 @@ export default function EditProfileScreen() {
       });
 
       setTimeout(() => {
-        router.replace('/profile');
+        router.back();
       }, 1500);
     } else {
       setToast({

@@ -247,7 +247,11 @@ export default function ProfileScreen() {
           style={styles.backButton}
           onPress={() => {
             triggerHaptics();
-            router.replace('/(tabs)/home');
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.push('/(tabs)/home');
+            }
           }}
         >
           <ArrowLeft size={20} color={BrandColors.surface} strokeWidth={2} />
