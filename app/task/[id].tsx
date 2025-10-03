@@ -131,11 +131,16 @@ export default function TaskDetailScreen() {
   };
 
   const handleMessageUser = async () => {
-    if (!task || !user) return;
+    if (!task || !user) {
+      console.log('Cannot message - missing task or user:', { task: !!task, user: !!user });
+      return;
+    }
 
+    console.log('Creating/finding chat room for task:', task.id);
     const { data: chatRoom, error: chatError } = await ChatService.ensureRoomForTask(task.id);
 
     if (chatError) {
+      console.error('Chat room error:', chatError);
       setToast({
         visible: true,
         message: chatError,
@@ -145,7 +150,15 @@ export default function TaskDetailScreen() {
     }
 
     if (chatRoom) {
+      console.log('Navigating to chat room:', chatRoom.id);
       router.push(`/chat/${chatRoom.id}`);
+    } else {
+      console.error('No chat room returned and no error');
+      setToast({
+        visible: true,
+        message: 'Failed to create chat room',
+        type: 'error'
+      });
     }
   };
 

@@ -243,8 +243,10 @@ export default function Conversation({ roomId, onProfilePress }: ConversationPro
 
   const loadOtherUserInfo = async () => {
     try {
+      console.log('Loading other user info for room:', roomId);
+
       // Get room info to find the other user
-      const { data: roomData } = await supabase
+      const { data: roomData, error: roomError } = await supabase
         .from('chat_rooms')
         .select(`
           id,
@@ -253,11 +255,21 @@ export default function Conversation({ roomId, onProfilePress }: ConversationPro
         .eq('id', roomId)
         .single();
 
+      if (roomError) {
+        console.error('Error loading room data:', roomError);
+        return;
+      }
+
+      console.log('Room data:', roomData);
+
       if (roomData?.chat_members) {
         const otherMember = roomData.chat_members.find((m: any) => m.user_id !== user?.id);
+        console.log('Other member:', otherMember);
+
         if (otherMember) {
           // Load other user's profile using ProfileService
-          const { data: profile } = await ProfileService.getProfile(otherMember.user_id);
+          const { data: profile, error: profileError } = await ProfileService.getProfile(otherMember.user_id);
+          console.log('Loaded profile:', profile, 'Error:', profileError);
           setOtherUserProfile(profile);
         }
       }
@@ -279,18 +291,24 @@ export default function Conversation({ roomId, onProfilePress }: ConversationPro
 
     try {
       if (!user) {
+        console.error('No user found');
         setInputText(messageText);
+        setIsSending(false);
         return;
       }
 
-      const { error } = await ChatService.sendMessage(roomId, user.id, messageText);
-      
+      console.log('Sending message:', { roomId, userId: user.id, messageText });
+      const { data, error } = await ChatService.sendMessage(roomId, user.id, messageText);
+
       if (error) {
         console.error('Failed to send message:', error);
         setInputText(messageText);
+      } else {
+        console.log('Message sent successfully:', data);
+        scrollToBottom();
       }
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error('Exception sending message:', error);
       setInputText(messageText);
     } finally {
       setIsSending(false);

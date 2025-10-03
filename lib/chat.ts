@@ -5,16 +5,26 @@ export class ChatService {
   // Ensure a chat room exists for an accepted task
   static async ensureRoomForTask(taskId: string): Promise<{ data: ChatRoom | null; error: string | null }> {
     try {
-      const { data, error } = await supabase.rpc('ensure_room_for_task', { 
-        p_task_id: taskId 
+      console.log('Ensuring room for task:', taskId);
+      const { data, error } = await supabase.rpc('ensure_room_for_task', {
+        p_task_id: taskId
       });
 
       if (error) {
+        console.error('RPC error:', error);
         return { data: null, error: error.message };
+      }
+
+      console.log('ensure_room_for_task result:', data);
+
+      // The function returns a JSON object, check if it has an error
+      if (data && typeof data === 'object' && 'error' in data) {
+        return { data: null, error: data.error };
       }
 
       return { data: data || null, error: null };
     } catch (error) {
+      console.error('Exception ensuring room:', error);
       return { data: null, error: 'Failed to create chat room' };
     }
   }
@@ -98,14 +108,18 @@ export class ChatService {
   // Get user's chat inbox
   static async getChatInbox(): Promise<{ data: InboxItem[] | null; error: string | null }> {
     try {
+      console.log('Fetching chat inbox...');
       const { data, error } = await supabase.rpc('get_chat_inbox');
 
       if (error) {
+        console.error('Chat inbox error:', error);
         return { data: null, error: error.message };
       }
 
+      console.log('Chat inbox data:', data);
       return { data: data || [], error: null };
     } catch (error) {
+      console.error('Exception getting chat inbox:', error);
       return { data: null, error: 'Failed to load chat inbox' };
     }
   }
