@@ -9,15 +9,16 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, CircleCheck as CheckCircle2, Clock, MapPin, Package, Truck } from 'lucide-react-native';
+import { ArrowLeft, CircleCheck as CheckCircle, Clock, MapPin, MessageCircle, Package, Truck } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { ChatService } from '@/lib/chat';
 import Toast from '@/components/Toast';
 import ReviewModal from '@/components/ReviewModal';
 import { ReviewRepo } from '@/lib/reviewRepo';
 
-type TaskStatus = 'accepted' | 'en_route' | 'arrived' | 'picked_up' | 'delivered' | 'completed' | 'cancelled';
+type TaskStatus = 'accepted' | 'started' | 'on_the_way' | 'delivered' | 'completed' | 'cancelled';
 
 interface StatusHistoryItem {
   status: TaskStatus;
@@ -42,21 +43,19 @@ interface Task {
 }
 
 const STATUS_CONFIG: Record<TaskStatus, { label: string; icon: any; color: string }> = {
-  accepted: { label: 'Accepted', icon: CheckCircle2, color: '#10B981' },
-  en_route: { label: 'En Route', icon: Truck, color: '#3B82F6' },
-  arrived: { label: 'Arrived at Store', icon: MapPin, color: '#8B5CF6' },
-  picked_up: { label: 'Picked Up', icon: Package, color: '#F59E0B' },
-  delivered: { label: 'Delivered', icon: CheckCircle2, color: '#EC4899' },
-  completed: { label: 'Completed', icon: CheckCircle2, color: '#10B981' },
-  cancelled: { label: 'Cancelled', icon: CheckCircle2, color: '#EF4444' },
+  accepted: { label: 'Accepted', icon: CheckCircle, color: '#10B981' },
+  started: { label: 'Started', icon: Clock, color: '#3B82F6' },
+  on_the_way: { label: 'On the Way', icon: Truck, color: '#8B5CF6' },
+  delivered: { label: 'Delivered', icon: Package, color: '#F59E0B' },
+  completed: { label: 'Completed', icon: CheckCircle, color: '#10B981' },
+  cancelled: { label: 'Cancelled', icon: CheckCircle, color: '#EF4444' },
 };
 
 const NEXT_STATUS: Record<string, TaskStatus | null> = {
-  accepted: 'en_route',
-  en_route: 'arrived',
-  arrived: 'picked_up',
-  picked_up: 'delivered',
-  delivered: 'completed',
+  accepted: 'started',
+  started: 'on_the_way',
+  on_the_way: 'delivered',
+  delivered: null,
   completed: null,
   cancelled: null,
 };
@@ -231,6 +230,33 @@ export default function TaskStatusScreen() {
     setCanLeaveReview(false);
   };
 
+  const handleOpenChat = async () => {
+    if (!task) return;
+
+    try {
+      const { data: chatRoom, error } = await ChatService.ensureRoomForTask(task.id);
+
+      if (error) {
+        setToast({
+          visible: true,
+          message: error,
+          type: 'error',
+        });
+        return;
+      }
+
+      if (chatRoom) {
+        router.push(`/chat/${chatRoom.id}`);
+      }
+    } catch (error: any) {
+      setToast({
+        visible: true,
+        message: 'Failed to open chat',
+        type: 'error',
+      });
+    }
+  };
+
   const getRevieweeInfo = () => {
     if (!task || !user) return null;
 
@@ -269,6 +295,7 @@ export default function TaskStatusScreen() {
   const currentStatus = (task?.current_status || 'accepted') as TaskStatus;
   const nextStatus = NEXT_STATUS[currentStatus];
   const canUpdateStatus = isTaskDoer && nextStatus && task?.current_status !== 'completed' && task?.current_status !== 'cancelled';
+  const canComplete = isTaskPoster && task?.current_status === 'delivered';
 
   if (isLoading) {
     return (
@@ -315,7 +342,9 @@ export default function TaskStatusScreen() {
             <ArrowLeft size={24} color={Colors.white} strokeWidth={2} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Task Status</Text>
-          <View style={styles.placeholder} />
+          <TouchableOpacity style={styles.messageButton} onPress={handleOpenChat}>
+            <MessageCircle size={24} color={Colors.white} strokeWidth={2} />
+          </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -340,6 +369,18 @@ export default function TaskStatusScreen() {
               >
                 <Text style={styles.actionButtonText}>
                   {isUpdating ? 'Updating...' : `Mark as ${STATUS_CONFIG[nextStatus].label}`}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {canComplete && (
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: STATUS_CONFIG.completed.color }]}
+                onPress={() => handleUpdateStatus('completed')}
+                disabled={isUpdating}
+              >
+                <Text style={styles.actionButtonText}>
+                  {isUpdating ? 'Completing...' : 'Mark as Completed'}
                 </Text>
               </TouchableOpacity>
             )}
@@ -447,8 +488,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.white,
   },
-  placeholder: {
+  messageButton: {
     width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.white + '33',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     flex: 1,

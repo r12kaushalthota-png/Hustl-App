@@ -25,11 +25,11 @@ export function useAcceptTask(options: UseAcceptTaskOptions = {}) {
     try {
       const task = await acceptTask(taskId);
 
-      const { data: chatRoom, error: chatError } = await ChatService.ensureRoomForTask(taskId);
+      // Ensure chat room exists for the task
+      await ChatService.ensureRoomForTask(taskId);
 
-      if (chatRoom && !chatError) {
-        router.push(`/chat/${chatRoom.id}`);
-      }
+      // Route to task status screen after accepting
+      router.push(`/task/${taskId}/status`);
 
       options.onSuccess?.(task);
 
