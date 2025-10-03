@@ -35,15 +35,15 @@ import { useGlobalProfile } from '@/contexts/GlobalProfileContext';
 const { width } = Dimensions.get('window');
 
 interface Conversation {
-  conversation_id: string;
-  partner_user_id: string;
-  partner_display_name: string;
-  partner_avatar_url: string | null;
-  partner_major: string | null;
-  last_message_text: string | null;
+  room_id: string;
+  task_id: string;
+  other_id: string;
+  other_name: string;
+  other_avatar_url: string | null;
+  other_major: string | null;
+  last_message: string | null;
   last_message_at: string | null;
   unread_count: number;
-  task_id: string;
 }
 
 // Skeleton loader component
@@ -161,7 +161,7 @@ const ChatRow = ({
 
   const handleAvatarPress = () => {
     triggerHaptics();
-    onProfilePress(conversation.partner_user_id);
+    onProfilePress(conversation.other_id);
   };
 
   const formatTimestamp = (timestamp: string | null): string => {
@@ -228,27 +228,27 @@ const ChatRow = ({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={1}
-        accessibilityLabel={`Chat with ${conversation.partner_display_name}`}
+        accessibilityLabel={`Chat with ${conversation.other_name}`}
         accessibilityRole="button"
         accessibilityHint={isUnread ? `${conversation.unread_count} unread messages` : undefined}
       >
         {/* Avatar */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.avatarContainer}
           onPress={handleAvatarPress}
           activeOpacity={0.7}
-          accessibilityLabel={`View ${conversation.partner_display_name}'s profile`}
+          accessibilityLabel={`View ${conversation.other_name}'s profile`}
           accessibilityRole="button"
         >
-          {conversation.partner_avatar_url ? (
-            <Image 
-              source={{ uri: conversation.partner_avatar_url }} 
-              style={styles.avatar} 
+          {conversation.other_avatar_url ? (
+            <Image
+              source={{ uri: conversation.other_avatar_url }}
+              style={styles.avatar}
             />
           ) : (
             <View style={styles.avatarPlaceholder}>
               <Text style={styles.avatarText}>
-                {getInitials(conversation.partner_display_name)}
+                {getInitials(conversation.other_name)}
               </Text>
             </View>
           )}
@@ -265,9 +265,9 @@ const ChatRow = ({
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {highlightText(conversation.partner_display_name, searchQuery)}
+              {highlightText(conversation.other_name, searchQuery)}
             </Text>
-            
+
             {/* Timestamp */}
             {conversation.last_message_at && (
               <Text style={styles.timestamp}>
@@ -275,18 +275,18 @@ const ChatRow = ({
               </Text>
             )}
           </View>
-          
+
           <View style={styles.messageRow}>
-            <Text 
+            <Text
               style={[
                 styles.lastMessage,
                 isUnread && styles.unreadLastMessage
-              ]} 
+              ]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {conversation.last_message_text ? 
-                highlightText(conversation.last_message_text, searchQuery) : 
+              {conversation.last_message ?
+                highlightText(conversation.last_message, searchQuery) :
                 'No messages yet'
               }
             </Text>
@@ -446,19 +446,19 @@ export default function ChatsScreen() {
     setError(null);
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from('conversations')
-        .select('*')
-        .order('last_message_at', { ascending: false, nullsFirst: false });
-      
+      const { data, error: fetchError } = await supabase.rpc('get_chat_inbox');
+
       if (fetchError) {
+        console.error('Error loading chat inbox:', fetchError);
         setError(fetchError.message);
         return;
       }
 
+      console.log('Loaded conversations:', data);
       setConversations(data || []);
       setFilteredConversations(data || []);
     } catch (error) {
+      console.error('Exception loading conversations:', error);
       setError('Failed to load conversations. Please try again.');
     } finally {
       setIsLoading(false);
@@ -474,11 +474,11 @@ export default function ChatsScreen() {
     }
 
     const query = searchQuery.toLowerCase();
-    const filtered = conversations.filter(conv => 
-      conv.partner_display_name.toLowerCase().includes(query) ||
-      (conv.last_message_text && conv.last_message_text.toLowerCase().includes(query))
+    const filtered = conversations.filter(conv =>
+      conv.other_name.toLowerCase().includes(query) ||
+      (conv.last_message && conv.last_message.toLowerCase().includes(query))
     );
-    
+
     setFilteredConversations(filtered);
   }, [searchQuery, conversations]);
 
@@ -537,7 +537,7 @@ export default function ChatsScreen() {
   };
 
   const handleChatPress = (conversation: Conversation) => {
-    router.push(`/chat/${conversation.conversation_id}`);
+    router.push(`/chat/${conversation.room_id}`);
   };
   
   const handleProfilePress = (userId: string) => {
@@ -562,7 +562,7 @@ export default function ChatsScreen() {
     </View>
   );
 
-  const keyExtractor = (item: Conversation) => item.conversation_id;
+  const keyExtractor = (item: Conversation) => item.room_id;
 
   const getItemLayout = (_: any, index: number) => ({
     length: 80, // Row height
@@ -722,6 +722,11 @@ const styles = StyleSheet.create({
   appIcon: {
     width: 28,
     height: 28,
+  },
+  appIconText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.primary,
   },
   searchContainer: {
     flexDirection: 'row',
