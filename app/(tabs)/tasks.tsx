@@ -15,17 +15,7 @@ import {
 import { router, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import {
-  List,
-  Map as MapIcon,
-  Clock,
-  MapPin,
-  Store,
-  Zap,
-  User,
-  Filter,
-  Search,
-} from 'lucide-react-native';
+import { List, Map as MapIcon, Clock, MapPin, Store, Zap, User, ListFilter as Filter, Search } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   useSharedValue,
@@ -332,6 +322,7 @@ export default function TasksScreen() {
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [myTasks, setMyTasks] = useState<Task[]>([]);
+  const [doingTasks, setDoingTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -373,9 +364,13 @@ export default function TasksScreen() {
           // For guest users, show mock data or empty state
           setTasks([]);
           setMyTasks([]);
+          setDoingTasks([]);
         } else if (user) {
           const { data, error } = await TaskRepo.listOpenTasks(user.id);
           const { data: myData, error: myError } = await TaskRepo.myTasks(
+            user.id
+          );
+          const { data: doingData, error: doingError } = await TaskRepo.listUserDoingTasks(
             user.id
           );
 
@@ -390,6 +385,8 @@ export default function TasksScreen() {
 
           setTasks(data || []);
           setMyTasks(myData || []);
+          const activeDoingTasks = (doingData || []).filter(t => t.status === 'accepted');
+          setDoingTasks(activeDoingTasks);
         }
       } catch (error) {
         setToast({
@@ -679,11 +676,34 @@ export default function TasksScreen() {
                 <ActivityIndicator size="large" color={Colors.primary} />
                 <Text style={styles.loadingText}>Loading tasks...</Text>
               </View>
-            ) : tasks.length > 0 ? (
+            ) : tasks.length > 0 || doingTasks.length > 0 ? (
               <FlatList
                 data={tasks}
                 renderItem={renderTaskItem}
                 keyExtractor={keyExtractor}
+                ListHeaderComponent={
+                  doingTasks.length > 0 ? (
+                    <View style={styles.activeTasksSection}>
+                      <View style={styles.sectionHeaderContainer}>
+                        <Zap size={20} color={Colors.secondary} strokeWidth={2.5} />
+                        <Text style={styles.sectionHeaderText}>
+                          My Active Tasks ({doingTasks.length})
+                        </Text>
+                      </View>
+                      {doingTasks.map((task) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onAccept={() => {}}
+                          isAccepting={false}
+                          showAcceptButton={false}
+                        />
+                      ))}
+                      <View style={styles.sectionDivider} />
+                      <Text style={styles.allTasksHeader}>All Available Tasks</Text>
+                    </View>
+                  ) : null
+                }
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                   <RefreshControl
@@ -1009,5 +1029,33 @@ const styles = StyleSheet.create({
   mapPlaceholderText: {
     fontSize: 16,
     color: Colors.semantic.tabInactive,
+  },
+  activeTasksSection: {
+    marginBottom: 20,
+  },
+  sectionHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  sectionHeaderText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.semantic.headingText,
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: Colors.semantic.border,
+    marginVertical: 20,
+    marginHorizontal: 4,
+  },
+  allTasksHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.semantic.headingText,
+    marginBottom: 12,
+    paddingHorizontal: 4,
   },
 });
