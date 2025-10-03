@@ -140,26 +140,54 @@ export class TaskRepo {
 
   /**
    * Accept a task - generates unique code and assigns to user
+   * Includes retry logic for handling database lock contention
    */
-  static async acceptTask(taskId: string): Promise<{ data: Task | null; error: string | null }> {
-    try {
-      const { data, error } = await supabase.rpc('accept_task', { p_task_id: taskId });
+  static async acceptTask(taskId: string, maxRetries: number = 3): Promise<{ data: Task | null; error: string | null }> {
+    let lastError = '';
 
-      if (error) {
-        console.error('accept_task RPC error:', error);
-        return { data: null, error: error.message };
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const { data, error } = await supabase.rpc('accept_task', { p_task_id: taskId });
+
+        if (error) {
+          const errorMsg = error.message.toLowerCase();
+
+          // Check if error is retryable (lock or processing conflict)
+          const isRetryable = errorMsg.includes('locked') ||
+                             errorMsg.includes('being processed') ||
+                             errorMsg.includes('try again');
+
+          if (isRetryable && attempt < maxRetries - 1) {
+            // Exponential backoff: wait 500ms, 1000ms, 1500ms
+            await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+            lastError = error.message;
+            continue;
+          }
+
+          console.error('accept_task RPC error:', error);
+          return { data: null, error: error.message };
+        }
+
+        const acceptedTask = data?.[0] ?? null;
+        if (!acceptedTask) {
+          return { data: null, error: 'Task is no longer available or cannot be accepted' };
+        }
+
+        return { data: acceptedTask, error: null };
+      } catch (error) {
+        console.error('accept_task network error:', error);
+
+        if (attempt < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+          lastError = 'Network error. Please check your connection.';
+          continue;
+        }
+
+        return { data: null, error: lastError || 'Network error. Please check your connection.' };
       }
-
-      const acceptedTask = data?.[0] ?? null;
-      if (!acceptedTask) {
-        return { data: null, error: 'Task is no longer available or cannot be accepted' };
-      }
-
-      return { data: acceptedTask, error: null };
-    } catch (error) {
-      console.error('accept_task network error:', error);
-      return { data: null, error: 'Network error. Please check your connection.' };
     }
+
+    return { data: null, error: lastError || 'Failed to accept task after multiple attempts' };
   }
 
   /**

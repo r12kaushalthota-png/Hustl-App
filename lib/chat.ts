@@ -3,30 +3,67 @@ import type { ChatRoom, ChatMessage, InboxItem } from '@/types/chat';
 
 export class ChatService {
   // Ensure a chat room exists for an accepted task
-  static async ensureRoomForTask(taskId: string): Promise<{ data: ChatRoom | null; error: string | null }> {
-    try {
-      console.log('Ensuring room for task:', taskId);
-      const { data, error } = await supabase.rpc('ensure_room_for_task', {
-        p_task_id: taskId
-      });
+  // Includes retry logic for handling database lock contention
+  static async ensureRoomForTask(taskId: string, maxRetries: number = 3): Promise<{ data: ChatRoom | null; error: string | null }> {
+    let lastError = '';
 
-      if (error) {
-        console.error('RPC error:', error);
-        return { data: null, error: error.message };
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        console.log('Ensuring room for task:', taskId, 'attempt:', attempt + 1);
+        const { data, error } = await supabase.rpc('ensure_room_for_task', {
+          p_task_id: taskId
+        });
+
+        if (error) {
+          const errorMsg = error.message.toLowerCase();
+
+          // Check if error is retryable
+          const isRetryable = errorMsg.includes('unable to create') ||
+                             errorMsg.includes('try again') ||
+                             errorMsg.includes('locked');
+
+          if (isRetryable && attempt < maxRetries - 1) {
+            console.log('Retrying chat room creation...');
+            await new Promise(resolve => setTimeout(resolve, 300 * (attempt + 1)));
+            lastError = error.message;
+            continue;
+          }
+
+          console.error('RPC error:', error);
+          return { data: null, error: error.message };
+        }
+
+        console.log('ensure_room_for_task result:', data);
+
+        // The function returns a JSON object, check if it has an error
+        if (data && typeof data === 'object' && 'error' in data) {
+          const errMsg = data.error;
+
+          if (errMsg.toLowerCase().includes('try again') && attempt < maxRetries - 1) {
+            console.log('Retrying due to returned error...');
+            await new Promise(resolve => setTimeout(resolve, 300 * (attempt + 1)));
+            lastError = errMsg;
+            continue;
+          }
+
+          return { data: null, error: errMsg };
+        }
+
+        return { data: data || null, error: null };
+      } catch (error) {
+        console.error('Exception ensuring room:', error);
+
+        if (attempt < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 300 * (attempt + 1)));
+          lastError = 'Failed to create chat room';
+          continue;
+        }
+
+        return { data: null, error: lastError || 'Failed to create chat room' };
       }
-
-      console.log('ensure_room_for_task result:', data);
-
-      // The function returns a JSON object, check if it has an error
-      if (data && typeof data === 'object' && 'error' in data) {
-        return { data: null, error: data.error };
-      }
-
-      return { data: data || null, error: null };
-    } catch (error) {
-      console.error('Exception ensuring room:', error);
-      return { data: null, error: 'Failed to create chat room' };
     }
+
+    return { data: null, error: lastError || 'Failed to create chat room after multiple attempts' };
   }
 
   // Get chat room for a task

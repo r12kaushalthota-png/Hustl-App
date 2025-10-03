@@ -18,6 +18,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     // Detect session from URL for web compatibility
     detectSessionInUrl: false,
   },
+  db: {
+    schema: 'public',
+  },
+  global: {
+    headers: {
+      'x-connection-timeout': '30000',
+    },
+  },
 });
 
 export default supabase;
