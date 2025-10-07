@@ -31,9 +31,8 @@ interface TaskStatusTimelineProps {
 
 const STATUS_CONFIG = {
   accepted: { label: 'Accepted', icon: Check },
-  en_route: { label: 'En Route', icon: Circle },
-  arrived: { label: 'Arrived', icon: Circle },
-  picked_up: { label: 'Picked Up', icon: Circle },
+  started: { label: 'Started', icon: Circle },
+  on_the_way: { label: 'On the Way', icon: Circle },
   delivered: { label: 'Delivered', icon: Circle },
   completed: { label: 'Completed', icon: Check },
   cancelled: { label: 'Cancelled', icon: X },
@@ -139,7 +138,7 @@ export default function TaskStatusTimeline({
   };
 
   const getNextStatus = () => {
-    const statusFlow = ['accepted', 'en_route', 'arrived', 'picked_up', 'delivered'];
+    const statusFlow = ['accepted', 'started', 'on_the_way', 'delivered'];
     const currentIndex = statusFlow.indexOf(taskStatus);
     if (currentIndex >= 0 && currentIndex < statusFlow.length - 1) {
       return statusFlow[currentIndex + 1];
