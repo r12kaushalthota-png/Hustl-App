@@ -82,11 +82,15 @@ const TaskCard = ({
   onAccept,
   isAccepting,
   showAcceptButton = true,
+  showUpdateButton = false,
+  onUpdateStatus,
 }: {
   task: Task;
   onAccept: () => void;
   isAccepting: boolean;
   showAcceptButton?: boolean;
+  showUpdateButton?: boolean;
+  onUpdateStatus?: () => void;
 }) => {
   const scale = useSharedValue(1);
   const glowOpacity = useSharedValue(0);
@@ -306,6 +310,23 @@ const TaskCard = ({
                   <Text style={styles.acceptButtonText}>Accept Task</Text>
                 </LinearGradient>
               )}
+            </Pressable>
+          </View>
+        )}
+        {showUpdateButton && onUpdateStatus && (
+          <View style={styles.taskActions}>
+            <Pressable
+              style={styles.updateButton}
+              onPress={onUpdateStatus}
+              accessibilityLabel="Update task status"
+              accessibilityRole="button"
+            >
+              <LinearGradient
+                colors={['#3B82F6', '#1D4ED8']}
+                style={styles.acceptButtonGradient}
+              >
+                <Text style={styles.acceptButtonText}>Update Status</Text>
+              </LinearGradient>
             </Pressable>
           </View>
         )}
@@ -697,6 +718,8 @@ export default function TasksScreen() {
                           onAccept={() => {}}
                           isAccepting={false}
                           showAcceptButton={false}
+                          showUpdateButton={true}
+                          onUpdateStatus={() => router.push(`/task/${task.id}/status`)}
                         />
                       ))}
                       <View style={styles.sectionDivider} />
@@ -984,6 +1007,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: Colors.white,
+  },
+  updateButton: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   emptyState: {
     flex: 1,
