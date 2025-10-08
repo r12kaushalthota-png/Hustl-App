@@ -81,6 +81,11 @@ export default function TaskStatusScreen() {
   });
 
   useEffect(() => {
+    if (!taskId || !user) {
+      console.log('Waiting for taskId or user:', { taskId, user: !!user });
+      return;
+    }
+
     loadTaskStatus();
 
     const channel = supabase
@@ -114,7 +119,7 @@ export default function TaskStatusScreen() {
     return () => {
       channel.unsubscribe();
     };
-  }, [taskId]);
+  }, [taskId, user]);
 
   const loadTaskStatus = async () => {
     if (!taskId) return;
@@ -122,25 +127,44 @@ export default function TaskStatusScreen() {
     setIsLoading(true);
 
     try {
+      console.log('Loading task with ID:', taskId);
+
       const { data: taskData, error: taskError } = await supabase
         .from('tasks')
-        .select(`
-          id,
-          title,
-          current_status,
-          status,
-          created_by,
-          accepted_by,
-          created_by_profile:profiles!tasks_created_by_fkey(full_name),
-          accepted_by_profile:profiles!tasks_accepted_by_fkey(full_name)
-        `)
+        .select('id, title, current_status, status, created_by, accepted_by')
         .eq('id', taskId)
         .maybeSingle();
 
-      if (taskError) throw taskError;
-      if (!taskData) throw new Error('Task not found');
+      console.log('Task query result:', { taskData, taskError });
 
-      setTask(taskData);
+      if (taskError) {
+        console.error('Task query error:', taskError);
+        throw taskError;
+      }
+      if (!taskData) {
+        console.error('No task data returned for ID:', taskId);
+        throw new Error('Task not found');
+      }
+
+      // Fetch profiles separately
+      const profileIds = [taskData.created_by, taskData.accepted_by].filter(Boolean);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', profileIds);
+
+      const profileMap = (profiles || []).reduce((acc: any, p: any) => {
+        acc[p.id] = p;
+        return acc;
+      }, {});
+
+      const enrichedTask = {
+        ...taskData,
+        created_by_profile: taskData.created_by ? profileMap[taskData.created_by] : null,
+        accepted_by_profile: taskData.accepted_by ? profileMap[taskData.accepted_by] : null,
+      };
+
+      setTask(enrichedTask);
 
       const { data: historyData, error: historyError } = await supabase.rpc('get_task_status_timeline', {
         p_task_id: taskId,
@@ -297,7 +321,7 @@ export default function TaskStatusScreen() {
   const canUpdateStatus = isTaskDoer && nextStatus && task?.current_status !== 'completed' && task?.current_status !== 'cancelled';
   const canComplete = isTaskPoster && task?.current_status === 'delivered';
 
-  if (isLoading) {
+  if (isLoading || !user) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
@@ -309,7 +333,7 @@ export default function TaskStatusScreen() {
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Loading status...</Text>
+          <Text style={styles.loadingText}>{!user ? 'Loading user...' : 'Loading status...'}</Text>
         </View>
       </SafeAreaView>
     );
