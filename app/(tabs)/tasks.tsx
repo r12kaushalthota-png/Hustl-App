@@ -549,15 +549,22 @@ export default function TasksScreen() {
     router.push(`/task/${acceptanceData.taskId}`);
   };
 
-  const renderTaskCard = (task: Task) => (
-    <TaskCard
-      key={task.id}
-      task={task}
-      onAccept={() => handleAcceptTask(task.id)}
-      isAccepting={acceptingTaskId === task.id}
-      showAcceptButton={viewMode !== 'myTasks'}
-    />
-  );
+  const renderTaskCard = (task: Task) => {
+    const isTaskDoer = user && task.accepted_by === user.id;
+    const isActiveTask = isTaskDoer && ['accepted', 'started', 'on_the_way', 'delivered'].includes(task.status);
+
+    return (
+      <TaskCard
+        key={task.id}
+        task={task}
+        onAccept={() => handleAcceptTask(task.id)}
+        isAccepting={acceptingTaskId === task.id}
+        showAcceptButton={viewMode !== 'myTasks' && !isActiveTask}
+        showUpdateButton={isActiveTask}
+        onUpdateStatus={() => router.push(`/task/${task.id}/status`)}
+      />
+    );
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
@@ -711,17 +718,7 @@ export default function TasksScreen() {
                           My Active Tasks ({doingTasks.length})
                         </Text>
                       </View>
-                      {doingTasks.map((task) => (
-                        <TaskCard
-                          key={task.id}
-                          task={task}
-                          onAccept={() => {}}
-                          isAccepting={false}
-                          showAcceptButton={false}
-                          showUpdateButton={true}
-                          onUpdateStatus={() => router.push(`/task/${task.id}/status`)}
-                        />
-                      ))}
+                      {doingTasks.map((task) => renderTaskCard(task))}
                       <View style={styles.sectionDivider} />
                       <Text style={styles.allTasksHeader}>All Available Tasks</Text>
                     </View>
