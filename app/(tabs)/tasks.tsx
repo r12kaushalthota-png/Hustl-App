@@ -36,6 +36,7 @@ import AcceptanceSuccessModal from '@/components/AcceptanceSuccessModal';
 import MapViewComponent from '@/components/MapView';
 import { StripeConnect } from '@/lib/stripeConnect';
 import KYCRequestModal from '@/components/KYCRequestModal';
+import ReviewModal from '@/components/ReviewModal';
 
 const { width } = Dimensions.get('window');
 
@@ -370,6 +371,19 @@ export default function TasksScreen() {
     code: '',
     category: '',
   });
+  const [reviewModal, setReviewModal] = useState<{
+    visible: boolean;
+    taskId: string;
+    taskTitle: string;
+    rateeId: string;
+    rateeName: string;
+  }>({
+    visible: false,
+    taskId: '',
+    taskTitle: '',
+    rateeId: '',
+    rateeName: '',
+  });
 
   // Load tasks
   const loadTasks = useCallback(
@@ -444,6 +458,47 @@ export default function TasksScreen() {
         },
         () => {
           loadTasks();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'tasks',
+          filter: `created_by=eq.${user.id}`,
+        },
+        async (payload) => {
+          const updatedTask = payload.new as Task;
+
+          // Update myTasks list with new status
+          setMyTasks((prev) =>
+            prev.map((task) =>
+              task.id === updatedTask.id ? updatedTask : task
+            )
+          );
+
+          // Show review modal when task is completed and user is the poster
+          if (
+            updatedTask.status === 'completed' &&
+            updatedTask.created_by === user.id &&
+            updatedTask.accepted_by
+          ) {
+            // Fetch doer's profile
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('full_name')
+              .eq('id', updatedTask.accepted_by)
+              .single();
+
+            setReviewModal({
+              visible: true,
+              taskId: updatedTask.id,
+              taskTitle: updatedTask.title,
+              rateeId: updatedTask.accepted_by,
+              rateeName: profile?.full_name || 'Task Runner',
+            });
+          }
         }
       )
       .subscribe();
@@ -807,6 +862,28 @@ export default function TasksScreen() {
         onClose={() => setShowKYCModal(false)}
         feature="Accept tasks"
       />
+
+      {/* Review Modal */}
+      {reviewModal.visible && user && (
+        <ReviewModal
+          visible={reviewModal.visible}
+          onClose={() => setReviewModal((prev) => ({ ...prev, visible: false }))}
+          onSubmit={() => {
+            setReviewModal((prev) => ({ ...prev, visible: false }));
+            setToast({
+              visible: true,
+              message: 'Thank you for your review!',
+              type: 'success',
+            });
+            loadTasks();
+          }}
+          taskId={reviewModal.taskId}
+          taskTitle={reviewModal.taskTitle}
+          raterId={user.id}
+          rateeId={reviewModal.rateeId}
+          rateeName={reviewModal.rateeName}
+        />
+      )}
     </>
   );
 }
