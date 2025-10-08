@@ -106,8 +106,10 @@ export default function PostTaskScreen() {
 
   // Get category from params or default to food
   const initialCategory = (params.category as string) || 'food';
+  const passedTitle = params.title as string;
+  const isFreeTask = params.isFree === 'true';
   const categoryData = TASK_CATEGORIES[initialCategory as keyof typeof TASK_CATEGORIES] || TASK_CATEGORIES.food;
-  const initialTitle = (params.title as string) || categoryData.title;
+  const initialTitle = passedTitle || categoryData.title;
 
   // Form state
   const [title, setTitle] = useState(initialTitle);
@@ -116,7 +118,7 @@ export default function PostTaskScreen() {
   const [dropoffAddress, setDropoffAddress] = useState('');
   const [dropoffInstructions, setDropoffInstructions] = useState('');
   const [urgency, setUrgency] = useState<'low' | 'medium' | 'high'>('medium');
-  const [rewardCents, setRewardCents] = useState(categoryData.rewardCents);
+  const [rewardCents, setRewardCents] = useState(isFreeTask ? 0 : categoryData.rewardCents);
   const [estimatedMinutes, setEstimatedMinutes] = useState(categoryData.estimatedMinutes);
 
   // UI state
@@ -175,11 +177,13 @@ export default function PostTaskScreen() {
       newErrors.dropoffAddress = 'Dropoff address is required';
     }
 
-    // Reward validation
-    if (rewardCents < 100) {
-      newErrors.reward = 'Reward must be at least $1.00';
-    } else if (rewardCents > 10000) {
-      newErrors.reward = 'Reward must be less than $100.00';
+    // Reward validation - skip for free tasks
+    if (!isFreeTask) {
+      if (rewardCents < 100) {
+        newErrors.reward = 'Reward must be at least $1.00';
+      } else if (rewardCents > 10000) {
+        newErrors.reward = 'Reward must be less than $100.00';
+      }
     }
 
     // Estimated time validation
@@ -346,7 +350,7 @@ export default function PostTaskScreen() {
               <View style={styles.categoryContent}>
                 <Text style={styles.categoryIcon}>{categoryData.icon}</Text>
                 <View style={styles.categoryInfo}>
-                  <Text style={styles.categoryTitle}>{categoryData.title}</Text>
+                  <Text style={styles.categoryTitle}>{title || categoryData.title}</Text>
                   <Text style={styles.categoryDescription}>
                     {categoryData.description}
                   </Text>
@@ -508,37 +512,46 @@ export default function PostTaskScreen() {
               </View>
             </View>
 
-            {/* Reward */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Reward <Text style={styles.required}>*</Text>
-              </Text>
-              <View style={styles.inputWithIcon}>
-                <DollarSign
-                  size={20}
-                  color={BrandColors.subtitle}
-                  strokeWidth={2}
-                />
-                <TextInput
-                  style={[
-                    styles.inputText,
-                    errors.reward && styles.inputTextError,
-                  ]}
-                  value={formatReward(rewardCents)}
-                  onChangeText={handleRewardChange}
-                  placeholder="5.00"
-                  placeholderTextColor={BrandColors.subtitle}
-                  keyboardType="decimal-pad"
-                  editable={!isSubmitting}
-                />
+            {/* Reward - Only show for paid tasks */}
+            {!isFreeTask && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Reward <Text style={styles.required}>*</Text>
+                </Text>
+                <View style={styles.inputWithIcon}>
+                  <DollarSign
+                    size={20}
+                    color={BrandColors.subtitle}
+                    strokeWidth={2}
+                  />
+                  <TextInput
+                    style={[
+                      styles.inputText,
+                      errors.reward && styles.inputTextError,
+                    ]}
+                    value={formatReward(rewardCents)}
+                    onChangeText={handleRewardChange}
+                    placeholder="5.00"
+                    placeholderTextColor={BrandColors.subtitle}
+                    keyboardType="decimal-pad"
+                    editable={!isSubmitting}
+                  />
+                </View>
+                {errors.reward && (
+                  <Text style={styles.errorText}>{errors.reward}</Text>
+                )}
+                <Text style={styles.helperText}>
+                  How much will you pay the helper?
+                </Text>
               </View>
-              {errors.reward && (
-                <Text style={styles.errorText}>{errors.reward}</Text>
-              )}
-              <Text style={styles.helperText}>
-                How much will you pay the helper?
-              </Text>
-            </View>
+            )}
+
+            {/* Free task badge */}
+            {isFreeTask && (
+              <View style={styles.freeTaskBadge}>
+                <Text style={styles.freeTaskText}>✨ This is a free task - no payment required!</Text>
+              </View>
+            )}
 
             {/* Estimated Time */}
             <View style={styles.inputGroup}>
@@ -590,12 +603,39 @@ export default function PostTaskScreen() {
 
           {/* Submit Button */}
           <View style={styles.submitSection}>
-            <CheckoutForm
-              amount={rewardCents}
-              isFormValid={isFormValid}
-              submitTask={submitTask}
-              category={initialCategory}
-            />
+            {isFreeTask ? (
+              <TouchableOpacity
+                style={[
+                  styles.freeSubmitButton,
+                  (!isFormValid() || isSubmitting) && styles.freeSubmitButtonDisabled,
+                ]}
+                onPress={submitTask}
+                disabled={!isFormValid() || isSubmitting}
+              >
+                <LinearGradient
+                  colors={BrandGradients.button}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.freeSubmitGradient}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator size="small" color={BrandColors.surface} />
+                  ) : (
+                    <>
+                      <Zap size={20} color={BrandColors.surface} strokeWidth={2} fill={BrandColors.surface} />
+                      <Text style={styles.freeSubmitButtonText}>Post Free Task</Text>
+                    </>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            ) : (
+              <CheckoutForm
+                amount={rewardCents}
+                isFormValid={isFormValid}
+                submitTask={submitTask}
+                category={initialCategory}
+              />
+            )}
           </View>
         </ScrollView>
         </KeyboardAvoidingView>
@@ -801,5 +841,45 @@ const styles = StyleSheet.create({
   submitSection: {
     paddingHorizontal: 24,
     paddingTop: 32,
+  },
+  freeTaskBadge: {
+    backgroundColor: '#E7F5E7',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#10B981',
+  },
+  freeTaskText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#10B981',
+    textAlign: 'center',
+  },
+  freeSubmitButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: BrandColors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  freeSubmitButtonDisabled: {
+    opacity: 0.5,
+  },
+  freeSubmitGradient: {
+    paddingVertical: 18,
+    paddingHorizontal: 32,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  freeSubmitButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: BrandColors.surface,
+    letterSpacing: 0.5,
   },
 });

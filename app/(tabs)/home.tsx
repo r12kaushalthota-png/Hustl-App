@@ -313,11 +313,11 @@ export default function HomeScreen() {
     }
   };
 
-  const handleTaskCardPress = (category: string, title: string) => {
+  const handleTaskCardPress = (category: string, title: string, isFree: boolean) => {
     triggerHaptics();
     router.push({
       pathname: '/(tabs)/post',
-      params: { category, title }
+      params: { category, title, isFree: isFree.toString() }
     });
   };
 
@@ -356,7 +356,7 @@ export default function HomeScreen() {
                   image={card.image}
                   isFree={card.isFree}
                   price={card.price}
-                  onPress={() => handleTaskCardPress(card.category, card.title)}
+                  onPress={() => handleTaskCardPress(card.category, card.title, card.isFree)}
                 />
               </View>
             ))}

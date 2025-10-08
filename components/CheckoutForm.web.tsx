@@ -1,5 +1,5 @@
 // CheckoutForm.web.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Zap } from 'lucide-react-native'; 
@@ -8,6 +8,7 @@ import { Colors } from '@/theme/colors';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { CheckoutService } from '@/lib/checkoutService';
+import { ReferralService } from '@/lib/referralService';
 import { useAuth } from '@/contexts/AuthContext';
 
 const stripePromise = loadStripe(process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
