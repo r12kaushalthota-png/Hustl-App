@@ -107,9 +107,13 @@ export default function PostTaskScreen() {
   // Get category from params or default to food
   const initialCategory = (params.category as string) || 'food';
   const passedTitle = params.title as string;
+  const passedIcon = params.icon as string;
+  const passedDescription = params.description as string;
   const isFreeTask = params.isFree === 'true';
   const categoryData = TASK_CATEGORIES[initialCategory as keyof typeof TASK_CATEGORIES] || TASK_CATEGORIES.food;
   const initialTitle = passedTitle || categoryData.title;
+  const taskIcon = passedIcon || categoryData.icon;
+  const taskDescription = passedDescription || categoryData.description;
 
   // Form state
   const [title, setTitle] = useState(initialTitle);
@@ -348,11 +352,11 @@ export default function PostTaskScreen() {
               style={styles.categoryGradient}
             >
               <View style={styles.categoryContent}>
-                <Text style={styles.categoryIcon}>{categoryData.icon}</Text>
+                <Text style={styles.categoryIcon}>{taskIcon}</Text>
                 <View style={styles.categoryInfo}>
-                  <Text style={styles.categoryTitle}>{title || categoryData.title}</Text>
+                  <Text style={styles.categoryTitle}>{title}</Text>
                   <Text style={styles.categoryDescription}>
-                    {categoryData.description}
+                    {taskDescription}
                   </Text>
                 </View>
               </View>

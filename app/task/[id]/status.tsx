@@ -351,6 +351,10 @@ export default function TaskStatusScreen() {
         </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Task not found</Text>
+          <Text style={styles.errorSubtext}>This task may have been deleted or you may not have access to it.</Text>
+          <TouchableOpacity style={styles.backToHomeButton} onPress={() => router.push('/(tabs)/home')}>
+            <Text style={styles.backToHomeText}>Go to Home</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -543,8 +547,27 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 18,
+    fontWeight: '600',
     color: Colors.semantic.errorAlert,
     textAlign: 'center',
+    marginBottom: 12,
+  },
+  errorSubtext: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  backToHomeButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  backToHomeText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
   card: {
     backgroundColor: Colors.semantic.card,

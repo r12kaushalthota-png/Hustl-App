@@ -313,11 +313,11 @@ export default function HomeScreen() {
     }
   };
 
-  const handleTaskCardPress = (category: string, title: string, isFree: boolean) => {
+  const handleTaskCardPress = (category: string, title: string, isFree: boolean, icon: string, subtitle: string) => {
     triggerHaptics();
     router.push({
       pathname: '/(tabs)/post',
-      params: { category, title, isFree: isFree.toString() }
+      params: { category, title, isFree: isFree.toString(), icon, description: subtitle }
     });
   };
 
@@ -356,7 +356,7 @@ export default function HomeScreen() {
                   image={card.image}
                   isFree={card.isFree}
                   price={card.price}
-                  onPress={() => handleTaskCardPress(card.category, card.title, card.isFree)}
+                  onPress={() => handleTaskCardPress(card.category, card.title, card.isFree, card.icon, card.subtitle)}
                 />
               </View>
             ))}
